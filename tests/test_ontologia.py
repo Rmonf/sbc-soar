@@ -121,3 +121,15 @@ def test_set_cambia_solo_ese_slot(tmp_path):
 def test_set_invalido(asignacion):
     with pytest.raises(ValueError):
         _generar(asignacion)
+
+
+# --- Verificación (§10.1) -----------------------------------------------------
+
+def test_verificacion_limpia(onto, plantillas):
+    anomalias, avisos = on.verificar(onto, plantillas)
+    assert anomalias == []
+    assert any("pendientes" in a for a in avisos)
+
+
+def test_verificar_cli():
+    assert on.main(["--verificar"]) == 0
