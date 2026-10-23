@@ -13,7 +13,7 @@ Práctica de Sistemes Basats en Coneixement (GIA, UPC). Es un sistema basado en 
 | `fuentes/testimonios.md` | Testimonios de los usuarios (en inglés); de ahí salen requisitos (roadmap §1.2). |
 | `fuentes/*.pdf` | Material de clase (ver "Fuentes" al final). |
 
-Los directorios `clips/`, `python/`, `config/`, `casos/` y `resultats/` aún no existen. Se crean siguiendo **roadmap §8**. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
+Los directorios `casos/` y `resultats/` aún no existen; se crean siguiendo **roadmap §8**. `clips/00_main.clp` solo tiene, por ahora, las plantillas del conocimiento estático y `estado-soar` (I0); el resto llega en I1. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
 
 ## Jerarquía de fuentes
 
@@ -54,10 +54,11 @@ El entorno lo gestiona **uv**. Ejecuta siempre con `uv run`. Añade dependencias
 uv sync                                         # instala el entorno desde uv.lock
 uv run python python/ontologia.py               # genera config/base_coneixement.clp a partir del TTL
 uv run python python/ontologia.py --verificar   # verificación de la base de conocimiento (§10.1)
+uv run python python/ontologia.py --set aprendizaje-activo=FALSE --salida <ruta>   # variante de experimento (§2.2)
 uv run pytest                                   # casos de prueba y regresión (§10.2)
 ```
 
-Los scripts se crean en la iteración I0. Si cambia algún comando, actualiza esta sección.
+Si cambia algún comando, actualiza esta sección. El generador lee las plantillas de `clips/00_main.clp`: al añadir o cambiar una plantilla, regenera y verifica.
 
 ## Forma de trabajar
 
