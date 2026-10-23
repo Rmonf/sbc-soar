@@ -3,8 +3,12 @@
 from collections import Counter
 
 import pytest
+from rdflib import Graph, Literal, Namespace
+from rdflib.namespace import RDF, XSD
 
 import ontologia as on
+
+A = Namespace(on.NS)
 
 
 @pytest.fixture(scope="module")
@@ -133,3 +137,87 @@ def test_verificacion_limpia(onto, plantillas):
 
 def test_verificar_cli():
     assert on.main(["--verificar"]) == 0
+
+
+
+# --- Prueba por mutación del verificador (experimento de cierre de I0) -------
+# Cada mutación introduce un error conocido en una copia del TTL o de 00_main.clp
+# y comprueba que el verificador lo detecta con la categoría esperada.
+
+def _cambiar(sujeto, prop, valor):
+    return lambda g: g.set((A[sujeto], A[prop], valor))
+
+
+def _anadir(sujeto, prop, valor):
+    return lambda g: g.add((A[sujeto], A[prop], valor))
+
+
+def _quitar(sujeto, prop=None):
+    return lambda g: g.remove((A[sujeto], A[prop] if prop else None, None))
+
+
+def _decimal(x):
+    return Literal(str(x), datatype=XSD.decimal)
+
+
+def _sin_umbrales_humitat(g):
+    for nivel in on.NIVELES:
+        g.remove((A[f"llindar-humitat-sol-{nivel}"], None, None))
+
+
+MUTACIONES_TTL = [
+    ("valor fuera de la enumeración", _cambiar("cultivo-s1", "sensibilidad", Literal("altisim")), "enumeracion"),
+    ("propiedad no declarada", _anadir("cultivo-s1", "color", Literal("verd")), "vocabulario"),
+    ("dos valores en una funcional", _anadir("obj-estabilitat", "prioridad", Literal(6)), "funcional"),
+    ("decimal en un slot entero", _cambiar("seguidor-s1", "max-movimientos-hora", _decimal(4.0)), "rango"),
+    ("objeto de otra clase", _cambiar("s1", "tiene-cultivo", A["seguidor-s1"]), "rango"),
+    ("propiedad de otra clase", _anadir("s1", "prioridad", Literal(1)), "dominio"),
+    ("dos clases disjuntas", lambda g: g.add((A["cultivo-s1"], RDF.type, A.Umbral)), "disyuncion"),
+    ("falta un slot obligatorio", _quitar("req-vent", "nivel"), "completitud"),
+    ("hueco entre umbrales", _cambiar("llindar-vent-alt", "limite-inferior", _decimal(-15.0)), "umbrales"),
+    ("solape entre umbrales", _cambiar("llindar-vent-alt", "limite-inferior", _decimal(-25.0)), "umbrales"),
+    ("umbral sin +inf", _anadir("llindar-vent-critic", "limite-superior", _decimal(100.0)), "umbrales"),
+    ("nivel repetido", _cambiar("llindar-vent-mitja", "nivel", Literal("alt")), "umbrales"),
+    ("dos referencias en una variable", _cambiar("llindar-vent-alt", "referencia", Literal("absoluta")), "umbrales"),
+    ("ciclo en las fases", _cambiar("fase-explicacio", "siguiente", Literal("percepcio")), "fases"),
+    ("fase inalcanzable", _cambiar("fase-monitoratge", "siguiente", Literal("proposta")), "fases"),
+    ("deliberacio no vuelve a seleccio", _cambiar("fase-deliberacio", "siguiente", Literal("aplicacio")), "fases"),
+    ("prioridad duplicada", _cambiar("obj-estabilitat", "prioridad", Literal(4)), "objetivos"),
+    ("sector sin seguidor", _quitar("s2", "tiene-seguidor"), "sectores"),
+    ("seguidor compartido", _cambiar("s2", "tiene-seguidor", A["seguidor-s1"]), "sectores"),
+    ("dato requerido sin umbrales", _sin_umbrales_humitat, "datos-requeridos"),
+]
+
+MUTACIONES_CLP = [
+    ("nil fuera de allowed-symbols",
+     "(slot limite-inferior (type NUMBER SYMBOL) (allowed-symbols nil) (default nil))",
+     "(slot limite-inferior (type NUMBER SYMBOL) (default nil))"),
+    ("tipo cambiado", "(slot max-movimientos-hora (type INTEGER))", "(slot max-movimientos-hora (type NUMBER))"),
+    ("multislot de una funcional", "(slot tiene-cultivo (type SYMBOL))", "(multislot tiene-cultivo (type SYMBOL))"),
+    ("falta un slot", "   (slot umbral-viento-critico (type NUMBER))\n", ""),
+    ("enumeración incompleta", "(allowed-symbols dura tova)", "(allowed-symbols dura)"),
+]
+
+
+@pytest.fixture(scope="module")
+def grafo():
+    return on.leer_grafo()
+
+
+@pytest.mark.parametrize("descripcion, mutar, categoria", MUTACIONES_TTL, ids=[m[0] for m in MUTACIONES_TTL])
+def test_mutacion_ttl(grafo, plantillas, descripcion, mutar, categoria):
+    copia = Graph()
+    copia += grafo
+    mutar(copia)
+    anomalias, _ = on.verificar(on.ontologia_desde_grafo(copia), plantillas)
+    assert categoria in {a.categoria for a in anomalias}, anomalias
+
+
+@pytest.mark.parametrize("descripcion, original, mutado", MUTACIONES_CLP, ids=[m[0] for m in MUTACIONES_CLP])
+def test_mutacion_plantillas(onto, tmp_path, descripcion, original, mutado):
+    texto = on.MAIN_CLP.read_text(encoding="utf-8")
+    assert texto.count(original) == 1
+    ruta = tmp_path / "00_main.clp"
+    ruta.write_text(texto.replace(original, mutado), encoding="utf-8")
+    anomalias, _ = on.verificar(onto, on.leer_plantillas(ruta))
+    assert "plantillas" in {a.categoria for a in anomalias}, anomalias

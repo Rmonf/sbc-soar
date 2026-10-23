@@ -527,6 +527,7 @@ proyecto-sbc-agrovoltaica/
 │   ├── executar_casos.py               # casos de prueba (§10.2)
 │   └── experiments.py                  # experimentos y análisis estadístico (§11)
 ├── casos/caso_XX.json                  # entradas por paso, salida esperada, requisito que cubre
+├── tests/                              # pytest: generador, verificador (mutación) y casos (§10)
 ├── resultats/                          # trazas, episodios, chunks, métricas, configuración usada
 ├── requirements.txt                    # versiones fijadas (clipspy, rdflib, numpy, scipy)
 └── README.md                           # instalación y ejecución desde entorno limpio
@@ -578,7 +579,7 @@ Cada iteración (§11.1) ejecuta las dos y usa los resultados de la anterior par
 | Los slots de los `deftemplate` de `00_main.clp` coinciden con los de §3 | Discrepancia entre especificación e implementación |
 | Reglas que no se disparan en ningún caso de la batería (estadísticas de `watch rules`) | Reglas muertas o inalcanzables, y reglas de más (sobreespecialización, SEEK) |
 
-El propio verificador se prueba **por mutación** (Vermesan y Hogberg, citado en el artículo): se introducen errores conocidos en una copia del TTL y se comprueba que los detecta (ya hecho para esta versión; ver `Cambios3.0.md`).
+El propio verificador se prueba **por mutación** (Vermesan y Hogberg, citado en el artículo): se introducen errores conocidos en una copia del TTL y se comprueba que los detecta (experimento de cierre de I0).
 
 ### 10.2 Validación del sistema (casos de prueba formales)
 
