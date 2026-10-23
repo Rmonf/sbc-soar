@@ -3,7 +3,7 @@
 **Asignatura:** Sistemes Basats en Coneixement (GIA, UPC)
 **Ontología:** `ontologia/agrovoltaica-soar.ttl` v3.0 (esquema + individuos del conocimiento estático)
 **Motor:** CLIPS 6.4.x a través de `clipspy`
-**Versión:** 3.0. Sustituye a `implementación.md` v2.2. Los cambios están en `Cambios3.0.md`.
+**Versión:** 3.0.
 
 Este documento es la especificación para empezar a escribir los ficheros CLIPS. Sigue el principio KISS: cada mecanismo existe porque lo pide el enunciado, la rúbrica, el profesor o una fuente citada.
 
