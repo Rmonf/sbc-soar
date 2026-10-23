@@ -1,0 +1,2019 @@
+@prefix : <http://www.upc.edu/ontologies/agrovoltaica-soar/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.upc.edu/ontologies/agrovoltaica-soar/> .
+
+<http://www.upc.edu/ontologies/agrovoltaica-soar> rdf:type owl:Ontology ;
+                                                   rdfs:comment "Esquema de la memoria de trabajo del sistema CLIPS e individuos del conocimiento estático. No importa ontologías externas." ;
+                                                   rdfs:label "Ontología agrovoltaica-SOAR (versión 3.0)" ;
+                                                   owl:versionInfo "3.0" .
+
+#################################################################
+#    Annotation properties
+#################################################################
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/escrito-por
+:escrito-por rdf:type owl:AnnotationProperty ;
+             rdfs:comment "Quien puede crear/modifica el hecho" .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/chunk-aplicado
+:chunk-aplicado rdf:type owl:ObjectProperty ,
+                         owl:FunctionalProperty ;
+                rdfs:range :Chunk ;
+                rdfs:comment "Compartida: Preferencia (origen chunk) y Episodio (decisión tomada con un chunk). En el episodio es una referencia histórica: el chunk puede haberse olvidado después." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/en-estado
+:en-estado rdf:type owl:ObjectProperty ,
+                    owl:FunctionalProperty ;
+           rdfs:range :EstadoSOAR ;
+           rdfs:comment "Compartida: Impasse, OperadorCandidato, Preferencia." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/estado-padre
+:estado-padre rdf:type owl:ObjectProperty ,
+                       owl:FunctionalProperty ;
+              rdfs:domain :EstadoSOAR ;
+              rdfs:range :EstadoSOAR .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/evalua-operador
+:evalua-operador rdf:type owl:ObjectProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :Valoracion ;
+                 rdfs:range :OperadorCandidato .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/impasse-asociado
+:impasse-asociado rdf:type owl:ObjectProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :EstadoSOAR ;
+                  rdfs:range :Impasse .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/operador-comparado
+:operador-comparado rdf:type owl:ObjectProperty ,
+                             owl:FunctionalProperty ;
+                    rdfs:domain :Preferencia ;
+                    rdfs:range :OperadorCandidato ;
+                    rdfs:comment "Solo en preferencias better." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/operador-referencia
+:operador-referencia rdf:type owl:ObjectProperty ,
+                              owl:FunctionalProperty ;
+                     rdfs:domain :Preferencia ;
+                     rdfs:range :OperadorCandidato .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/operadores-en-conflicto
+:operadores-en-conflicto rdf:type owl:ObjectProperty ;
+                         rdfs:domain :Impasse ;
+                         rdfs:range :OperadorCandidato .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/sector
+:sector rdf:type owl:ObjectProperty ,
+                 owl:FunctionalProperty ;
+        rdfs:range :Sector ;
+        rdfs:comment "Compartida: observaciones, predicciones, abstracciones, diagnósticos, impasses, candidatos, preferencias, órdenes y episodios. Opcional solo en Prediccion (magnitudes globales)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tiene-cultivo
+:tiene-cultivo rdf:type owl:ObjectProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain :Sector ;
+               rdfs:range :Cultivo .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tiene-seguidor
+:tiene-seguidor rdf:type owl:ObjectProperty ,
+                         owl:FunctionalProperty ;
+                rdfs:domain :Sector ;
+                rdfs:range :SeguidorSolar .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/accion
+:accion rdf:type owl:DatatypeProperty ,
+                 owl:FunctionalProperty ;
+        rdfs:range [ rdf:type rdfs:Datatype ;
+                     owl:oneOf [ rdf:type rdf:List ;
+                                 rdf:first "diagnosticar" ;
+                                 rdf:rest [ rdf:type rdf:List ;
+                                            rdf:first "mantenir-posicio" ;
+                                            rdf:rest [ rdf:type rdf:List ;
+                                                       rdf:first "orientar-ombra" ;
+                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                  rdf:first "orientar-produccio" ;
+                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                             rdf:first "posicio-seguretat" ;
+                                                                             rdf:rest rdf:nil
+                                                                           ]
+                                                                ]
+                                                     ]
+                                          ]
+                               ]
+                   ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/accion-descartada
+:accion-descartada rdf:type owl:DatatypeProperty ,
+                            owl:FunctionalProperty ;
+                   rdfs:domain :Chunk ;
+                   rdfs:range [ rdf:type rdfs:Datatype ;
+                                owl:oneOf [ rdf:type rdf:List ;
+                                            rdf:first "diagnosticar" ;
+                                            rdf:rest [ rdf:type rdf:List ;
+                                                       rdf:first "mantenir-posicio" ;
+                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                  rdf:first "orientar-ombra" ;
+                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                             rdf:first "orientar-produccio" ;
+                                                                             rdf:rest [ rdf:type rdf:List ;
+                                                                                        rdf:first "posicio-seguretat" ;
+                                                                                        rdf:rest rdf:nil
+                                                                                      ]
+                                                                           ]
+                                                                ]
+                                                     ]
+                                          ]
+                              ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/accion-preferida
+:accion-preferida rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :Chunk ;
+                  rdfs:range [ rdf:type rdfs:Datatype ;
+                               owl:oneOf [ rdf:type rdf:List ;
+                                           rdf:first "diagnosticar" ;
+                                           rdf:rest [ rdf:type rdf:List ;
+                                                      rdf:first "mantenir-posicio" ;
+                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                 rdf:first "orientar-ombra" ;
+                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                            rdf:first "orientar-produccio" ;
+                                                                            rdf:rest [ rdf:type rdf:List ;
+                                                                                       rdf:first "posicio-seguretat" ;
+                                                                                       rdf:rest rdf:nil
+                                                                                     ]
+                                                                          ]
+                                                               ]
+                                                    ]
+                                         ]
+                             ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/alternativas
+:alternativas rdf:type owl:DatatypeProperty ;
+              rdfs:domain :Episodio ;
+              rdfs:range [ rdf:type rdfs:Datatype ;
+                           owl:oneOf [ rdf:type rdf:List ;
+                                       rdf:first "diagnosticar" ;
+                                       rdf:rest [ rdf:type rdf:List ;
+                                                  rdf:first "mantenir-posicio" ;
+                                                  rdf:rest [ rdf:type rdf:List ;
+                                                             rdf:first "orientar-ombra" ;
+                                                             rdf:rest [ rdf:type rdf:List ;
+                                                                        rdf:first "orientar-produccio" ;
+                                                                        rdf:rest [ rdf:type rdf:List ;
+                                                                                   rdf:first "posicio-seguretat" ;
+                                                                                   rdf:rest rdf:nil
+                                                                                 ]
+                                                                      ]
+                                                           ]
+                                                ]
+                                     ]
+                         ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/angulo-actual
+:angulo-actual rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain :ObservacionPanel ;
+               rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/angulo-defensa-viento
+:angulo-defensa-viento rdf:type owl:DatatypeProperty ,
+                                owl:FunctionalProperty ;
+                       rdfs:domain :SeguidorSolar ;
+                       rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/angulo-maximo
+:angulo-maximo rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain :SeguidorSolar ;
+               rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/angulo-minimo
+:angulo-minimo rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain :SeguidorSolar ;
+               rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/angulo-objetivo
+:angulo-objetivo rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :OperadorCandidato ;
+                 rdfs:range xsd:decimal ;
+                 rdfs:comment "Ausente (nil) solo en acciones sin movimiento cuando falta la observación de panel." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/angulo-ordenado
+:angulo-ordenado rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:range xsd:decimal ;
+                 rdfs:comment "Compartida: OrdenActuador y Episodio. Ausente (nil) = mantener sin mover cuando el ángulo actual es desconocido." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/angulo-previo
+:angulo-previo rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain :Episodio ;
+               rdfs:range xsd:decimal ;
+               rdfs:comment "Ángulo medido al decidir. Hubo movimiento si |angulo-ordenado - angulo-previo| > tolerancia-angulo (R4). Ausente si faltaba la observación de panel." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/aprendizaje-activo
+:aprendizaje-activo rdf:type owl:DatatypeProperty ,
+                             owl:FunctionalProperty ;
+                    rdfs:domain :ParametrosAprendizaje ;
+                    rdfs:range xsd:boolean ;
+                    rdfs:comment "FALSE = línea base sin aprendizaje: APRENENTATGE no crea, refuerza ni olvida chunks." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/beneficio-cultivo
+:beneficio-cultivo rdf:type owl:DatatypeProperty ,
+                            owl:FunctionalProperty ;
+                   rdfs:range [ rdf:type rdfs:Datatype ;
+                                owl:oneOf [ rdf:type rdf:List ;
+                                            rdf:first "alt" ;
+                                            rdf:rest [ rdf:type rdf:List ;
+                                                       rdf:first "baix" ;
+                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                  rdf:first "critic" ;
+                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                             rdf:first "mitja" ;
+                                                                             rdf:rest rdf:nil
+                                                                           ]
+                                                                ]
+                                                     ]
+                                          ]
+                              ] ;
+                   rdfs:comment "Compartida: Valoracion (del candidato) y Episodio (de la acción elegida; vista agronómica)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/beneficio-descartada
+:beneficio-descartada rdf:type owl:DatatypeProperty ,
+                               owl:FunctionalProperty ;
+                      rdfs:domain :Chunk ;
+                      rdfs:range [ rdf:type rdfs:Datatype ;
+                                   owl:oneOf [ rdf:type rdf:List ;
+                                               rdf:first "alt" ;
+                                               rdf:rest [ rdf:type rdf:List ;
+                                                          rdf:first "baix" ;
+                                                          rdf:rest [ rdf:type rdf:List ;
+                                                                     rdf:first "critic" ;
+                                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                                rdf:first "mitja" ;
+                                                                                rdf:rest rdf:nil
+                                                                              ]
+                                                                   ]
+                                                        ]
+                                             ]
+                                 ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/beneficio-energia
+:beneficio-energia rdf:type owl:DatatypeProperty ,
+                            owl:FunctionalProperty ;
+                   rdfs:range [ rdf:type rdfs:Datatype ;
+                                owl:oneOf [ rdf:type rdf:List ;
+                                            rdf:first "alt" ;
+                                            rdf:rest [ rdf:type rdf:List ;
+                                                       rdf:first "baix" ;
+                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                  rdf:first "critic" ;
+                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                             rdf:first "mitja" ;
+                                                                             rdf:rest rdf:nil
+                                                                           ]
+                                                                ]
+                                                     ]
+                                          ]
+                              ] ;
+                   rdfs:comment "Compartida: Valoracion (del candidato) y Episodio (de la acción elegida; vista energética)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/beneficio-mecanico
+:beneficio-mecanico rdf:type owl:DatatypeProperty ,
+                             owl:FunctionalProperty ;
+                    rdfs:domain :Valoracion ;
+                    rdfs:range [ rdf:type rdfs:Datatype ;
+                                 owl:oneOf [ rdf:type rdf:List ;
+                                             rdf:first "alt" ;
+                                             rdf:rest [ rdf:type rdf:List ;
+                                                        rdf:first "baix" ;
+                                                        rdf:rest [ rdf:type rdf:List ;
+                                                                   rdf:first "critic" ;
+                                                                   rdf:rest [ rdf:type rdf:List ;
+                                                                              rdf:first "mitja" ;
+                                                                              rdf:rest rdf:nil
+                                                                            ]
+                                                                 ]
+                                                      ]
+                                           ]
+                               ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/beneficio-preferida
+:beneficio-preferida rdf:type owl:DatatypeProperty ,
+                              owl:FunctionalProperty ;
+                     rdfs:domain :Chunk ;
+                     rdfs:range [ rdf:type rdfs:Datatype ;
+                                  owl:oneOf [ rdf:type rdf:List ;
+                                              rdf:first "alt" ;
+                                              rdf:rest [ rdf:type rdf:List ;
+                                                         rdf:first "baix" ;
+                                                         rdf:rest [ rdf:type rdf:List ;
+                                                                    rdf:first "critic" ;
+                                                                    rdf:rest [ rdf:type rdf:List ;
+                                                                               rdf:first "mitja" ;
+                                                                               rdf:rest rdf:nil
+                                                                             ]
+                                                                  ]
+                                                       ]
+                                            ]
+                                ] ;
+                     rdfs:comment "Mayor de los tres beneficios de la acción preferida. Como cada acción solo tiene beneficio en su propio criterio, la acción y este nivel determinan su valoración completa." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/calidad
+:calidad rdf:type owl:DatatypeProperty ,
+                  owl:FunctionalProperty ;
+         rdfs:domain :ObservacionSensor ;
+         rdfs:range [ rdf:type rdfs:Datatype ;
+                      owl:oneOf [ rdf:type rdf:List ;
+                                  rdf:first "degradat" ;
+                                  rdf:rest [ rdf:type rdf:List ;
+                                             rdf:first "fallada" ;
+                                             rdf:rest [ rdf:type rdf:List ;
+                                                        rdf:first "ok" ;
+                                                        rdf:rest rdf:nil
+                                                      ]
+                                           ]
+                                ]
+                    ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/coste-movimiento
+:coste-movimiento rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :Valoracion ;
+                  rdfs:range [ rdf:type rdfs:Datatype ;
+                               owl:oneOf [ rdf:type rdf:List ;
+                                           rdf:first "alt" ;
+                                           rdf:rest [ rdf:type rdf:List ;
+                                                      rdf:first "baix" ;
+                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                 rdf:first "critic" ;
+                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                            rdf:first "mitja" ;
+                                                                            rdf:rest rdf:nil
+                                                                          ]
+                                                               ]
+                                                    ]
+                                         ]
+                             ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/criterio
+:criterio rdf:type owl:DatatypeProperty ,
+                   owl:FunctionalProperty ;
+          rdfs:range [ rdf:type rdfs:Datatype ;
+                       owl:oneOf [ rdf:type rdf:List ;
+                                   rdf:first "estabilitat" ;
+                                   rdf:rest [ rdf:type rdf:List ;
+                                              rdf:first "integritat-mecanica" ;
+                                              rdf:rest [ rdf:type rdf:List ;
+                                                         rdf:first "produccio-energia" ;
+                                                         rdf:rest [ rdf:type rdf:List ;
+                                                                    rdf:first "proteccio-cultiu" ;
+                                                                    rdf:rest [ rdf:type rdf:List ;
+                                                                               rdf:first "seguretat-persones" ;
+                                                                               rdf:rest rdf:nil
+                                                                             ]
+                                                                  ]
+                                                       ]
+                                            ]
+                                 ]
+                     ] ;
+          rdfs:comment "Compartida: Preferencia (objetivo que la justifica) y Chunk (criterio de la preferencia aprendida). Estabilidad y mínima intervención: estabilitat. R1 y R5: seguretat-persones. R2, R3 y R4: integritat-mecanica. require de dades-insuficients: integritat-mecanica. constraint-failure: el criterio de mayor prioridad entre los reject del sector (integritat-mecanica si no hay). Acción útil y prioritat-objectius: el objetivo de mayor prioridad servido." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/criterio-determinante
+:criterio-determinante rdf:type owl:DatatypeProperty ,
+                                owl:FunctionalProperty ;
+                       rdfs:domain :Episodio ;
+                       rdfs:range xsd:string ;
+                       rdfs:comment "Criterio del require, del better decisivo o del chunk (NombreObjetivo), o estrategia del impasse (EstrategiaResolucion)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/descartes
+:descartes rdf:type owl:DatatypeProperty ;
+           rdfs:domain :Episodio ;
+           rdfs:range xsd:string ;
+           rdfs:comment "accion:criterio de cada candidato descartado (rechazado o dominado)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/desplazamiento
+:desplazamiento rdf:type owl:DatatypeProperty ,
+                         owl:FunctionalProperty ;
+                rdfs:domain :Valoracion ;
+                rdfs:range xsd:decimal ;
+                rdfs:comment "Delta = |angulo-objetivo - angulo-actual| en grados; 0 en las acciones sin movimiento." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/escalado-humano
+:escalado-humano rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:range xsd:boolean .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/estado-candidato
+:estado-candidato rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :OperadorCandidato ;
+                  rdfs:range [ rdf:type rdfs:Datatype ;
+                               owl:oneOf [ rdf:type rdf:List ;
+                                           rdf:first "aplicat" ;
+                                           rdf:rest [ rdf:type rdf:List ;
+                                                      rdf:first "candidat" ;
+                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                 rdf:first "descartat" ;
+                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                            rdf:first "seleccionat" ;
+                                                                            rdf:rest rdf:nil
+                                                                          ]
+                                                               ]
+                                                    ]
+                                         ]
+                             ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/estado-mecanico
+:estado-mecanico rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :ObservacionPanel ;
+                 rdfs:range [ rdf:type rdfs:Datatype ;
+                              owl:oneOf [ rdf:type rdf:List ;
+                                          rdf:first "alarma" ;
+                                          rdf:rest [ rdf:type rdf:List ;
+                                                     rdf:first "bloquejat" ;
+                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                rdf:first "operatiu" ;
+                                                                rdf:rest rdf:nil
+                                                              ]
+                                                   ]
+                                        ]
+                            ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/estrategia-resolucion
+:estrategia-resolucion rdf:type owl:DatatypeProperty ,
+                                owl:FunctionalProperty ;
+                       rdfs:range [ rdf:type rdfs:Datatype ;
+                                    owl:oneOf [ rdf:type rdf:List ;
+                                                rdf:first "demanar-dades" ;
+                                                rdf:rest [ rdf:type rdf:List ;
+                                                           rdf:first "escalat" ;
+                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                      rdf:first "minima-intervencio" ;
+                                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                                 rdf:first "posicio-preventiva" ;
+                                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                                            rdf:first "prioritat-objectius" ;
+                                                                                            rdf:rest [ rdf:type rdf:List ;
+                                                                                                       rdf:first "restriccio-prioritaria" ;
+                                                                                                       rdf:rest rdf:nil
+                                                                                                     ]
+                                                                                          ]
+                                                                               ]
+                                                                    ]
+                                                         ]
+                                              ]
+                                  ] ;
+                       rdfs:comment "Compartida: Impasse (estrategia que lo resolvió; ausente mientras está abierto) y Chunk (estrategia de la que se aprendió)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/evidencias
+:evidencias rdf:type owl:DatatypeProperty ;
+            rdfs:domain :Diagnostico ;
+            rdfs:range xsd:string ;
+            rdfs:comment "Variables y niveles que sustentan el diagnóstico (p. ej. \"vent:critic\", \"observacio-panel:absent\", \"moviment-no-ordenat\")." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase
+:fase rdf:type owl:DatatypeProperty ,
+               owl:FunctionalProperty ;
+      rdfs:range [ rdf:type rdfs:Datatype ;
+                   owl:oneOf [ rdf:type rdf:List ;
+                               rdf:first "aplicacio" ;
+                               rdf:rest [ rdf:type rdf:List ;
+                                          rdf:first "aprenentatge" ;
+                                          rdf:rest [ rdf:type rdf:List ;
+                                                     rdf:first "avaluacio" ;
+                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                rdf:first "deliberacio" ;
+                                                                rdf:rest [ rdf:type rdf:List ;
+                                                                           rdf:first "elaboracio" ;
+                                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                                      rdf:first "espera" ;
+                                                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                                                 rdf:first "explicacio" ;
+                                                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                                                            rdf:first "monitoratge" ;
+                                                                                                            rdf:rest [ rdf:type rdf:List ;
+                                                                                                                       rdf:first "neteja" ;
+                                                                                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                  rdf:first "percepcio" ;
+                                                                                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                             rdf:first "proposta" ;
+                                                                                                                                             rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                        rdf:first "seleccio" ;
+                                                                                                                                                        rdf:rest rdf:nil
+                                                                                                                                                      ]
+                                                                                                                                           ]
+                                                                                                                                ]
+                                                                                                                     ]
+                                                                                                          ]
+                                                                                               ]
+                                                                                    ]
+                                                                         ]
+                                                              ]
+                                                   ]
+                                        ]
+                             ]
+                 ] ;
+      rdfs:comment "Compartida: EstadoSOAR y DefinicionFase." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-fenologica
+:fase-fenologica rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :Cultivo ;
+                 rdfs:range xsd:string .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/id
+:id rdf:type owl:DatatypeProperty ,
+             owl:FunctionalProperty ;
+    rdfs:range xsd:string ;
+    rdfs:comment "En los individuos de este fichero el id es el nombre local." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/instante
+:instante rdf:type owl:DatatypeProperty ,
+                   owl:FunctionalProperty ;
+          rdfs:range xsd:integer ;
+          rdfs:comment "Minutos desde el inicio de la simulación. En Chunk, instante de creación." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/limite-inferior
+:limite-inferior rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :Umbral ;
+                 rdfs:range xsd:decimal ;
+                 rdfs:comment "Incluido. Ausente = -infinito." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/limite-superior
+:limite-superior rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :Umbral ;
+                 rdfs:range xsd:decimal ;
+                 rdfs:comment "Excluido. Ausente = +infinito." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/max-movimientos-hora
+:max-movimientos-hora rdf:type owl:DatatypeProperty ,
+                               owl:FunctionalProperty ;
+                      rdfs:domain :SeguidorSolar ;
+                      rdfs:range xsd:integer .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/max-referencias
+:max-referencias rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :ParametrosAprendizaje ;
+                 rdfs:range xsd:integer ;
+                 rdfs:comment "Referencias que conserva cada chunk (las más recientes)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/modulo
+:modulo rdf:type owl:DatatypeProperty ,
+                 owl:FunctionalProperty ;
+        rdfs:domain :DefinicionFase ;
+        rdfs:range [ rdf:type rdfs:Datatype ;
+                     owl:oneOf [ rdf:type rdf:List ;
+                                 rdf:first "APLICACIO" ;
+                                 rdf:rest [ rdf:type rdf:List ;
+                                            rdf:first "APRENENTATGE" ;
+                                            rdf:rest [ rdf:type rdf:List ;
+                                                       rdf:first "AVALUACIO" ;
+                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                  rdf:first "DELIBERACIO" ;
+                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                             rdf:first "ELABORACIO" ;
+                                                                             rdf:rest [ rdf:type rdf:List ;
+                                                                                        rdf:first "EXPLICACIO" ;
+                                                                                        rdf:rest [ rdf:type rdf:List ;
+                                                                                                   rdf:first "MONITORATGE" ;
+                                                                                                   rdf:rest [ rdf:type rdf:List ;
+                                                                                                              rdf:first "NETEJA" ;
+                                                                                                              rdf:rest [ rdf:type rdf:List ;
+                                                                                                                         rdf:first "PERCEPCIO" ;
+                                                                                                                         rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                    rdf:first "PROPOSTA" ;
+                                                                                                                                    rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                               rdf:first "SELECCIO" ;
+                                                                                                                                               rdf:rest rdf:nil
+                                                                                                                                             ]
+                                                                                                                                  ]
+                                                                                                                       ]
+                                                                                                            ]
+                                                                                                 ]
+                                                                                      ]
+                                                                           ]
+                                                                ]
+                                                     ]
+                                          ]
+                               ]
+                   ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/motivos
+:motivos rdf:type owl:DatatypeProperty ;
+         rdfs:domain :OperadorCandidato ;
+         rdfs:range xsd:string .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/nivel
+:nivel rdf:type owl:DatatypeProperty ,
+                owl:FunctionalProperty ;
+       rdfs:range [ rdf:type rdfs:Datatype ;
+                    owl:oneOf [ rdf:type rdf:List ;
+                                rdf:first "alt" ;
+                                rdf:rest [ rdf:type rdf:List ;
+                                           rdf:first "baix" ;
+                                           rdf:rest [ rdf:type rdf:List ;
+                                                      rdf:first "critic" ;
+                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                 rdf:first "mitja" ;
+                                                                 rdf:rest rdf:nil
+                                                               ]
+                                                    ]
+                                         ]
+                              ]
+                  ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/nombre-cultivo
+:nombre-cultivo rdf:type owl:DatatypeProperty ,
+                         owl:FunctionalProperty ;
+                rdfs:domain :Cultivo ;
+                rdfs:range xsd:string .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/nombre-objetivo
+:nombre-objetivo rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :ObjetivoActivo ;
+                 rdfs:range [ rdf:type rdfs:Datatype ;
+                              owl:oneOf [ rdf:type rdf:List ;
+                                          rdf:first "estabilitat" ;
+                                          rdf:rest [ rdf:type rdf:List ;
+                                                     rdf:first "integritat-mecanica" ;
+                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                rdf:first "produccio-energia" ;
+                                                                rdf:rest [ rdf:type rdf:List ;
+                                                                           rdf:first "proteccio-cultiu" ;
+                                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                                      rdf:first "seguretat-persones" ;
+                                                                                      rdf:rest rdf:nil
+                                                                                    ]
+                                                                         ]
+                                                              ]
+                                                   ]
+                                        ]
+                            ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/ocupacion
+:ocupacion rdf:type owl:DatatypeProperty ,
+                    owl:FunctionalProperty ;
+           rdfs:domain :ObservacionPanel ;
+           rdfs:range [ rdf:type rdfs:Datatype ;
+                        owl:oneOf [ rdf:type rdf:List ;
+                                    rdf:first "lliure" ;
+                                    rdf:rest [ rdf:type rdf:List ;
+                                               rdf:first "maquinaria" ;
+                                               rdf:rest [ rdf:type rdf:List ;
+                                                          rdf:first "persones" ;
+                                                          rdf:rest rdf:nil
+                                                        ]
+                                             ]
+                                  ]
+                      ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/origen
+:origen rdf:type owl:DatatypeProperty ,
+                 owl:FunctionalProperty ;
+        rdfs:domain :Preferencia ;
+        rdfs:range [ rdf:type rdfs:Datatype ;
+                     owl:oneOf [ rdf:type rdf:List ;
+                                 rdf:first "chunk" ;
+                                 rdf:rest [ rdf:type rdf:List ;
+                                            rdf:first "deliberacio" ;
+                                            rdf:rest [ rdf:type rdf:List ;
+                                                       rdf:first "regla" ;
+                                                       rdf:rest rdf:nil
+                                                     ]
+                                          ]
+                               ]
+                   ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/perdida-cultivo
+:perdida-cultivo rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :Episodio ;
+                 rdfs:range [ rdf:type rdfs:Datatype ;
+                              owl:oneOf [ rdf:type rdf:List ;
+                                          rdf:first "alt" ;
+                                          rdf:rest [ rdf:type rdf:List ;
+                                                     rdf:first "baix" ;
+                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                rdf:first "critic" ;
+                                                                rdf:rest [ rdf:type rdf:List ;
+                                                                           rdf:first "mitja" ;
+                                                                           rdf:rest rdf:nil
+                                                                         ]
+                                                              ]
+                                                   ]
+                                        ]
+                            ] ;
+                 rdfs:comment "Mayor beneficio-cultivo entre los candidatos descartados (vista agronómica)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/perdida-energia
+:perdida-energia rdf:type owl:DatatypeProperty ,
+                          owl:FunctionalProperty ;
+                 rdfs:domain :Episodio ;
+                 rdfs:range [ rdf:type rdfs:Datatype ;
+                              owl:oneOf [ rdf:type rdf:List ;
+                                          rdf:first "alt" ;
+                                          rdf:rest [ rdf:type rdf:List ;
+                                                     rdf:first "baix" ;
+                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                rdf:first "critic" ;
+                                                                rdf:rest [ rdf:type rdf:List ;
+                                                                           rdf:first "mitja" ;
+                                                                           rdf:rest rdf:nil
+                                                                         ]
+                                                              ]
+                                                   ]
+                                        ]
+                            ] ;
+                 rdfs:comment "Mayor beneficio-energia entre los candidatos descartados (vista energética)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/prioridad
+:prioridad rdf:type owl:DatatypeProperty ,
+                    owl:FunctionalProperty ;
+           rdfs:domain :ObjetivoActivo ;
+           rdfs:range xsd:integer .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/referencia
+:referencia rdf:type owl:DatatypeProperty ,
+                     owl:FunctionalProperty ;
+            rdfs:domain :Umbral ;
+            rdfs:range [ rdf:type rdfs:Datatype ;
+                         owl:oneOf [ rdf:type rdf:List ;
+                                     rdf:first "absoluta" ;
+                                     rdf:rest [ rdf:type rdf:List ;
+                                                rdf:first "cultiu" ;
+                                                rdf:rest [ rdf:type rdf:List ;
+                                                           rdf:first "seguidor" ;
+                                                           rdf:rest rdf:nil
+                                                         ]
+                                              ]
+                                   ]
+                       ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/referencias
+:referencias rdf:type owl:DatatypeProperty ;
+             rdfs:domain :Chunk ;
+             rdfs:range xsd:integer ;
+             rdfs:comment "Instantes (minutos) de creación y de cada uso confirmado; se conservan los max-referencias más recientes." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/relacion-delta
+:relacion-delta rdf:type owl:DatatypeProperty ,
+                         owl:FunctionalProperty ;
+                rdfs:domain :Chunk ;
+                rdfs:range [ rdf:type rdfs:Datatype ;
+                             owl:oneOf [ rdf:type rdf:List ;
+                                         rdf:first "menor" ;
+                                         rdf:rest [ rdf:type rdf:List ;
+                                                    rdf:first "similar" ;
+                                                    rdf:rest rdf:nil
+                                                  ]
+                                       ]
+                           ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/restriccion
+:restriccion rdf:type owl:DatatypeProperty ,
+                      owl:FunctionalProperty ;
+             rdfs:domain :Preferencia ;
+             rdfs:range [ rdf:type rdfs:Datatype ;
+                          owl:oneOf [ rdf:type rdf:List ;
+                                      rdf:first "R1" ;
+                                      rdf:rest [ rdf:type rdf:List ;
+                                                 rdf:first "R2" ;
+                                                 rdf:rest [ rdf:type rdf:List ;
+                                                            rdf:first "R3" ;
+                                                            rdf:rest [ rdf:type rdf:List ;
+                                                                       rdf:first "R4" ;
+                                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                                  rdf:first "R5" ;
+                                                                                  rdf:rest rdf:nil
+                                                                                ]
+                                                                     ]
+                                                          ]
+                                               ]
+                                    ]
+                        ] ;
+             rdfs:comment "Solo en reject/require creados por las restricciones duras de AVALUACIO." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/restricciones-activas
+:restricciones-activas rdf:type owl:DatatypeProperty ;
+                       rdfs:domain :Episodio ;
+                       rdfs:range [ rdf:type rdfs:Datatype ;
+                                    owl:oneOf [ rdf:type rdf:List ;
+                                                rdf:first "R1" ;
+                                                rdf:rest [ rdf:type rdf:List ;
+                                                           rdf:first "R2" ;
+                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                      rdf:first "R3" ;
+                                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                                 rdf:first "R4" ;
+                                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                                            rdf:first "R5" ;
+                                                                                            rdf:rest rdf:nil
+                                                                                          ]
+                                                                               ]
+                                                                    ]
+                                                         ]
+                                              ]
+                                  ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/resuelto
+:resuelto rdf:type owl:DatatypeProperty ,
+                   owl:FunctionalProperty ;
+          rdfs:domain :Impasse ;
+          rdfs:range xsd:boolean .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/resultado
+:resultado rdf:type owl:DatatypeProperty ,
+                    owl:FunctionalProperty ;
+           rdfs:domain :Episodio ;
+           rdfs:range [ rdf:type rdfs:Datatype ;
+                        owl:oneOf [ rdf:type rdf:List ;
+                                    rdf:first "fallada-actuador" ;
+                                    rdf:rest [ rdf:type rdf:List ;
+                                               rdf:first "ok" ;
+                                               rdf:rest [ rdf:type rdf:List ;
+                                                          rdf:first "pendent" ;
+                                                          rdf:rest rdf:nil
+                                                        ]
+                                             ]
+                                  ]
+                      ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/sensibilidad
+:sensibilidad rdf:type owl:DatatypeProperty ,
+                       owl:FunctionalProperty ;
+              rdfs:domain :Cultivo ;
+              rdfs:range [ rdf:type rdfs:Datatype ;
+                           owl:oneOf [ rdf:type rdf:List ;
+                                       rdf:first "alt" ;
+                                       rdf:rest [ rdf:type rdf:List ;
+                                                  rdf:first "baix" ;
+                                                  rdf:rest [ rdf:type rdf:List ;
+                                                             rdf:first "critic" ;
+                                                             rdf:rest [ rdf:type rdf:List ;
+                                                                        rdf:first "mitja" ;
+                                                                        rdf:rest rdf:nil
+                                                                      ]
+                                                           ]
+                                                ]
+                                     ]
+                         ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/siguiente
+:siguiente rdf:type owl:DatatypeProperty ,
+                    owl:FunctionalProperty ;
+           rdfs:domain :DefinicionFase ;
+           rdfs:range [ rdf:type rdfs:Datatype ;
+                        owl:oneOf [ rdf:type rdf:List ;
+                                    rdf:first "aplicacio" ;
+                                    rdf:rest [ rdf:type rdf:List ;
+                                               rdf:first "aprenentatge" ;
+                                               rdf:rest [ rdf:type rdf:List ;
+                                                          rdf:first "avaluacio" ;
+                                                          rdf:rest [ rdf:type rdf:List ;
+                                                                     rdf:first "deliberacio" ;
+                                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                                rdf:first "elaboracio" ;
+                                                                                rdf:rest [ rdf:type rdf:List ;
+                                                                                           rdf:first "espera" ;
+                                                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                                                      rdf:first "explicacio" ;
+                                                                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                                                                 rdf:first "monitoratge" ;
+                                                                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                                                                            rdf:first "neteja" ;
+                                                                                                                            rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                       rdf:first "percepcio" ;
+                                                                                                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                  rdf:first "proposta" ;
+                                                                                                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                             rdf:first "seleccio" ;
+                                                                                                                                                             rdf:rest rdf:nil
+                                                                                                                                                           ]
+                                                                                                                                                ]
+                                                                                                                                     ]
+                                                                                                                          ]
+                                                                                                               ]
+                                                                                                    ]
+                                                                                         ]
+                                                                              ]
+                                                                   ]
+                                                        ]
+                                             ]
+                                  ]
+                      ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/situacion
+:situacion rdf:type owl:DatatypeProperty ;
+           rdfs:domain :Episodio ;
+           rdfs:range xsd:string ;
+           rdfs:comment "Firma de la situación: diagnósticos tipo:nivel presentes." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/subfase
+:subfase rdf:type owl:DatatypeProperty ,
+                  owl:FunctionalProperty ;
+         rdfs:domain :EstadoSOAR ;
+         rdfs:range [ rdf:type rdfs:Datatype ;
+                      owl:oneOf [ rdf:type rdf:List ;
+                                  rdf:first "feta" ;
+                                  rdf:rest [ rdf:type rdf:List ;
+                                             rdf:first "pendent" ;
+                                             rdf:rest rdf:nil
+                                           ]
+                                ]
+                    ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tasa-decaimiento
+:tasa-decaimiento rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :ParametrosAprendizaje ;
+                  rdfs:range xsd:decimal ;
+                  rdfs:comment "d de la activación base A = ln(sum_j (t - t_j)^-d), con el tiempo en horas." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tipo-diagnostico
+:tipo-diagnostico rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :Diagnostico ;
+                  rdfs:range [ rdf:type rdfs:Datatype ;
+                               owl:oneOf [ rdf:type rdf:List ;
+                                           rdf:first "estres-hidric" ;
+                                           rdf:rest [ rdf:type rdf:List ;
+                                                      rdf:first "estres-termic" ;
+                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                 rdf:first "fallada-actuador" ;
+                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                            rdf:first "incertesa-dades" ;
+                                                                            rdf:rest [ rdf:type rdf:List ;
+                                                                                       rdf:first "oportunitat-energetica" ;
+                                                                                       rdf:rest [ rdf:type rdf:List ;
+                                                                                                  rdf:first "risc-mecanic" ;
+                                                                                                  rdf:rest [ rdf:type rdf:List ;
+                                                                                                             rdf:first "risc-persones" ;
+                                                                                                             rdf:rest rdf:nil
+                                                                                                           ]
+                                                                                                ]
+                                                                                     ]
+                                                                          ]
+                                                               ]
+                                                    ]
+                                         ]
+                             ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tipo-impasse
+:tipo-impasse rdf:type owl:DatatypeProperty ,
+                       owl:FunctionalProperty ;
+              rdfs:range [ rdf:type rdfs:Datatype ;
+                           owl:oneOf [ rdf:type rdf:List ;
+                                       rdf:first "constraint-failure" ;
+                                       rdf:rest [ rdf:type rdf:List ;
+                                                  rdf:first "dades-insuficients" ;
+                                                  rdf:rest [ rdf:type rdf:List ;
+                                                             rdf:first "tie" ;
+                                                             rdf:rest rdf:nil
+                                                           ]
+                                                ]
+                                     ]
+                         ] ;
+              rdfs:comment "Compartida: Impasse y Episodio. En Episodio, ausente (nil) si no hubo impasse." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tipo-preferencia
+:tipo-preferencia rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :Preferencia ;
+                  rdfs:range [ rdf:type rdfs:Datatype ;
+                               owl:oneOf [ rdf:type rdf:List ;
+                                           rdf:first "better" ;
+                                           rdf:rest [ rdf:type rdf:List ;
+                                                      rdf:first "reject" ;
+                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                 rdf:first "require" ;
+                                                                 rdf:rest rdf:nil
+                                                               ]
+                                                    ]
+                                         ]
+                             ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tipo-restriccion
+:tipo-restriccion rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain :ObjetivoActivo ;
+                  rdfs:range [ rdf:type rdfs:Datatype ;
+                               owl:oneOf [ rdf:type rdf:List ;
+                                           rdf:first "dura" ;
+                                           rdf:rest [ rdf:type rdf:List ;
+                                                      rdf:first "tova" ;
+                                                      rdf:rest rdf:nil
+                                                    ]
+                                         ]
+                             ] .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/tolerancia-angulo
+:tolerancia-angulo rdf:type owl:DatatypeProperty ,
+                            owl:FunctionalProperty ;
+                   rdfs:domain :SeguidorSolar ;
+                   rdfs:range xsd:decimal ;
+                   rdfs:comment "Diferencia máxima entre ángulo ordenado y medido para dar la orden por cumplida; desplazamiento por debajo del cual no hay movimiento; diferencia mínima entre desplazamientos para preferir uno." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/umbral-humedad-critica
+:umbral-humedad-critica rdf:type owl:DatatypeProperty ,
+                                 owl:FunctionalProperty ;
+                        rdfs:domain :Cultivo ;
+                        rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/umbral-olvido
+:umbral-olvido rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain :ParametrosAprendizaje ;
+               rdfs:range xsd:decimal ;
+               rdfs:comment "Un chunk con activación por debajo de este valor se olvida." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/umbral-temp-estres
+:umbral-temp-estres rdf:type owl:DatatypeProperty ,
+                             owl:FunctionalProperty ;
+                    rdfs:domain :Cultivo ;
+                    rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/umbral-viento-critico
+:umbral-viento-critico rdf:type owl:DatatypeProperty ,
+                                owl:FunctionalProperty ;
+                       rdfs:domain :SeguidorSolar ;
+                       rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/valor
+:valor rdf:type owl:DatatypeProperty ,
+                owl:FunctionalProperty ;
+       rdfs:range xsd:decimal .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/variable
+:variable rdf:type owl:DatatypeProperty ,
+                   owl:FunctionalProperty ;
+          rdfs:range [ rdf:type rdfs:Datatype ;
+                       owl:oneOf [ rdf:type rdf:List ;
+                                   rdf:first "angle-captacio" ;
+                                   rdf:rest [ rdf:type rdf:List ;
+                                              rdf:first "angle-ombra" ;
+                                              rdf:rest [ rdf:type rdf:List ;
+                                                         rdf:first "humitat-sol" ;
+                                                         rdf:rest [ rdf:type rdf:List ;
+                                                                    rdf:first "moviment" ;
+                                                                    rdf:rest [ rdf:type rdf:List ;
+                                                                               rdf:first "pluja" ;
+                                                                               rdf:rest [ rdf:type rdf:List ;
+                                                                                          rdf:first "pluja-prevista" ;
+                                                                                          rdf:rest [ rdf:type rdf:List ;
+                                                                                                     rdf:first "preu-energia" ;
+                                                                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                                                                rdf:first "produccio" ;
+                                                                                                                rdf:rest [ rdf:type rdf:List ;
+                                                                                                                           rdf:first "radiacio" ;
+                                                                                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                      rdf:first "temp-ambient" ;
+                                                                                                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                 rdf:first "temp-cultiu" ;
+                                                                                                                                                 rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                            rdf:first "vent" ;
+                                                                                                                                                            rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                                       rdf:first "vent-previst" ;
+                                                                                                                                                                       rdf:rest rdf:nil
+                                                                                                                                                                     ]
+                                                                                                                                                          ]
+                                                                                                                                               ]
+                                                                                                                                    ]
+                                                                                                                         ]
+                                                                                                              ]
+                                                                                                   ]
+                                                                                        ]
+                                                                             ]
+                                                                  ]
+                                                       ]
+                                            ]
+                                 ]
+                     ] .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Abstraccion
+:Abstraccion rdf:type owl:Class ;
+             rdfs:subClassOf :HechoDerivado ;
+             owl:disjointWith :Diagnostico ;
+             :escrito-por "CLIPS:ELABORACIO" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Chunk
+:Chunk rdf:type owl:Class ;
+       rdfs:subClassOf :HechoResultado ;
+       :escrito-por "CLIPS:APRENENTATGE (crea, refuerza y olvida)" ;
+       rdfs:comment "Conocimiento procedimental aprendido de un impasse tie de dos candidatos (roadmap §6): si vuelve a empatar el mismo par con los mismos beneficios y la misma relación de desplazamientos, la acción preferida es better que la descartada. Lo aplica una regla genérica de SELECCIO antes de detectar el empate. Se refuerza con cada uso confirmado y se olvida cuando su activación base cae bajo el umbral." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/CicloTemporal
+:CicloTemporal rdf:type owl:Class ;
+               rdfs:subClassOf :HechoObservado ;
+               :escrito-por "simulador" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/ConocimientoDominio
+:ConocimientoDominio rdf:type owl:Class ;
+                     rdfs:comment "Datos estáticos. Se generan como deffacts MAIN:: desde los individuos de este fichero. Nadie los modifica en ejecución." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Cultivo
+:Cultivo rdf:type owl:Class ;
+         rdfs:subClassOf :ConocimientoDominio ;
+         :escrito-por "config" ;
+         rdfs:comment "Parámetros agronómicos. La fase fenológica se considera constante en el horizonte simulado." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/DatoRequerido
+:DatoRequerido rdf:type owl:Class ;
+               rdfs:subClassOf :ConocimientoDominio ;
+               :escrito-por "config" ;
+               rdfs:comment "Variable de observacion requerida para avanzar en el ciclo." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/DefinicionFase
+:DefinicionFase rdf:type owl:Class ;
+                rdfs:subClassOf :ConocimientoDominio ;
+                :escrito-por "config" ;
+                rdfs:comment "Conocimiento de control: qué módulo ejecuta cada fase y cuál es la siguiente. La bifurcación seleccio -> deliberacio la decide una regla de MAIN." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Diagnostico
+:Diagnostico rdf:type owl:Class ;
+             rdfs:subClassOf :HechoDerivado ;
+             :escrito-por "CLIPS:PERCEPCIO,MONITORATGE,ELABORACIO" ;
+             rdfs:comment "Riesgo, necesidad u oportunidad. Como máximo uno por sector y tipo: una segunda causa añade evidencias y eleva el nivel al máximo." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Episodio
+:Episodio rdf:type owl:Class ;
+          rdfs:subClassOf :HechoResultado ;
+          :escrito-por "CLIPS:EXPLICACIO (crea), MONITORATGE (resultado), NETEJA (retira los de más de 60 min)" ;
+          rdfs:comment "Memoria episódica y traza de explicación: situación, alternativas, descartes, restricciones activas, criterio, decisión, vistas agronómica y energética, chunk aplicado y efecto observado. Ventana de 60 minutos." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/EstadoSOAR
+:EstadoSOAR rdf:type owl:Class ;
+            rdfs:subClassOf :HechoControl ;
+            owl:disjointWith :Impasse ;
+            :escrito-por "config (S0 inicial), CLIPS:MAIN (fase y subfase de S0), CLIPS:DELIBERACIO (subestados), CLIPS:NETEJA (retira subestados)" ;
+            rdfs:comment "Estado raíz S0 (individuo :S0, persiste entre ciclos) o subestado de deliberación (uno por impasse, efímero, con estado-padre)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/HechoCandidato
+:HechoCandidato rdf:type owl:Class .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/HechoControl
+:HechoControl rdf:type owl:Class .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/HechoDerivado
+:HechoDerivado rdf:type owl:Class .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/HechoObservado
+:HechoObservado rdf:type owl:Class .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/HechoResultado
+:HechoResultado rdf:type owl:Class .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Impasse
+:Impasse rdf:type owl:Class ;
+         rdfs:subClassOf :HechoControl ;
+         :escrito-por "CLIPS:SELECCIO (crea), DELIBERACIO (resuelve), MAIN (cierra como escalat)" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/ObjetivoActivo
+:ObjetivoActivo rdf:type owl:Class ;
+                rdfs:subClassOf :ConocimientoDominio ;
+                :escrito-por "config" ;
+                rdfs:comment "Política de prioridades: seguretat-persones(1) > integritat-mecanica(2) > proteccio-cultiu(3) > produccio-energia(4) > estabilitat(5). Todos están activos siempre." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/ObservacionPanel
+:ObservacionPanel rdf:type owl:Class ;
+                  rdfs:subClassOf :HechoObservado ;
+                  :escrito-por "simulador" ;
+                  rdfs:comment "Estado del seguidor y de la ocupación bajo los paneles. Si falta, el ángulo actual y la ocupación son desconocidos." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/ObservacionSensor
+:ObservacionSensor rdf:type owl:Class ;
+                   rdfs:subClassOf :HechoObservado ;
+                   :escrito-por "simulador" ;
+                   rdfs:comment "Lectura numérica. Un dato ausente se representa por la ausencia del hecho." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/OperadorCandidato
+:OperadorCandidato rdf:type owl:Class ;
+                   rdfs:subClassOf :HechoCandidato ;
+                   :escrito-por "CLIPS:PROPOSTA (crea), SELECCIO (seleccionat/descartat), APLICACIO (aplicat)" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/OrdenActuador
+:OrdenActuador rdf:type owl:Class ;
+               rdfs:subClassOf :HechoResultado ;
+               :escrito-por "CLIPS:APLICACIO (crea), MONITORATGE (retracta)" ;
+               rdfs:comment "Sobrevive hasta MONITORATGE de t+1, que la verifica y la retracta. Toda decisión genera orden, también las que no mueven." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/ParametrosAprendizaje
+:ParametrosAprendizaje rdf:type owl:Class ;
+                       rdfs:subClassOf :ConocimientoDominio ;
+                       :escrito-por "config" ;
+                       rdfs:comment "Parámetros de la memoria de chunks (roadmap §6). Valores por defecto de Soar: decaimiento 0.5, umbral -2.0, historial de 10 referencias. Cada experimento puede sobrescribirlos al generar la configuración." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Prediccion
+:Prediccion rdf:type owl:Class ;
+            rdfs:subClassOf :HechoObservado ;
+            :escrito-por "simulador" ;
+            rdfs:comment "Servicio externo heurístico: viento y lluvia previstos, ángulos de captación y de sombra, precio. Calcula, no decide. Las magnitudes globales (preu-energia) no tienen sector." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Preferencia
+:Preferencia rdf:type owl:Class ;
+             rdfs:subClassOf :HechoCandidato ;
+             :escrito-por "CLIPS:AVALUACIO,SELECCIO (chunk),DELIBERACIO" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Sector
+:Sector rdf:type owl:Class ;
+        rdfs:subClassOf :ConocimientoDominio ;
+        :escrito-por "config" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/SeguidorSolar
+:SeguidorSolar rdf:type owl:Class ;
+               rdfs:subClassOf :ConocimientoDominio ;
+               :escrito-por "config" ;
+               rdfs:comment "Seguidor de eje único: límites mecánicos y de desgaste." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Umbral
+:Umbral rdf:type owl:Class ;
+        rdfs:subClassOf :ConocimientoDominio ;
+        :escrito-por "config" ;
+        rdfs:comment "Intervalo [limite-inferior, limite-superior) que asigna un nivel a una variable. Un límite ausente significa intervalo abierto (-inf o +inf). Los umbrales de una variable forman una partición de la recta real (lo comprueba la verificación, roadmap §10.1)." .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/Valoracion
+:Valoracion rdf:type owl:Class ;
+            rdfs:subClassOf :HechoCandidato ;
+            :escrito-por "CLIPS:AVALUACIO" ;
+            rdfs:comment "Valoración cualitativa de un candidato. Solo existe si el desplazamiento es calculable. Cada acción solo puede tener beneficio en su propio criterio (posicio-seguretat: mecánico; orientar-ombra: cultivo; orientar-produccio: energía)." .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/S0
+:S0 rdf:type owl:NamedIndividual ,
+             :EstadoSOAR ;
+    :fase "espera" ;
+    :subfase "pendent" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/cultivo-s1
+:cultivo-s1 rdf:type owl:NamedIndividual ,
+                     :Cultivo ;
+            :fase-fenologica "floracion" ;
+            :nombre-cultivo "tomate" ;
+            :sensibilidad "alt" ;
+            :umbral-humedad-critica 45.0 ;
+            :umbral-temp-estres 30.0 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/cultivo-s2
+:cultivo-s2 rdf:type owl:NamedIndividual ,
+                     :Cultivo ;
+            :fase-fenologica "desarrollo" ;
+            :nombre-cultivo "lechuga" ;
+            :sensibilidad "critic" ;
+            :umbral-humedad-critica 55.0 ;
+            :umbral-temp-estres 26.0 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/cultivo-s3
+:cultivo-s3 rdf:type owl:NamedIndividual ,
+                     :Cultivo ;
+            :fase-fenologica "maduracion" ;
+            :nombre-cultivo "vina" ;
+            :sensibilidad "mitja" ;
+            :umbral-humedad-critica 30.0 ;
+            :umbral-temp-estres 35.0 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-aplicacio
+:fase-aplicacio rdf:type owl:NamedIndividual ,
+                         :DefinicionFase ;
+                :fase "aplicacio" ;
+                :modulo "APLICACIO" ;
+                :siguiente "explicacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-aprenentatge
+:fase-aprenentatge rdf:type owl:NamedIndividual ,
+                            :DefinicionFase ;
+                   :fase "aprenentatge" ;
+                   :modulo "APRENENTATGE" ;
+                   :siguiente "neteja" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-avaluacio
+:fase-avaluacio rdf:type owl:NamedIndividual ,
+                         :DefinicionFase ;
+                :fase "avaluacio" ;
+                :modulo "AVALUACIO" ;
+                :siguiente "seleccio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-deliberacio
+:fase-deliberacio rdf:type owl:NamedIndividual ,
+                           :DefinicionFase ;
+                  :fase "deliberacio" ;
+                  :modulo "DELIBERACIO" ;
+                  :siguiente "seleccio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-elaboracio
+:fase-elaboracio rdf:type owl:NamedIndividual ,
+                          :DefinicionFase ;
+                 :fase "elaboracio" ;
+                 :modulo "ELABORACIO" ;
+                 :siguiente "proposta" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-explicacio
+:fase-explicacio rdf:type owl:NamedIndividual ,
+                          :DefinicionFase ;
+                 :fase "explicacio" ;
+                 :modulo "EXPLICACIO" ;
+                 :siguiente "aprenentatge" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-monitoratge
+:fase-monitoratge rdf:type owl:NamedIndividual ,
+                           :DefinicionFase ;
+                  :fase "monitoratge" ;
+                  :modulo "MONITORATGE" ;
+                  :siguiente "elaboracio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-neteja
+:fase-neteja rdf:type owl:NamedIndividual ,
+                      :DefinicionFase ;
+             :fase "neteja" ;
+             :modulo "NETEJA" ;
+             :siguiente "espera" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-percepcio
+:fase-percepcio rdf:type owl:NamedIndividual ,
+                         :DefinicionFase ;
+                :fase "percepcio" ;
+                :modulo "PERCEPCIO" ;
+                :siguiente "monitoratge" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-proposta
+:fase-proposta rdf:type owl:NamedIndividual ,
+                        :DefinicionFase ;
+               :fase "proposta" ;
+               :modulo "PROPOSTA" ;
+               :siguiente "avaluacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/fase-seleccio
+:fase-seleccio rdf:type owl:NamedIndividual ,
+                        :DefinicionFase ;
+               :fase "seleccio" ;
+               :modulo "SELECCIO" ;
+               :siguiente "aplicacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-humitat-sol-alt
+:llindar-humitat-sol-alt rdf:type owl:NamedIndividual ,
+                                  :Umbral ;
+                         :limite-inferior -10.0 ;
+                         :limite-superior 0.0 ;
+                         :nivel "alt" ;
+                         :referencia "cultiu" ;
+                         :variable "humitat-sol" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-humitat-sol-baix
+:llindar-humitat-sol-baix rdf:type owl:NamedIndividual ,
+                                   :Umbral ;
+                          :limite-inferior 10.0 ;
+                          :nivel "baix" ;
+                          :referencia "cultiu" ;
+                          :variable "humitat-sol" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-humitat-sol-critic
+:llindar-humitat-sol-critic rdf:type owl:NamedIndividual ,
+                                     :Umbral ;
+                            :limite-superior -10.0 ;
+                            :nivel "critic" ;
+                            :referencia "cultiu" ;
+                            :variable "humitat-sol" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-humitat-sol-mitja
+:llindar-humitat-sol-mitja rdf:type owl:NamedIndividual ,
+                                    :Umbral ;
+                           :limite-inferior 0.0 ;
+                           :limite-superior 10.0 ;
+                           :nivel "mitja" ;
+                           :referencia "cultiu" ;
+                           :variable "humitat-sol" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-moviment-alt
+:llindar-moviment-alt rdf:type owl:NamedIndividual ,
+                               :Umbral ;
+                      :limite-inferior 20.0 ;
+                      :nivel "alt" ;
+                      :referencia "absoluta" ;
+                      :variable "moviment" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-moviment-baix
+:llindar-moviment-baix rdf:type owl:NamedIndividual ,
+                                :Umbral ;
+                       :limite-superior 5.0 ;
+                       :nivel "baix" ;
+                       :referencia "absoluta" ;
+                       :variable "moviment" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-moviment-mitja
+:llindar-moviment-mitja rdf:type owl:NamedIndividual ,
+                                 :Umbral ;
+                        :limite-inferior 5.0 ;
+                        :limite-superior 20.0 ;
+                        :nivel "mitja" ;
+                        :referencia "absoluta" ;
+                        :variable "moviment" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-alt
+:llindar-pluja-alt rdf:type owl:NamedIndividual ,
+                            :Umbral ;
+                   :limite-inferior 2.0 ;
+                   :limite-superior 10.0 ;
+                   :nivel "alt" ;
+                   :referencia "absoluta" ;
+                   :variable "pluja" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-baix
+:llindar-pluja-baix rdf:type owl:NamedIndividual ,
+                             :Umbral ;
+                    :limite-superior 0.5 ;
+                    :nivel "baix" ;
+                    :referencia "absoluta" ;
+                    :variable "pluja" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-critic
+:llindar-pluja-critic rdf:type owl:NamedIndividual ,
+                               :Umbral ;
+                      :limite-inferior 10.0 ;
+                      :nivel "critic" ;
+                      :referencia "absoluta" ;
+                      :variable "pluja" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-mitja
+:llindar-pluja-mitja rdf:type owl:NamedIndividual ,
+                              :Umbral ;
+                     :limite-inferior 0.5 ;
+                     :limite-superior 2.0 ;
+                     :nivel "mitja" ;
+                     :referencia "absoluta" ;
+                     :variable "pluja" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-prevista-alt
+:llindar-pluja-prevista-alt rdf:type owl:NamedIndividual ,
+                                     :Umbral ;
+                            :limite-inferior 2.0 ;
+                            :limite-superior 10.0 ;
+                            :nivel "alt" ;
+                            :referencia "absoluta" ;
+                            :variable "pluja-prevista" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-prevista-baix
+:llindar-pluja-prevista-baix rdf:type owl:NamedIndividual ,
+                                      :Umbral ;
+                             :limite-superior 0.5 ;
+                             :nivel "baix" ;
+                             :referencia "absoluta" ;
+                             :variable "pluja-prevista" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-prevista-critic
+:llindar-pluja-prevista-critic rdf:type owl:NamedIndividual ,
+                                        :Umbral ;
+                               :limite-inferior 10.0 ;
+                               :nivel "critic" ;
+                               :referencia "absoluta" ;
+                               :variable "pluja-prevista" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-pluja-prevista-mitja
+:llindar-pluja-prevista-mitja rdf:type owl:NamedIndividual ,
+                                       :Umbral ;
+                              :limite-inferior 0.5 ;
+                              :limite-superior 2.0 ;
+                              :nivel "mitja" ;
+                              :referencia "absoluta" ;
+                              :variable "pluja-prevista" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-preu-energia-alt
+:llindar-preu-energia-alt rdf:type owl:NamedIndividual ,
+                                   :Umbral ;
+                          :limite-inferior 100.0 ;
+                          :limite-superior 180.0 ;
+                          :nivel "alt" ;
+                          :referencia "absoluta" ;
+                          :variable "preu-energia" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-preu-energia-baix
+:llindar-preu-energia-baix rdf:type owl:NamedIndividual ,
+                                    :Umbral ;
+                           :limite-superior 50.0 ;
+                           :nivel "baix" ;
+                           :referencia "absoluta" ;
+                           :variable "preu-energia" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-preu-energia-critic
+:llindar-preu-energia-critic rdf:type owl:NamedIndividual ,
+                                      :Umbral ;
+                             :limite-inferior 180.0 ;
+                             :nivel "critic" ;
+                             :referencia "absoluta" ;
+                             :variable "preu-energia" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-preu-energia-mitja
+:llindar-preu-energia-mitja rdf:type owl:NamedIndividual ,
+                                     :Umbral ;
+                            :limite-inferior 50.0 ;
+                            :limite-superior 100.0 ;
+                            :nivel "mitja" ;
+                            :referencia "absoluta" ;
+                            :variable "preu-energia" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-radiacio-alt
+:llindar-radiacio-alt rdf:type owl:NamedIndividual ,
+                               :Umbral ;
+                      :limite-inferior 500.0 ;
+                      :limite-superior 800.0 ;
+                      :nivel "alt" ;
+                      :referencia "absoluta" ;
+                      :variable "radiacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-radiacio-baix
+:llindar-radiacio-baix rdf:type owl:NamedIndividual ,
+                                :Umbral ;
+                       :limite-superior 200.0 ;
+                       :nivel "baix" ;
+                       :referencia "absoluta" ;
+                       :variable "radiacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-radiacio-critic
+:llindar-radiacio-critic rdf:type owl:NamedIndividual ,
+                                  :Umbral ;
+                         :limite-inferior 800.0 ;
+                         :nivel "critic" ;
+                         :referencia "absoluta" ;
+                         :variable "radiacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-radiacio-mitja
+:llindar-radiacio-mitja rdf:type owl:NamedIndividual ,
+                                 :Umbral ;
+                        :limite-inferior 200.0 ;
+                        :limite-superior 500.0 ;
+                        :nivel "mitja" ;
+                        :referencia "absoluta" ;
+                        :variable "radiacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-temp-cultiu-alt
+:llindar-temp-cultiu-alt rdf:type owl:NamedIndividual ,
+                                  :Umbral ;
+                         :limite-inferior 0.0 ;
+                         :limite-superior 4.0 ;
+                         :nivel "alt" ;
+                         :referencia "cultiu" ;
+                         :variable "temp-cultiu" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-temp-cultiu-baix
+:llindar-temp-cultiu-baix rdf:type owl:NamedIndividual ,
+                                   :Umbral ;
+                          :limite-superior -3.0 ;
+                          :nivel "baix" ;
+                          :referencia "cultiu" ;
+                          :variable "temp-cultiu" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-temp-cultiu-critic
+:llindar-temp-cultiu-critic rdf:type owl:NamedIndividual ,
+                                     :Umbral ;
+                            :limite-inferior 4.0 ;
+                            :nivel "critic" ;
+                            :referencia "cultiu" ;
+                            :variable "temp-cultiu" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-temp-cultiu-mitja
+:llindar-temp-cultiu-mitja rdf:type owl:NamedIndividual ,
+                                    :Umbral ;
+                           :limite-inferior -3.0 ;
+                           :limite-superior 0.0 ;
+                           :nivel "mitja" ;
+                           :referencia "cultiu" ;
+                           :variable "temp-cultiu" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-alt
+:llindar-vent-alt rdf:type owl:NamedIndividual ,
+                           :Umbral ;
+                  :limite-inferior -20.0 ;
+                  :limite-superior 0.0 ;
+                  :nivel "alt" ;
+                  :referencia "seguidor" ;
+                  :variable "vent" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-baix
+:llindar-vent-baix rdf:type owl:NamedIndividual ,
+                            :Umbral ;
+                   :limite-superior -40.0 ;
+                   :nivel "baix" ;
+                   :referencia "seguidor" ;
+                   :variable "vent" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-critic
+:llindar-vent-critic rdf:type owl:NamedIndividual ,
+                              :Umbral ;
+                     :limite-inferior 0.0 ;
+                     :nivel "critic" ;
+                     :referencia "seguidor" ;
+                     :variable "vent" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-mitja
+:llindar-vent-mitja rdf:type owl:NamedIndividual ,
+                             :Umbral ;
+                    :limite-inferior -40.0 ;
+                    :limite-superior -20.0 ;
+                    :nivel "mitja" ;
+                    :referencia "seguidor" ;
+                    :variable "vent" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-previst-alt
+:llindar-vent-previst-alt rdf:type owl:NamedIndividual ,
+                                   :Umbral ;
+                          :limite-inferior -20.0 ;
+                          :limite-superior 0.0 ;
+                          :nivel "alt" ;
+                          :referencia "seguidor" ;
+                          :variable "vent-previst" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-previst-baix
+:llindar-vent-previst-baix rdf:type owl:NamedIndividual ,
+                                    :Umbral ;
+                           :limite-superior -40.0 ;
+                           :nivel "baix" ;
+                           :referencia "seguidor" ;
+                           :variable "vent-previst" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-previst-critic
+:llindar-vent-previst-critic rdf:type owl:NamedIndividual ,
+                                      :Umbral ;
+                             :limite-inferior 0.0 ;
+                             :nivel "critic" ;
+                             :referencia "seguidor" ;
+                             :variable "vent-previst" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/llindar-vent-previst-mitja
+:llindar-vent-previst-mitja rdf:type owl:NamedIndividual ,
+                                     :Umbral ;
+                            :limite-inferior -40.0 ;
+                            :limite-superior -20.0 ;
+                            :nivel "mitja" ;
+                            :referencia "seguidor" ;
+                            :variable "vent-previst" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/obj-estabilitat
+:obj-estabilitat rdf:type owl:NamedIndividual ,
+                          :ObjetivoActivo ;
+                 :nombre-objetivo "estabilitat" ;
+                 :prioridad 5 ;
+                 :tipo-restriccion "tova" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/obj-integritat-mecanica
+:obj-integritat-mecanica rdf:type owl:NamedIndividual ,
+                                  :ObjetivoActivo ;
+                         :nombre-objetivo "integritat-mecanica" ;
+                         :prioridad 2 ;
+                         :tipo-restriccion "dura" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/obj-produccio-energia
+:obj-produccio-energia rdf:type owl:NamedIndividual ,
+                                :ObjetivoActivo ;
+                       :nombre-objetivo "produccio-energia" ;
+                       :prioridad 4 ;
+                       :tipo-restriccion "tova" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/obj-proteccio-cultiu
+:obj-proteccio-cultiu rdf:type owl:NamedIndividual ,
+                               :ObjetivoActivo ;
+                      :nombre-objetivo "proteccio-cultiu" ;
+                      :prioridad 3 ;
+                      :tipo-restriccion "tova" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/obj-seguretat-persones
+:obj-seguretat-persones rdf:type owl:NamedIndividual ,
+                                 :ObjetivoActivo ;
+                        :nombre-objetivo "seguretat-persones" ;
+                        :prioridad 1 ;
+                        :tipo-restriccion "dura" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/parametros-aprenentatge
+:parametros-aprenentatge rdf:type owl:NamedIndividual ,
+                                  :ParametrosAprendizaje ;
+                         :aprendizaje-activo "true"^^xsd:boolean ;
+                         :max-referencias 10 ;
+                         :tasa-decaimiento 0.5 ;
+                         :umbral-olvido -2.0 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/req-humitat-sol
+:req-humitat-sol rdf:type owl:NamedIndividual ,
+                          :DatoRequerido ;
+                 :nivel "alt" ;
+                 :variable "humitat-sol" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/req-radiacio
+:req-radiacio rdf:type owl:NamedIndividual ,
+                       :DatoRequerido ;
+              :nivel "alt" ;
+              :variable "radiacio" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/req-temp-cultiu
+:req-temp-cultiu rdf:type owl:NamedIndividual ,
+                          :DatoRequerido ;
+                 :nivel "alt" ;
+                 :variable "temp-cultiu" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/req-vent
+:req-vent rdf:type owl:NamedIndividual ,
+                   :DatoRequerido ;
+          :nivel "critic" ;
+          :variable "vent" .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/s1
+:s1 rdf:type owl:NamedIndividual ,
+             :Sector ;
+    :tiene-cultivo :cultivo-s1 ;
+    :tiene-seguidor :seguidor-s1 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/s2
+:s2 rdf:type owl:NamedIndividual ,
+             :Sector ;
+    :tiene-cultivo :cultivo-s2 ;
+    :tiene-seguidor :seguidor-s2 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/s3
+:s3 rdf:type owl:NamedIndividual ,
+             :Sector ;
+    :tiene-cultivo :cultivo-s3 ;
+    :tiene-seguidor :seguidor-s3 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/seguidor-s1
+:seguidor-s1 rdf:type owl:NamedIndividual ,
+                      :SeguidorSolar ;
+             :angulo-defensa-viento 0.0 ;
+             :angulo-maximo 60.0 ;
+             :angulo-minimo -60.0 ;
+             :max-movimientos-hora 4 ;
+             :tolerancia-angulo 2.0 ;
+             :umbral-viento-critico 70.0 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/seguidor-s2
+:seguidor-s2 rdf:type owl:NamedIndividual ,
+                      :SeguidorSolar ;
+             :angulo-defensa-viento 0.0 ;
+             :angulo-maximo 60.0 ;
+             :angulo-minimo -60.0 ;
+             :max-movimientos-hora 4 ;
+             :tolerancia-angulo 2.0 ;
+             :umbral-viento-critico 70.0 .
+
+
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/seguidor-s3
+:seguidor-s3 rdf:type owl:NamedIndividual ,
+                      :SeguidorSolar ;
+             :angulo-defensa-viento 0.0 ;
+             :angulo-maximo 60.0 ;
+             :angulo-minimo -60.0 ;
+             :max-movimientos-hora 4 ;
+             :tolerancia-angulo 2.0 ;
+             :umbral-viento-critico 70.0 .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :Chunk
+                :Episodio
+                :OrdenActuador
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :CicloTemporal
+                :ObservacionPanel
+                :ObservacionSensor
+                :Prediccion
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :ConocimientoDominio
+                :HechoCandidato
+                :HechoControl
+                :HechoDerivado
+                :HechoObservado
+                :HechoResultado
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :Cultivo
+                :DatoRequerido
+                :DefinicionFase
+                :ObjetivoActivo
+                :ParametrosAprendizaje
+                :Sector
+                :SeguidorSolar
+                :Umbral
+              )
+] .
+
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :OperadorCandidato
+                :Preferencia
+                :Valoracion
+              )
+] .
+
+
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi

@@ -1,0 +1,27 @@
+# Entorno de Python (uv)
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+ 
+# Resultados de ejecuciones y experimentos (se regeneran)
+resultats/
+ 
+# Editores y sistema operativo
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+ 
+# Ficheros locales de Claude Code (los compartidos, como CLAUDE.md, sí se versionan)
+.claude/settings.local.json
+CLAUDE.local.md
+ 
+# Variables de entorno y secretos
+.env
+.env.*
