@@ -529,7 +529,7 @@ proyecto-sbc-agrovoltaica/
 ├── casos/caso_XX.json                  # entradas por paso, salida esperada, requisito que cubre
 ├── tests/                              # pytest: generador, verificador (mutación) y casos (§10)
 ├── resultats/                          # trazas, episodios, chunks, métricas, configuración usada
-├── requirements.txt                    # versiones fijadas (clipspy, rdflib, numpy, scipy)
+├── pyproject.toml                    # versiones fijadas (clipspy, rdflib, numpy, scipy)
 └── README.md                           # instalación y ejecución desde entorno limpio
 ```
 
@@ -700,7 +700,7 @@ Cada iteración termina con:
 
 ---
 
-## 13. Limitaciones y trabajo futuro
+## 13. Limitaciones / Fuera del alcance
 
 - **RL numérico** (Soar-RL, valores Q con recompensa) no implementado. Cambiaría las decisiones en la zona gris y exigiría una recompensa que combine cultivo y energía. Es una pregunta para la segunda parte del curso: ¿cuál es esa recompensa y quién la decide?
 - **Condiciones de los chunks** obtenidas de un análisis fijo de las dos estrategias aprendibles, no de un *backtracing* general. Solo se aprende de empates de dos candidatos.
