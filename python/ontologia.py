@@ -5,7 +5,9 @@ Lee la ontología OWL (TTL) y las plantillas de clips/00_main.clp. Con ellas:
 - con --verificar, comprueba la base de conocimiento (§10.1).
 """
 
+import argparse
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -17,6 +19,7 @@ from rdflib.namespace import OWL, RDF, RDFS, XSD
 RAIZ = Path(__file__).resolve().parent.parent
 TTL = RAIZ / "ontologia" / "agrovoltaica-soar.ttl"
 MAIN_CLP = RAIZ / "clips" / "00_main.clp"
+SALIDA = RAIZ / "config" / "base_coneixement.clp"
 NS = "http://www.upc.edu/ontologies/agrovoltaica-soar/"
 
 # Tipo de cada literal según su datatype (§2.3.9); sin datatype es una cadena.
@@ -219,3 +222,115 @@ def leer_plantillas(ruta: Path = MAIN_CLP) -> dict[str, dict[str, Slot]]:
             )
         plantillas[t.name] = slots
     return plantillas
+
+
+# ---------------------------------------------------------------------------
+# Generación de config/base_coneixement.clp (§2.2)
+# ---------------------------------------------------------------------------
+
+def plantilla_de(onto: Ontologia, ind: Individuo) -> str:
+    """Plantilla del individuo: la de su única clase concreta (§2.3.1)."""
+    concretas = [c for c in ind.clases if onto.clases.get(c) is not None]
+    if len(concretas) != 1:
+        raise ValueError(f"{ind.nombre}: debe tener exactamente una clase con plantilla, tiene {concretas}")
+    return kebab(concretas[0])
+
+
+def valor_clips(valor, tipo: str) -> str:
+    """Literal del TTL → valor CLIPS (§2.3.6, §2.3.9)."""
+    if tipo == "decimal":
+        return repr(float(valor))
+    if tipo == "boolean":
+        return "TRUE" if valor else "FALSE"
+    return str(valor)
+
+
+def _convertir(texto: str, rango: str):
+    if rango == "boolean" and texto.upper() in ("TRUE", "FALSE"):
+        return texto.upper() == "TRUE"
+    if rango == "decimal":
+        return float(texto)
+    if rango == "integer":
+        return int(texto)
+    raise ValueError(f"'{texto}' no es un valor {rango}")
+
+
+def aplicar_sobrescrituras(onto: Ontologia, asignaciones: list[str]) -> None:
+    """Aplica --set prop=valor sobre los parámetros de aprendizaje (§2.2)."""
+    if not asignaciones:
+        return
+    params = onto.de_clase("ParametrosAprendizaje")
+    if len(params) != 1:
+        raise ValueError("debe haber exactamente un individuo ParametrosAprendizaje")
+    for asignacion in asignaciones:
+        nombre, igual, texto = asignacion.partition("=")
+        prop = onto.propiedades.get(nombre)
+        if not igual or prop is None or prop.dominio != "ParametrosAprendizaje":
+            raise ValueError(f"--set {asignacion}: se espera prop=valor con una propiedad de ParametrosAprendizaje")
+        try:
+            params[0].valores[nombre] = [(_convertir(texto, prop.rango), prop.rango)]
+        except ValueError as e:
+            raise ValueError(f"--set {asignacion}: {e}") from None
+
+
+def generar(onto: Ontologia, plantillas: dict[str, dict[str, Slot]],
+            sobrescrituras: list[str] = ()) -> str:
+    """Texto del deffacts con un hecho por individuo, en orden determinista."""
+    grupos: dict[str, list[str]] = {}
+    for ind in sorted(onto.individuos.values(), key=lambda i: i.nombre):
+        nombre = plantilla_de(onto, ind)
+        if nombre not in plantillas:
+            raise ValueError(f"{ind.nombre}: la plantilla {nombre} no está en {MAIN_CLP.name}")
+        slots = plantillas[nombre]
+        sobrantes = set(ind.valores) - set(slots)
+        if sobrantes:
+            raise ValueError(f"{ind.nombre}: la plantilla {nombre} no tiene los slots {sorted(sobrantes)}")
+        partes = []
+        for slot in slots:
+            if slot == "id":
+                partes.append(f"(id {ind.nombre})")      # §2.3.6: id = nombre local
+            elif slot in ind.valores:                    # ausente → default de la plantilla
+                valores = " ".join(valor_clips(v, t) for v, t in ind.valores[slot])
+                partes.append(f"({slot} {valores})")
+        grupos.setdefault(nombre, []).append(f"   ({nombre} {' '.join(partes)})")
+
+    lineas = [
+        f";;; {SALIDA.name}: GENERADO por python/ontologia.py a partir de ontologia/{TTL.name}.",
+        ";;; No se edita a mano: si cambia el TTL, se regenera (roadmap §2.2).",
+    ]
+    if sobrescrituras:
+        lineas.append(f";;; Sobrescrituras: {' '.join(sobrescrituras)}")
+    lineas += ["", "(deffacts MAIN::base-coneixement"]
+    for nombre in plantillas:                            # orden de 00_main.clp
+        if nombre in grupos:
+            lineas += [f"   ;; {nombre}", *grupos[nombre]]
+    lineas.append(")")
+    return "\n".join(lineas) + "\n"
+
+
+# ---------------------------------------------------------------------------
+# Línea de órdenes
+# ---------------------------------------------------------------------------
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Genera config/base_coneixement.clp a partir del TTL (§2.2).")
+    ap.add_argument("--set", action="append", default=[], metavar="PROP=VALOR", dest="sobrescrituras",
+                    help="sobrescribe un parámetro de aprendizaje (p. ej. aprendizaje-activo=FALSE)")
+    ap.add_argument("--salida", type=Path, default=SALIDA, help="fichero generado")
+    args = ap.parse_args(argv)
+
+    onto = leer_ontologia()
+    plantillas = leer_plantillas()
+    try:
+        aplicar_sobrescrituras(onto, args.sobrescrituras)
+        texto = generar(onto, plantillas, args.sobrescrituras)
+    except ValueError as e:
+        ap.error(str(e))
+    args.salida.parent.mkdir(parents=True, exist_ok=True)
+    args.salida.write_text(texto, encoding="utf-8")
+    print(f"Generado {args.salida} ({len(onto.individuos)} hechos)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
