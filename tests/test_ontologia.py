@@ -35,3 +35,25 @@ def test_individuos(onto):
         "DatoRequerido": 4, "DefinicionFase": 11, "Umbral": 35,
         "ParametrosAprendizaje": 1, "EstadoSOAR": 1,
     }
+
+
+# --- Plantillas de 00_main.clp -----------------------------------------------
+
+@pytest.fixture(scope="module")
+def plantillas():
+    return on.leer_plantillas()
+
+
+def test_plantillas_estaticas(plantillas):
+    assert set(plantillas) == {
+        "sector", "cultivo", "seguidor-solar", "objetivo-activo", "dato-requerido",
+        "definicion-fase", "umbral", "parametros-aprendizaje", "estado-soar",
+    }
+    umbral = plantillas["umbral"]
+    assert umbral["limite-inferior"].tipos == {"NUMBER", "SYMBOL"}
+    assert umbral["limite-inferior"].simbolos == {"nil"}
+    assert umbral["limite-inferior"].opcional
+    assert not umbral["nivel"].opcional
+    assert plantillas["estado-soar"]["estado-padre"].opcional
+    assert plantillas["sector"]["id"].simbolos is None
+    assert plantillas["seguidor-solar"]["max-movimientos-hora"].tipos == {"INTEGER"}

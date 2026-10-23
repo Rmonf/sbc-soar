@@ -101,6 +101,8 @@ Este documento es la especificación para empezar a escribir los ficheros CLIPS.
    - `angulo-objetivo`, `angulo-ordenado` y `angulo-previo` (sin observación de panel);
    - `tipo-impasse` en `episodio`;
    - `limite-inferior` y `limite-superior` (intervalos abiertos).
+
+   Un slot numérico opcional se declara `(type NUMBER SYMBOL) (allowed-symbols nil) (default nil)`: CLIPS rechaza `(default nil)` en un slot de tipo `NUMBER`.
 8. **Tiempo:** `instante` en minutos desde el inicio; "la última hora" es `instante ≥ t − 60`. La activación de los chunks usa horas (§6.2).
 9. **Números:** los reales son `xsd:decimal` en OWL (el tipo de un literal `30.0` en Turtle) y `NUMBER` en CLIPS. Los enteros son `xsd:integer` y `INTEGER`.
 10. **Un diagnóstico por sector y tipo:** la regla que lo crea comprueba que no exista; si existe, añade evidencia y eleva el nivel.
@@ -153,7 +155,7 @@ Este documento es la especificación para empezar a escribir los ficheros CLIPS.
 | | `valoracion` | `evalua-operador`, `beneficio-mecanico`, `beneficio-cultivo`, `beneficio-energia`, `coste-movimiento`, `desplazamiento` | efímera | AVALUACIO |
 | | `preferencia` | `en-estado`, `sector`, `tipo-preferencia`, `operador-referencia`, `operador-comparado`, `criterio`, `origen`, `restriccion`, `chunk-aplicado` | efímera | AVALUACIO, SELECCIO (chunk), DELIBERACIO |
 | 5 Resultados | `orden-actuador` | `id`, `sector`, `accion`, `angulo-ordenado`, `instante`, `escalado-humano` | un ciclo | APLICACIO; la retracta MONITORATGE |
-| | `episodio` | `id`, `sector`, `instante`, `situacion`, `alternativas`, `descartes`, `restricciones-activas` (multi), `criterio-determinante`, `accion`, `angulo-previo`, `angulo-ordenado`, `beneficio-cultivo`, `beneficio-energia`, `perdida-cultivo`, `perdida-energia`, `tipo-impasse`, `chunk-aplicado`, `escalado-humano`, `resultado` | persistente (ventana de 60 min) | EXPLICACIO, MONITORATGE, NETEJA |
+| | `episodio` | `id`, `sector`, `instante`, `situacion` (multi), `alternativas` (multi), `descartes` (multi), `restricciones-activas` (multi), `criterio-determinante`, `accion`, `angulo-previo`, `angulo-ordenado`, `beneficio-cultivo`, `beneficio-energia`, `perdida-cultivo`, `perdida-energia`, `tipo-impasse`, `chunk-aplicado`, `escalado-humano`, `resultado` | persistente (ventana de 60 min) | EXPLICACIO, MONITORATGE, NETEJA |
 | | `chunk` | `id`, `accion-preferida`, `beneficio-preferida`, `accion-descartada`, `beneficio-descartada`, `relacion-delta`, `criterio`, `estrategia-resolucion`, `instante`, `referencias` (multi) | persistente | APRENENTATGE |
 
 **Dato ausente = desconocido.** Un dato ausente se representa por la ausencia del hecho, nunca por un valor por defecto. Sin `observacion-panel`, el ángulo y la ocupación son desconocidos y R5 impide mover.
