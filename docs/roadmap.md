@@ -535,6 +535,7 @@ proyecto-sbc-agrovoltaica/
 
 **Deffunctions de MAIN:**
 - `nivel-num` y `recortar-angulo`;
+- `accion-sin-movimiento`: `mantenir-posicio` o `diagnosticar` (definiciones de §5);
 - `dins-interval`: límites nil = infinito;
 - `relacio-delta`: `menor`, `similar` o `major`;
 - `activacio`: activación base de un chunk;

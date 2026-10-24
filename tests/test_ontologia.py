@@ -48,10 +48,14 @@ def plantillas():
     return on.leer_plantillas()
 
 
-def test_plantillas_estaticas(plantillas):
+def test_plantillas(plantillas):
     assert set(plantillas) == {
         "sector", "cultivo", "seguidor-solar", "objetivo-activo", "dato-requerido",
         "definicion-fase", "umbral", "parametros-aprendizaje", "estado-soar",
+        # I1: familias dinámicas del prototipo; faltan prediccion (I2) y chunk (I4)
+        "impasse", "ciclo-temporal", "observacion-sensor", "observacion-panel", "abstraccion",
+        "diagnostico", "operador-candidato", "valoracion", "preferencia", "orden-actuador",
+        "episodio",
     }
     umbral = plantillas["umbral"]
     assert umbral["limite-inferior"].tipos == {"NUMBER", "SYMBOL"}
@@ -61,6 +65,9 @@ def test_plantillas_estaticas(plantillas):
     assert plantillas["estado-soar"]["estado-padre"].opcional
     assert plantillas["sector"]["id"].simbolos is None
     assert plantillas["seguidor-solar"]["max-movimientos-hora"].tipos == {"INTEGER"}
+    assert plantillas["episodio"]["tipo-impasse"].simbolos == {"tie", "dades-insuficients",
+                                                              "constraint-failure", "nil"}
+    assert plantillas["episodio"]["situacion"].multi
 
 
 # --- Generación de base_coneixement.clp --------------------------------------

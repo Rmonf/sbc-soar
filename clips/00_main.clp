@@ -1,6 +1,6 @@
 ;;; 00_main.clp: módulo MAIN con las plantillas, las deffunction y las reglas de control (roadmap §4.3, §8).
-;;; I0: solo están las plantillas del conocimiento estático (§3.1) y la de estado-soar (S0);
-;;; las demás se añaden en I1. Convenciones de §2.3.
+;;; I1: plantillas del conocimiento estático (§3.1) y de las familias que usa el prototipo
+;;; de un sector; faltan prediccion (I2) y chunk (I4). Convenciones de §2.3.
 
 (defmodule MAIN (export ?ALL))
 
@@ -94,3 +94,211 @@
                        seleccio deliberacio aplicacio explicacio aprenentatge neteja))
    (slot subfase (type SYMBOL) (allowed-symbols pendent feta))
    (slot impasse-asociado (type SYMBOL) (default nil)))
+
+;; Conflicto del procedimiento de decisión que se resuelve en un subestado (§3.2, §5.6, §5.7).
+(deftemplate MAIN::impasse
+   (slot id (type SYMBOL))
+   (slot en-estado (type SYMBOL))
+   (slot sector (type SYMBOL))
+   (slot tipo-impasse (type SYMBOL) (allowed-symbols tie dades-insuficients constraint-failure))
+   (multislot operadores-en-conflicto (type SYMBOL))
+   (slot resuelto (type SYMBOL) (allowed-symbols TRUE FALSE))
+   (slot estrategia-resolucion (type SYMBOL)
+      (allowed-symbols minima-intervencio prioritat-objectius posicio-preventiva demanar-dades
+                       restriccio-prioritaria escalat nil)
+      (default nil)))
+
+;;; ---------------------------------------------------------------------------
+;;; Familia 1: observados (§3.2). Solo los aserta el simulador.
+;;; ---------------------------------------------------------------------------
+
+;; Marca de tiempo del ciclo, en minutos desde el inicio (§2.3.8).
+(deftemplate MAIN::ciclo-temporal
+   (slot instante (type INTEGER)))
+
+;; Lectura de un sensor de un sector (§3.3).
+(deftemplate MAIN::observacion-sensor
+   (slot id (type SYMBOL))
+   (slot sector (type SYMBOL))
+   (slot variable (type SYMBOL)
+      (allowed-symbols radiacio temp-cultiu temp-ambient humitat-sol vent vent-previst
+                       pluja pluja-prevista preu-energia produccio moviment
+                       angle-captacio angle-ombra))
+   (slot valor (type NUMBER))
+   (slot instante (type INTEGER))
+   (slot calidad (type SYMBOL) (allowed-symbols ok degradat fallada)))
+
+;; Estado observado del seguidor de un sector (§3.3).
+(deftemplate MAIN::observacion-panel
+   (slot sector (type SYMBOL))
+   (slot angulo-actual (type NUMBER))
+   (slot estado-mecanico (type SYMBOL) (allowed-symbols operatiu bloquejat alarma))
+   (slot ocupacion (type SYMBOL) (allowed-symbols lliure persones maquinaria))
+   (slot instante (type INTEGER)))
+
+;;; ---------------------------------------------------------------------------
+;;; Familia 2: derivados (§3.2).
+;;; ---------------------------------------------------------------------------
+
+;; Nivel cualitativo de una variable observada (§5.3).
+(deftemplate MAIN::abstraccion
+   (slot sector (type SYMBOL))
+   (slot variable (type SYMBOL)
+      (allowed-symbols radiacio temp-cultiu temp-ambient humitat-sol vent vent-previst
+                       pluja pluja-prevista preu-energia produccio moviment
+                       angle-captacio angle-ombra))
+   (slot nivel (type SYMBOL) (allowed-symbols baix mitja alt critic)))
+
+;; Riesgo, necesidad u oportunidad de un sector; uno por sector y tipo (§2.3.10, §5.3).
+(deftemplate MAIN::diagnostico
+   (slot id (type SYMBOL))
+   (slot sector (type SYMBOL))
+   (slot tipo-diagnostico (type SYMBOL)
+      (allowed-symbols estres-termic estres-hidric risc-mecanic risc-persones
+                       oportunitat-energetica fallada-actuador incertesa-dades))
+   (slot nivel (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (multislot evidencias (type SYMBOL)))
+
+;;; ---------------------------------------------------------------------------
+;;; Familia 4: candidatos (§3.2).
+;;; ---------------------------------------------------------------------------
+
+;; Operador propuesto para un sector (§5.4).
+(deftemplate MAIN::operador-candidato
+   (slot id (type SYMBOL))
+   (slot en-estado (type SYMBOL))
+   (slot sector (type SYMBOL))
+   (slot accion (type SYMBOL)
+      (allowed-symbols orientar-produccio orientar-ombra posicio-seguretat mantenir-posicio
+                       diagnosticar))
+   (slot angulo-objetivo (type NUMBER SYMBOL) (allowed-symbols nil) (default nil))
+   (slot estado-candidato (type SYMBOL) (allowed-symbols candidat descartat seleccionat aplicat))
+   (multislot motivos (type SYMBOL)))
+
+;; Valoración de un candidato por criterio (§5.5b).
+(deftemplate MAIN::valoracion
+   (slot evalua-operador (type SYMBOL))
+   (slot beneficio-mecanico (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot beneficio-cultivo (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot beneficio-energia (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot coste-movimiento (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot desplazamiento (type NUMBER)))
+
+;; Preferencia sobre candidatos: reject, require o better (§5.5, §5.6).
+(deftemplate MAIN::preferencia
+   (slot en-estado (type SYMBOL))
+   (slot sector (type SYMBOL))
+   (slot tipo-preferencia (type SYMBOL) (allowed-symbols reject require better))
+   (slot operador-referencia (type SYMBOL))
+   (slot operador-comparado (type SYMBOL) (default nil))
+   (slot criterio (type SYMBOL)
+      (allowed-symbols seguretat-persones integritat-mecanica proteccio-cultiu
+                       produccio-energia estabilitat))
+   (slot origen (type SYMBOL) (allowed-symbols regla deliberacio chunk))
+   (slot restriccion (type SYMBOL) (allowed-symbols R1 R2 R3 R4 R5 nil) (default nil))
+   (slot chunk-aplicado (type SYMBOL) (default nil)))
+
+;;; ---------------------------------------------------------------------------
+;;; Familia 5: resultados (§3.2).
+;;; ---------------------------------------------------------------------------
+
+;; Orden para el actuador de un sector; nil en angulo-ordenado = no mover (§5.8).
+(deftemplate MAIN::orden-actuador
+   (slot id (type SYMBOL))
+   (slot sector (type SYMBOL))
+   (slot accion (type SYMBOL)
+      (allowed-symbols orientar-produccio orientar-ombra posicio-seguretat mantenir-posicio
+                       diagnosticar))
+   (slot angulo-ordenado (type NUMBER SYMBOL) (allowed-symbols nil) (default nil))
+   (slot instante (type INTEGER))
+   (slot escalado-humano (type SYMBOL) (allowed-symbols TRUE FALSE)))
+
+;; Registro auditable de una decisión: memoria episódica (§3.3, §5.9).
+(deftemplate MAIN::episodio
+   (slot id (type SYMBOL))
+   (slot sector (type SYMBOL))
+   (slot instante (type INTEGER))
+   (multislot situacion (type SYMBOL))
+   (multislot alternativas (type SYMBOL)
+      (allowed-symbols orientar-produccio orientar-ombra posicio-seguretat mantenir-posicio
+                       diagnosticar))
+   (multislot descartes (type SYMBOL))
+   (multislot restricciones-activas (type SYMBOL) (allowed-symbols R1 R2 R3 R4 R5))
+   (slot criterio-determinante (type SYMBOL))
+   (slot accion (type SYMBOL)
+      (allowed-symbols orientar-produccio orientar-ombra posicio-seguretat mantenir-posicio
+                       diagnosticar))
+   (slot angulo-previo (type NUMBER SYMBOL) (allowed-symbols nil) (default nil))
+   (slot angulo-ordenado (type NUMBER SYMBOL) (allowed-symbols nil) (default nil))
+   (slot beneficio-cultivo (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot beneficio-energia (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot perdida-cultivo (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot perdida-energia (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot tipo-impasse (type SYMBOL)
+      (allowed-symbols tie dades-insuficients constraint-failure nil)
+      (default nil))
+   (slot chunk-aplicado (type SYMBOL) (default nil))
+   (slot escalado-humano (type SYMBOL) (allowed-symbols TRUE FALSE))
+   (slot resultado (type SYMBOL) (allowed-symbols pendent ok fallada-actuador)))
+
+;;; ---------------------------------------------------------------------------
+;;; Deffunctions (§8).
+;;; ---------------------------------------------------------------------------
+
+;; Escala ordinal baix < mitja < alt < critic convertida a 0-3 (§2.3.5).
+(deffunction MAIN::nivel-num (?nivel)
+   (switch ?nivel
+      (case baix then 0)
+      (case mitja then 1)
+      (case alt then 2)
+      (case critic then 3)))
+
+;; ¿Está ?x en [?inferior, ?superior)? Un límite nil es infinito (§5.3).
+(deffunction MAIN::dins-interval (?x ?inferior ?superior)
+   (and (or (eq ?inferior nil) (>= ?x ?inferior))
+        (or (eq ?superior nil) (< ?x ?superior))))
+
+;; ¿Es una acción sin movimiento? (definiciones de §5).
+(deffunction MAIN::accion-sin-movimiento (?accion)
+   (if (member$ ?accion (create$ mantenir-posicio diagnosticar)) then TRUE else FALSE))
+
+;;; ---------------------------------------------------------------------------
+;;; Reglas de control (§4.2). Localizan S0 por (id S0) y son mutuamente excluyentes.
+;;; ---------------------------------------------------------------------------
+
+;; Llega un ciclo-temporal con S0 en espera: empieza el ciclo por percepcio (§4.2.1).
+(defrule MAIN::iniciar-ciclo
+   ?s <- (estado-soar (id S0) (fase espera))
+   (ciclo-temporal)
+   =>
+   (modify ?s (fase percepcio) (subfase pendent)))
+
+;; Fase pendiente: se marca feta y se enfoca su módulo (§4.2.2).
+(defrule MAIN::ejecutar-fase
+   ?s <- (estado-soar (id S0) (fase ?f) (subfase pendent))
+   (definicion-fase (fase ?f) (modulo ?m))
+   =>
+   (modify ?s (subfase feta))
+   (focus ?m))
+
+;; Fase hecha y sin impasses abiertos: se pasa a la siguiente de la tabla (§4.2.3).
+(defrule MAIN::avanzar-fase
+   ?s <- (estado-soar (id S0) (fase ?f) (subfase feta))
+   (definicion-fase (fase ?f) (siguiente ?g))
+   (not (impasse (resuelto FALSE)))
+   =>
+   (modify ?s (fase ?g) (subfase pendent)))
+
+;; Selección hecha con algún impasse abierto: se delibera (§4.2.4).
+(defrule MAIN::abrir-deliberacio
+   ?s <- (estado-soar (id S0) (fase seleccio) (subfase feta))
+   (exists (impasse (resuelto FALSE)))
+   =>
+   (modify ?s (fase deliberacio) (subfase pendent)))
+
+;; La deliberación no ha resuelto un impasse: se deriva a una persona (§4.2.5, enunciado 3.7.3).
+(defrule MAIN::escalar-impasse
+   (estado-soar (id S0) (fase deliberacio) (subfase feta))
+   ?i <- (impasse (resuelto FALSE))
+   =>
+   (modify ?i (resuelto TRUE) (estrategia-resolucion escalat)))
