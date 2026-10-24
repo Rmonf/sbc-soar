@@ -97,7 +97,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.dias is not None:
         config["dias"] = args.dias
     ej = ejecutar(args.semilla, config, args.estrategia)
-    guardar(ej, RAIZ / args.salida / f"semilla_{args.semilla}")
+    import metricas
+    guardar(ej, RAIZ / args.salida / f"semilla_{args.semilla}", metricas.calcular(ej))
     print(f"semilla {args.semilla}: {len(ej.ciclos)} pasos, {len(ej.ordenes)} órdenes, "
           f"{len(ej.episodios)} episodios, errores: {ej.errores or 'ninguno'}")
     return 1 if ej.errores else 0

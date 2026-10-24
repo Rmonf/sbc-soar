@@ -221,6 +221,7 @@ class Simulador:
                                    if ev["inicio-min"] <= self.instante() < ev["inicio-min"] + ev["durada-min"]}),
                 "radiacion": float(m.radiacion[k]), "precio": float(m.precio[k]),
                 "sectores": {s: {**{x: v for x, v in e.items()}, "temp-cultiu": self.temp_cultivo(s),
+                                 "actuador-encallat": self.activo("actuador-encallat", s) is not None,
                                  "sombra": self.sombra(s), "produccion": self.produccion(s)}
                              for s, e in self.sectores.items()}}
 
