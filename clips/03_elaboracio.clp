@@ -4,10 +4,11 @@
 
 (defmodule ELABORACIO (import MAIN ?ALL))
 
-;; Nivel de una variable con referencia al seguidor: delta = valor − umbral-viento-critico (§5.3).
+;; Nivel de una variable con referencia al seguidor: delta = valor − umbral-viento-critico.
+;; Las lecturas con calidad fallada no se abstraen: son datos desconocidos (§5.3).
 (defrule ELABORACIO::abstraer-ref-seguidor
    (estado-soar (id S0) (fase elaboracio))
-   (observacion-sensor (sector ?s) (variable ?v) (valor ?x))
+   (observacion-sensor (sector ?s) (variable ?v) (valor ?x) (calidad ~fallada))
    (sector (id ?s) (tiene-seguidor ?sg))
    (seguidor-solar (id ?sg) (umbral-viento-critico ?u))
    (umbral (variable ?v) (referencia seguidor) (nivel ?n)

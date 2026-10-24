@@ -159,7 +159,9 @@
    =>
    (bind ?entradas (create$))
    (do-for-all-facts ((?h observacion-sensor)) (eq ?h:sector ?s)
-      (bind ?entradas (create$ ?entradas (str-cat ?h:variable "=" ?h:valor))))
+      (bind ?entradas (create$ ?entradas
+                               (str-cat ?h:variable "=" ?h:valor
+                                        (if (eq ?h:calidad ok) then "" else (str-cat " (" ?h:calidad ")"))))))
    (printout traza "Fets d'entrada: t=" ?t ", sector=" ?s ", " (lista ?entradas)
                    ", panell=" ?previo " (" ?em ", " ?oc ")" crlf)
    (printout traza "Diagnosi: " (lista ?sit) crlf)

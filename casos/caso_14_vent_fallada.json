@@ -1,0 +1,34 @@
+{
+  "id": "caso_14_vent_fallada",
+  "descripcion": "Lectura de viento de 82 km/h con calidad fallada: no se abstrae y no hay risc-mecanic. En I1 se mantiene; en I2 PERCEPCIO la tratará como dato ausente (incertesa-dades) y el resultado esperado cambiará.",
+  "requisito": "§5.3 (lecturas fallada ignoradas); §3.2 dato ausente = desconocido; testimonio agrónoma (no imputar en silencio)",
+  "pasos": [
+    {
+      "instante": 0,
+      "sensores": [
+        {
+          "sector": "s2",
+          "variable": "vent",
+          "valor": 82,
+          "calidad": "fallada"
+        }
+      ],
+      "paneles": [
+        {
+          "sector": "s2",
+          "angulo-actual": 30,
+          "estado-mecanico": "operatiu",
+          "ocupacion": "lliure"
+        }
+      ],
+      "esperado": {
+        "situacion": []
+      },
+      "prohibido": {
+        "situacion": [
+          "risc-mecanic:critic"
+        ]
+      }
+    }
+  ]
+}

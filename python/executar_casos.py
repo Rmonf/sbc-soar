@@ -72,8 +72,10 @@ def comprobar(caso: dict, resultados: list[Paso]) -> list[str]:
             if not _igual(valor, obtenido):
                 fallos.append(f"{donde}: {slot} = {obtenido!r}, se esperaba {valor!r}")
         for slot, valores in p.get("prohibido", {}).items():
-            if orden.get(slot) in valores:
-                fallos.append(f"{donde}: {slot} = {orden[slot]!r} está prohibido")
+            obtenido = orden[slot] if slot in orden else episodio.get(slot)
+            prohibidos = set(obtenido if isinstance(obtenido, list) else [obtenido]) & set(valores)
+            if prohibidos:
+                fallos.append(f"{donde}: {slot} contiene {sorted(prohibidos)}, que está prohibido")
     return fallos
 
 

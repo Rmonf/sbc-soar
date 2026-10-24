@@ -38,10 +38,14 @@ def test_comprobar_detecta_discrepancias(resultados, slot, valor):
     assert ec.comprobar(mutado, pasos)
 
 
-def test_comprobar_detecta_prohibido(resultados):
+@pytest.mark.parametrize("prohibido", [
+    {"accion": ["posicio-seguretat"]},
+    {"situacion": ["risc-mecanic:critic"]},           # multislot del episodio
+])
+def test_comprobar_detecta_prohibido(resultados, prohibido):
     caso, pasos = resultados["caso_08_anexo_b"]
     mutado = copy.deepcopy(caso)
-    mutado["pasos"][0]["prohibido"] = {"accion": ["posicio-seguretat"]}
+    mutado["pasos"][0]["prohibido"] = prohibido
     assert ec.comprobar(mutado, pasos)
 
 

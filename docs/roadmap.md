@@ -260,7 +260,7 @@ Después se retracta la orden. Sin observación de panel, el resultado queda `pe
 
 ### 5.3 ELABORACIO (abstracción → asociación → refinamiento)
 
-**Abstracción.** Tres reglas genéricas, una por `referencia`. Calculan `delta = valor − referencia` y asertan `abstraccion` si el delta cae en el intervalo del `umbral`; `deffunction dins-interval` trata los límites nil como infinitos. No hay umbrales escritos en las reglas.
+**Abstracción.** Tres reglas genéricas, una por `referencia`. Calculan `delta = valor − referencia` y asertan `abstraccion` si el delta cae en el intervalo del `umbral`; `deffunction dins-interval` trata los límites nil como infinitos. No hay umbrales escritos en las reglas. **Ignoran las lecturas con `calidad fallada`:** un valor fallado es desconocido (§3.2), así que no se abstrae y PERCEPCIO lo trata como dato ausente (§5.1). Las lecturas `degradat` sí se abstraen.
 
 **Diagnóstico.** Se crea si la abstracción de partida es ≥ `mitja` y el nivel final tras el refinamiento sigue siendo ≥ `mitja`:
 
