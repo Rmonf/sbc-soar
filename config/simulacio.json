@@ -100,7 +100,7 @@
   "delta": {
     "_nota": "Efecto mínimo relevante por semilla, fijado antes del piloto (roadmap §11.2). rel = fracción de la mediana del piloto.",
     "tie-100": {
-      "abs": 1.0
+      "rel": 0.5
     },
     "energia-kwh": {
       "rel": 0.02

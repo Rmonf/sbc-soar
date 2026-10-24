@@ -652,7 +652,8 @@ Cada iteración termina con:
   - un piloto de 10 semillas estima la desviación típica de las diferencias, σ_d. En I3 solo existe el núcleo, así que el piloto estima σ por métrica y usa la cota σ_d ≤ √2·σ, **válida si ρ ≥ 0** (las dos configuraciones no están correlacionadas negativamente sobre las mismas semillas). El n resultante es **provisional hasta I4**, que mide σ_d con las diferencias reales C0–C1;
   - n = ((z₁₋α/₂ + z₁₋β) · σ_d / δ)², con α = 0,05, potencia 0,8 y δ el efecto mínimo relevante (fijado de antemano para cada métrica);
   - mínimo 30 semillas.
-- **δ fijados antes del piloto** (`simulacio.json`), por semilla: impasses `tie` 1 por cada 100 decisiones; energía 2 % de la mediana del piloto; horas de estrés 1 por sector y día; movimientos 2 por sector y día; reglas disparadas por ciclo 5 % y tiempo de CPU por ciclo 10 % de la mediana.
+- **δ fijados antes del piloto** (`simulacio.json`), por semilla: impasses `tie` 50 % de la mediana de C0 (ver la nota); energía 2 % de la mediana del piloto; horas de estrés 1 por sector y día; movimientos 2 por sector y día; reglas disparadas por ciclo 5 % y tiempo de CPU por ciclo 10 % de la mediana.
+- **Nota sobre el δ de `tie` (cambio tras el piloto de I3 y antes de cualquier dato de C1):** el δ inicial era absoluto, 1 por cada 100 decisiones. El piloto dio una mediana de 0,198 (IQR 0,149–0,273), así que ni eliminar todos los empates alcanzaba ese δ y H1 no se podía confirmar. Se cambia a un δ relativo: una reducción de al menos el 50 % frente a C0, δ = 0,5 · mediana(`tie` por cada 100 decisiones en C0). El cambio solo usa el piloto del núcleo, es decir, datos de C0, y se hizo antes de que existiera C1, por lo que no depende del efecto observado. Con el piloto, δ = 0,099 y σ_d ≤ √2 · 0,075 = 0,106, de donde n = 9, que se eleva al mínimo de 30 (provisional hasta I4, que usará la mediana de C0 y la σ_d reales).
 - **Pruebas:**
   - *dos configuraciones, métrica numérica:* Wilcoxon de rangos con signo pareado (no se supone normalidad), tamaño del efecto (correlación biserial de rangos) e intervalo de confianza del 95 % de la mediana de las diferencias por *bootstrap*;
   - *más de dos configuraciones* (estrategias de agenda): Friedman y, si es significativo, comparaciones por pares de Wilcoxon;
@@ -690,7 +691,7 @@ Cada iteración termina con:
 | | |
 |---|---|
 | Configuraciones | **C0:** línea base, sin aprendizaje. **C1:** chunking sin olvido (umbral de olvido muy bajo). **C2:** chunking con olvido (valores por defecto). Las tres con las mismas semillas. |
-| H1, rendimiento | C1 y C2 reducen los impasses `tie` por cada 100 decisiones (**métrica principal**, δ = 1) frente a C0 (Wilcoxon unilateral). Las reglas disparadas por ciclo son una métrica secundaria. |
+| H1, rendimiento | C1 y C2 reducen los impasses `tie` por cada 100 decisiones (**métrica principal**) en al menos el 50 % frente a C0: δ = 0,5 · mediana de C0 (Wilcoxon unilateral; δ relativo fijado tras el piloto de I3 y antes de cualquier dato de C1, ver la nota de §11.2). Las reglas disparadas por ciclo son una métrica secundaria. |
 | H2, competencia | C1 y C2 toman las mismas decisiones que C0 en todos los pasos (fidelidad del 100 %, informada como proporción de ejecuciones idénticas con Clopper–Pearson). Las métricas de dominio no cambian. |
 | H3, olvido | C2 mantiene menos chunks vivos que C1, a cambio de un aumento de impasses (reaprendizaje) menor que δ. |
 | Sensibilidad | Barrido del umbral de olvido (−1, −2, −3) con d = 0,5, para elegir el valor en la iteración I4. |
