@@ -13,7 +13,7 @@ Práctica de Sistemes Basats en Coneixement (GIA, UPC). Es un sistema basado en 
 | `fuentes/testimonios.md` | Testimonios de los usuarios (en inglés); de ahí salen requisitos (roadmap §1.2). |
 | `fuentes/*.pdf` | Material de clase (ver "Fuentes" al final). |
 
-Los directorios `casos/` y `resultats/` aún no existen; se crean siguiendo **roadmap §8**. `clips/00_main.clp` solo tiene, por ahora, las plantillas del conocimiento estático y `estado-soar` (I0); el resto llega en I1. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
+Estado tras I1: prototipo vertical de un sector (viento → `mantenir-posicio` o `posicio-seguretat`). Existen los 11 módulos de `clips/`; `01_percepcio`, `07_deliberacio` y `10_aprenentatge` son stubs (solo `defmodule`) porque la tabla de fases los enfoca. Cada fichero dice en su cabecera qué falta y en qué iteración llega. Faltan las plantillas `prediccion` (I2) y `chunk` (I4). `casos/` tiene la batería y `resultats/` (ignorado por git) se regenera con los experimentos. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
 
 ## Jerarquía de fuentes
 
@@ -56,6 +56,8 @@ uv run python python/ontologia.py               # genera config/base_coneixement
 uv run python python/ontologia.py --verificar   # verificación de la base de conocimiento (§10.1)
 uv run python python/ontologia.py --set aprendizaje-activo=FALSE --salida <ruta>   # variante de experimento (§2.2)
 uv run pytest                                   # casos de prueba y regresión (§10.2)
+uv run python python/executar_casos.py          # batería de casos con pass/fail y reglas no disparadas (§10.1, §10.2)
+uv run python python/experiments.py a1          # experimento de agenda A1 (§11.3), salida en resultats/i1_a1/
 ```
 
 Si cambia algún comando, actualiza esta sección. El generador lee las plantillas de `clips/00_main.clp`: al añadir o cambiar una plantilla, regenera y verifica.
