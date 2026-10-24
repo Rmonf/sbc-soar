@@ -62,6 +62,7 @@ class Paso:
     episodios: list[dict]               # episodio presentes tras el ciclo
     traza: str                          # router traza
     errores: str = ""                   # stderr y stdwrn
+    ventana_episodica: int = 60         # ?*ventana-episodica* (§2.3.8)
     modulo_de: dict[str, str] = field(default_factory=dict, repr=False)
 
 
@@ -130,6 +131,7 @@ class Pont:
             traza=self.captura.vaciar("traza"),
             errores=self.captura.vaciar("stderr") + self.captura.vaciar("stdwrn"),
             modulo_de=self.modulo_de,
+            ventana_episodica=self.env.eval("?*ventana-episodica*"),
         )
 
     def reglas(self) -> list[str]:

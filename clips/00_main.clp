@@ -242,6 +242,13 @@
    (slot resultado (type SYMBOL) (allowed-symbols pendent ok fallada-actuador)))
 
 ;;; ---------------------------------------------------------------------------
+;;; Defglobals (§8): constantes de convención del diseño, no umbrales del dominio.
+;;; ---------------------------------------------------------------------------
+
+;; Ventana de la memoria episódica en minutos: "la última hora" es instante ≥ t − 60 (§2.3.8).
+(defglobal MAIN ?*ventana-episodica* = 60)
+
+;;; ---------------------------------------------------------------------------
 ;;; Deffunctions (§8).
 ;;; ---------------------------------------------------------------------------
 

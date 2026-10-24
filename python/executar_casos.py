@@ -59,8 +59,12 @@ def comprobar(caso: dict, resultados: list[Paso]) -> list[str]:
         if episodio is None:
             fallos.append(f"{donde}: no hay episodio de {s}")
             continue
-        if len(r.episodios) != n:
-            fallos.append(f"{donde}: hay {len(r.episodios)} episodios, se esperaban {n}")
+        # Episodios vivos: los de los pasos dentro de la ventana episódica (§2.3.8, §5.11).
+        vivos = sorted(e["instante"] for e in r.episodios)
+        esperados = [q["instante"] for q in caso["pasos"][:n]
+                     if q["instante"] >= r.instante - r.ventana_episodica]
+        if vivos != esperados:
+            fallos.append(f"{donde}: episodios de t={vivos}, se esperaban t={esperados}")
         if r.traza.count("Decisio:") != 1:
             fallos.append(f"{donde}: la traza tiene {r.traza.count('Decisio:')} decisiones, se esperaba 1")
         for slot, valor in p.get("esperado", {}).items():

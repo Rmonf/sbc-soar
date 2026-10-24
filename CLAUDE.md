@@ -42,7 +42,7 @@ Si dos fuentes no coinciden, manda la primera de esta lista:
   - MAIN tiene solo las cinco reglas de control;
   - todo el código de producción usa **salience 0**; la salience solo aparece en `clips/variants/`, para el experimento de agenda (§11.3).
 - **Un dato ausente es desconocido.** Se representa por la ausencia del hecho, nunca por un valor por defecto.
-- **Ningún umbral numérico va escrito en una regla.** Los umbrales se leen de los hechos `umbral` y de los slots de `cultivo` y `seguidor-solar`.
+- **Ningún umbral numérico va escrito en una regla.** La prohibición se refiere a los umbrales del dominio: se leen de los hechos `umbral` y de los slots de `cultivo` y `seguidor-solar`. Las constantes de convención del diseño (p. ej., la ventana episódica de 60 min, §2.3.8) van en un `defglobal` de `00_main.clp` que cita su sección del roadmap, nunca como literal en una regla.
 - **Separación SOAR estricta:** proponer, evaluar, seleccionar y aplicar son fases y módulos distintos (§5).
 - **KISS.** No añadas funcionalidad que no esté en el alcance (§1). Si algo te parece necesario y no lo está, pregúntalo antes.
 

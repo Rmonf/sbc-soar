@@ -103,7 +103,7 @@ Este documento es la especificación para empezar a escribir los ficheros CLIPS.
    - `limite-inferior` y `limite-superior` (intervalos abiertos).
 
    Un slot numérico opcional se declara `(type NUMBER SYMBOL) (allowed-symbols nil) (default nil)`: CLIPS rechaza `(default nil)` en un slot de tipo `NUMBER`.
-8. **Tiempo:** `instante` en minutos desde el inicio; "la última hora" es `instante ≥ t − 60`. La activación de los chunks usa horas (§6.2).
+8. **Tiempo:** `instante` en minutos desde el inicio; "la última hora" es `instante ≥ t − 60`. La activación de los chunks usa horas (§6.2). Los 60 min de la ventana episódica (R4, `posicio-preventiva`, NETEJA) son una constante de convención, no un umbral del dominio: están en el `defglobal ?*ventana-episodica*` de `00_main.clp` y las reglas la leen de ahí.
 9. **Números:** los reales son `xsd:decimal` en OWL (el tipo de un literal `30.0` en Turtle) y `NUMBER` en CLIPS. Los enteros son `xsd:integer` y `INTEGER`.
 10. **Un diagnóstico por sector y tipo:** la regla que lo crea comprueba que no exista; si existe, añade evidencia y eleva el nivel.
 11. **Multislots como conjuntos:** su orden depende del orden de disparo; las comparaciones entre ejecuciones los tratan como conjuntos.
@@ -410,7 +410,7 @@ Cada compilación, refuerzo u olvido se imprime en la traza.
 ### 5.11 NETEJA
 
 - Retracta las familias 1, 2 y 4, los impasses y los subestados.
-- Retracta los `episodio` con `instante < t − 60`, que Python ya ha exportado.
+- Retracta los `episodio` con `instante < t − ?*ventana-episodica*`, que Python ya ha exportado. El `ciclo-temporal` se retracta solo cuando ya no quedan episodios antiguos, para que el resultado no dependa del orden de disparo.
 - Conserva S0, el conocimiento estático, las órdenes del ciclo, los episodios recientes y los chunks.
 - Todas las plantillas son de MAIN, así que ningún hecho desaparece al cambiar de foco: la limpieza ha de ser explícita.
 
@@ -534,6 +534,8 @@ proyecto-sbc-agrovoltaica/
 ├── pyproject.toml + uv                 # versiones fijadas y requirements (clipspy, rdflib, numpy, scipy)
 └── README.md                           # instalación y ejecución desde entorno limpio
 ```
+
+**Defglobals de MAIN:** `?*ventana-episodica*` = 60 min (§2.3.8).
 
 **Deffunctions de MAIN:**
 - `nivel-num` y `recortar-angulo`;

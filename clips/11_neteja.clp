@@ -1,14 +1,24 @@
 ;;; 11_neteja.clp: módulo NETEJA, limpieza explícita de la memoria de trabajo (roadmap §5.11).
-;;; I1: familias 1, 2 y 4. Conserva S0, el conocimiento estático, las órdenes del ciclo y
-;;; los episodios. La retirada de episodios de más de 60 min (y de impasses y subestados)
-;;; llega en I2.
+;;; I1: familias 1, 2 y 4 y episodios fuera de la ventana episódica. Conserva S0, el
+;;; conocimiento estático, las órdenes del ciclo y los episodios recientes. La retirada de
+;;; impasses y subestados llega en I2.
 
 (defmodule NETEJA (import MAIN ?ALL))
 
-;; Retira el ciclo-temporal: S0 queda en espera hasta el siguiente (§5.11).
+;; Retira el ciclo-temporal cuando ya no quedan episodios antiguos, que lo necesitan para
+;; saber cuáles retirar: S0 queda en espera hasta el siguiente (§5.11).
 (defrule NETEJA::retirar-ciclo-temporal
    (estado-soar (id S0) (fase neteja))
-   ?h <- (ciclo-temporal)
+   ?h <- (ciclo-temporal (instante ?t))
+   (not (episodio (instante ?i&:(< ?i (- ?t ?*ventana-episodica*)))))
+   =>
+   (retract ?h))
+
+;; Retira los episodios anteriores a la ventana episódica, ya exportados por Python (§5.11, §2.3.8).
+(defrule NETEJA::retirar-episodio-antiguo
+   (estado-soar (id S0) (fase neteja))
+   (ciclo-temporal (instante ?t))
+   ?h <- (episodio (instante ?i&:(< ?i (- ?t ?*ventana-episodica*))))
    =>
    (retract ?h))
 
