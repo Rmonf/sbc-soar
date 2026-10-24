@@ -1,0 +1,39 @@
+{
+  "id": "caso_36_criterio_mecanico",
+  "descripcion": "Viento alt y radiación alta en s2 con el panel a −20°: posicio-seguretat (mecánico alt) es mejor que orientar-produccio por el primer criterio. mantenir-posicio queda dominada por los dos candidatos que mueven, y el episodio anota ambos descartes.",
+  "requisito": "§5.5c.1 criterios ordenados (integritat-mecanica)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -20
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat",
+          "criterio-determinante": "integritat-mecanica",
+          "descartes": [
+            "mantenir-posicio:integritat-mecanica",
+            "orientar-produccio:integritat-mecanica",
+            "mantenir-posicio:produccio-energia"
+          ]
+        }
+      }
+    }
+  ]
+}

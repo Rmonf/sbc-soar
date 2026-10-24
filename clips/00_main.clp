@@ -275,6 +275,20 @@
    (and (or (eq ?inferior nil) (>= ?x ?inferior))
         (or (eq ?superior nil) (< ?x ?superior))))
 
+;; Nivel desplazado ?delta posiciones en la escala, dentro de baix…critic (refinamientos, §5.3).
+(deffunction MAIN::nivel-desplazado (?nivel ?delta)
+   (nth$ (+ 1 (max 0 (min 3 (+ (nivel-num ?nivel) ?delta)))) (create$ baix mitja alt critic)))
+
+;; Nivel del diagnóstico tipo del sector, o baix si no existe (§5.5b). Los diagnósticos no
+;; cambian después de ELABORACIO.
+(deffunction MAIN::nivel-diagnostico (?sector ?tipo)
+   (bind ?d (find-fact ((?f diagnostico)) (and (eq ?f:sector ?sector) (eq ?f:tipo-diagnostico ?tipo))))
+   (if (= (length$ ?d) 0) then baix else (fact-slot-value (nth$ 1 ?d) nivel)))
+
+;; Ángulo recortado al intervalo mecánico del seguidor (§5.4).
+(deffunction MAIN::recortar-angulo (?angulo ?minimo ?maximo)
+   (max ?minimo (min ?maximo ?angulo)))
+
 ;; El mayor de dos niveles de la escala ordinal (§2.3.5, §2.3.10).
 (deffunction MAIN::nivel-max (?a ?b)
    (if (>= (nivel-num ?a) (nivel-num ?b)) then ?a else ?b))

@@ -260,7 +260,11 @@ Después se retracta la orden. Sin observación de panel, el resultado queda `pe
 
 ### 5.3 ELABORACIO (abstracción → asociación → refinamiento)
 
-**Abstracción.** Tres reglas genéricas, una por `referencia`. Calculan `delta = valor − referencia` y asertan `abstraccion` si el delta cae en el intervalo del `umbral`; `deffunction dins-interval` trata los límites nil como infinitos. No hay umbrales escritos en las reglas. **Ignoran las lecturas con `calidad fallada`:** un valor fallado es desconocido (§3.2), así que no se abstrae y PERCEPCIO lo trata como dato ausente (§5.1). Las lecturas `degradat` sí se abstraen.
+**Abstracción.** Tres reglas genéricas, una por `referencia`. Calculan `delta = valor − referencia` y asertan `abstraccion` si el delta cae en el intervalo del `umbral`; `deffunction dins-interval` trata los límites nil como infinitos. No hay umbrales escritos en las reglas. **Ignoran las lecturas con `calidad fallada` y las antiguas (`instante` < t):** un valor fallado o antiguo es desconocido (§3.2), así que no se abstrae y PERCEPCIO lo trata como dato ausente (§5.1). Las lecturas `degradat` sí se abstraen.
+
+**Predicciones.** Tres reglas aparte: `vent-previst` (referencia seguidor) y `pluja-prevista` (absoluta) se abstraen por sector; una predicción global (sector nil, como `preu-energia`) se abstrae **para cada sector**, de modo que los refinamientos leen siempre abstracciones del sector.
+
+**Orden de disparo.** Los refinamientos que solo suben de nivel se aplican al crear el diagnóstico (sensibilidad) o con evidencia + máximo (§2.3.10), y no dependen del orden. La rebaja de `estres-hidric` por lluvia depende de que *no* haya lluvia ≥ `alt`, así que su regla espera a que toda lluvia vigente del sector esté abstraída.
 
 **Diagnóstico.** Se crea si la abstracción de partida es ≥ `mitja` y el nivel final tras el refinamiento sigue siendo ≥ `mitja`:
 
@@ -544,6 +548,8 @@ proyecto-sbc-agrovoltaica/
 - `accion-sin-movimiento`: `mantenir-posicio` o `diagnosticar` (definiciones de §5);
 - `dins-interval`: límites nil = infinito;
 - `nivel-max`: el mayor de dos niveles (§2.3.10);
+- `nivel-desplazado`: nivel ± n posiciones, dentro de `baix`…`critic` (refinamientos, §5.3);
+- `nivel-diagnostico`: nivel del diagnóstico de un tipo en el sector, o `baix` si no existe (§5.5b);
 - `angulo-observado`: ángulo del panel del sector, o nil sin observación (§3.2);
 - `relacio-delta`: `menor`, `similar` o `major`;
 - `activacio`: activación base de un chunk;

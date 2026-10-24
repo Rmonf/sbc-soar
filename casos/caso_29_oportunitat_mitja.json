@@ -1,0 +1,29 @@
+{
+  "id": "caso_29_oportunitat_mitja",
+  "descripcion": "Radiación media en s2 (300 W/m²) con precio bajo: oportunidad mitja, suficiente para preferir la producción a mantener.",
+  "requisito": "§5.3 oportunitat-energetica sin refinamiento; §5.5c.3 beneficio mitja",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 300,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "orientar-produccio",
+          "situacion": [
+            "oportunitat-energetica:mitja"
+          ]
+        }
+      }
+    }
+  ]
+}

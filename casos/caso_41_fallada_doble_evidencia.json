@@ -1,0 +1,51 @@
+{
+  "id": "caso_41_fallada_doble_evidencia",
+  "descripcion": "Dos pasos: la orden de t=0 (defensa desde 30°) no se cumple y en t=5 el seguidor está bloquejat: un solo diagnóstico fallada-actuador con las dos evidencias.",
+  "requisito": "§2.3.10 un diagnóstico por sector y tipo; §5.3 fallada-actuador solo añade evidencia; testimonio operador (un incidente, no veinte alarmas)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat"
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s2": {
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "bloquejat"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "situacion": [
+            "fallada-actuador:alt"
+          ],
+          "traza-contiene": [
+            "fallada-actuador=estat-mecanic:bloquejat ordre-incomplerta"
+          ]
+        }
+      }
+    }
+  ]
+}

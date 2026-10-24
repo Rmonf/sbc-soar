@@ -1,0 +1,29 @@
+{
+  "id": "caso_39_persones_en_calma",
+  "descripcion": "Personas bajo los paneles de s2 sin ningún otro motivo para mover: risc-persones critic y se mantiene.",
+  "requisito": "§5.3 risc-persones; testimonio agricultor (personas debajo)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "panel": {
+            "ocupacion": "persones"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "situacion": [
+            "risc-persones:critic"
+          ],
+          "traza-contiene": [
+            "risc-persones=ocupacio:persones"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "caso_25_estres_hidric_lluvia",
+  "descripcion": "Suelo seco en s1 (40 %, alt; +1 por sensibilidad = critic) con lluvia de 5 mm/h (alt): la lluvia lo rebaja a alt.",
+  "requisito": "§5.3 estres-hidric: +1 sensibilidad, −1 lluvia",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 40,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 5,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "situacion": [
+            "estres-hidric:alt"
+          ],
+          "traza-contiene": [
+            "estres-hidric=humitat-sol:alt pluja:alt sensibilitat:alt"
+          ]
+        }
+      }
+    }
+  ]
+}

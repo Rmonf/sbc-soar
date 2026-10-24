@@ -2,8 +2,7 @@
 ;;; La condición "se propone si" de la tabla de §5.4 está en una sola función, motiva: la usan
 ;;; la regla que crea cada candidato (uno por acción y sector, con id derivado de ambos) y la
 ;;; que acumula sus motivos (tipo:nivel de cada diagnóstico que lo justifica).
-;;; I2 P1: posicio-seguretat (riesgo mecánico), diagnosticar y mantenir-posicio; orientar-* y
-;;; posicio-seguretat por incertidumbre llegan en P2 y P3.
+;;; Pendiente en I2: posicio-seguretat por incertidumbre llega en P3, junto con R5.
 
 (defmodule PROPOSTA (import MAIN ?ALL))
 
@@ -15,6 +14,8 @@
       (case diagnosticar then
          (or (and (eq ?tipo incertesa-dades) (>= (nivel-num ?nivel) (nivel-num mitja)))
              (eq ?tipo fallada-actuador)))
+      (case orientar-ombra then (member$ ?tipo (create$ estres-termic estres-hidric)))
+      (case orientar-produccio then (eq ?tipo oportunitat-energetica))
       (default FALSE)))
 
 ;; Riesgo mecánico ≥ alt: se propone ir al ángulo de defensa del seguidor (§5.4).
@@ -27,6 +28,32 @@
    =>
    (assert (operador-candidato (id (sym-cat ?s "-posicio-seguretat")) (en-estado S0) (sector ?s)
                                (accion posicio-seguretat) (angulo-objetivo ?a)
+                               (estado-candidato candidat))))
+
+;; Estrés térmico o hídrico: se propone el ángulo de sombra previsto, recortado (§5.4).
+(defrule PROPOSTA::proponer-orientar-ombra
+   (estado-soar (id S0) (fase proposta))
+   (sector (id ?s) (tiene-seguidor ?sg))
+   (exists (diagnostico (sector ?s) (tipo-diagnostico ?d)
+                        (nivel ?n&:(motiva orientar-ombra ?d ?n))))
+   (prediccion (sector ?s) (variable angle-ombra) (valor ?a))
+   (seguidor-solar (id ?sg) (angulo-minimo ?min) (angulo-maximo ?max))
+   =>
+   (assert (operador-candidato (id (sym-cat ?s "-orientar-ombra")) (en-estado S0) (sector ?s)
+                               (accion orientar-ombra) (angulo-objetivo (recortar-angulo ?a ?min ?max))
+                               (estado-candidato candidat))))
+
+;; Oportunidad energética: se propone el ángulo de captación previsto, recortado (§5.4).
+(defrule PROPOSTA::proponer-orientar-produccio
+   (estado-soar (id S0) (fase proposta))
+   (sector (id ?s) (tiene-seguidor ?sg))
+   (exists (diagnostico (sector ?s) (tipo-diagnostico ?d)
+                        (nivel ?n&:(motiva orientar-produccio ?d ?n))))
+   (prediccion (sector ?s) (variable angle-captacio) (valor ?a))
+   (seguidor-solar (id ?sg) (angulo-minimo ?min) (angulo-maximo ?max))
+   =>
+   (assert (operador-candidato (id (sym-cat ?s "-orientar-produccio")) (en-estado S0) (sector ?s)
+                               (accion orientar-produccio) (angulo-objetivo (recortar-angulo ?a ?min ?max))
                                (estado-candidato candidat))))
 
 ;; Incertidumbre ≥ mitja o fallada del actuador: se propone inspeccionar sin mover, en el

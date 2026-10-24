@@ -1,0 +1,27 @@
+{
+  "id": "caso_33_limite_humitat_40_0",
+  "descripcion": "Valor límite: 40 % en s3 (viña, umbral 30) es delta 10, baix: no hay estrés.",
+  "requisito": "§10.2 valores límite (humitat-sol baix/mitja)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 40.0,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "situacion": []
+        }
+      }
+    }
+  ]
+}

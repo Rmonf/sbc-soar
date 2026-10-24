@@ -1,0 +1,27 @@
+{
+  "id": "caso_31_limite_temp_vina_31_9",
+  "descripcion": "Valor límite: 31,9 °C en s3 (viña, umbral 35) es delta −3,1, baix: no hay estrés.",
+  "requisito": "§10.2 valores límite (temp-cultiu baix/mitja)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31.9,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "situacion": []
+        }
+      }
+    }
+  ]
+}

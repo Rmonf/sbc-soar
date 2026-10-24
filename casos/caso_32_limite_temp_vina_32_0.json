@@ -1,0 +1,29 @@
+{
+  "id": "caso_32_limite_temp_vina_32_0",
+  "descripcion": "Valor límite: 32,0 °C en s3 es delta −3, mitja: estres-termic mitja y sombra.",
+  "requisito": "§10.2 valores límite (temp-cultiu baix/mitja)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32.0,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "situacion": [
+            "estres-termic:mitja"
+          ]
+        }
+      }
+    }
+  ]
+}

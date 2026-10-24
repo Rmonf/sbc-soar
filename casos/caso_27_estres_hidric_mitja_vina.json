@@ -1,0 +1,30 @@
+{
+  "id": "caso_27_estres_hidric_mitja_vina",
+  "descripcion": "Suelo algo seco en s3 (viña, sensibilidad mitja; 35 %: mitja), sin lluvia: estres-hidric mitja y sombra por acción útil.",
+  "requisito": "§5.3 estres-hidric sin refinamiento; §5.5c.3 beneficio mitja",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 35,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "situacion": [
+            "estres-hidric:mitja"
+          ],
+          "beneficio-cultivo": "mitja"
+        }
+      }
+    }
+  ]
+}

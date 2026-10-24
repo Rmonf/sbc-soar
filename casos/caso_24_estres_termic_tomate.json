@@ -1,0 +1,35 @@
+{
+  "id": "caso_24_estres_termic_tomate",
+  "descripcion": "Calor en s1 (tomate, sensibilidad alt): 31 °C es alt (delta 1) y sube a critic; se orienta a la sombra prevista (−30°).",
+  "requisito": "§5.3 estres-termic y refinamiento por sensibilidad; §5.4 orientar-ombra; §5.5c.3 acción útil (proteccio-cultiu)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -30.0,
+          "situacion": [
+            "estres-termic:critic"
+          ],
+          "beneficio-cultivo": "critic",
+          "criterio-determinante": "proteccio-cultiu",
+          "traza-contiene": [
+            "estres-termic=sensibilitat:alt temp-cultiu:alt"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "id": "caso_35_ombra_maximo_estres",
+  "descripcion": "Estrés térmico alt y estrés hídrico critic en s1: la sombra tiene como beneficio de cultivo el mayor de los dos.",
+  "requisito": "§5.5b beneficio-cultivo = mayor estrés del sector",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 29,
+              "calidad": "ok"
+            },
+            "humitat-sol": {
+              "valor": 30,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "situacion": [
+            "estres-termic:alt",
+            "estres-hidric:critic"
+          ],
+          "beneficio-cultivo": "critic"
+        }
+      }
+    }
+  ]
+}

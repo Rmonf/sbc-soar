@@ -1,0 +1,41 @@
+{
+  "id": "caso_30_vent_previst_eleva",
+  "descripcion": "Viento alt en s2 (55 km/h) y previsto crítico (75 km/h): risc-mecanic critic por el máximo de ambos; R2 requiere la posición de seguridad.",
+  "requisito": "§5.3 risc-mecanic = máx(vent, vent-previst); abstracción de predicciones por sector; R2",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 55,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 75
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat",
+          "situacion": [
+            "risc-mecanic:critic"
+          ],
+          "restricciones-activas": [
+            "R2"
+          ],
+          "traza-contiene": [
+            "risc-mecanic=vent-previst:critic vent:alt"
+          ]
+        }
+      }
+    }
+  ]
+}

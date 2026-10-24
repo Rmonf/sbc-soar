@@ -1,0 +1,36 @@
+{
+  "id": "caso_40_estado_bloquejat",
+  "descripcion": "El seguidor de s2 informa estado bloquejat: fallada-actuador alt; no se propone mantener y se propone diagnosticar.",
+  "requisito": "§5.3 fallada-actuador por estado mecánico; §5.4 diagnosticar",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "panel": {
+            "estado-mecanico": "bloquejat"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "situacion": [
+            "fallada-actuador:alt"
+          ],
+          "traza-contiene": [
+            "fallada-actuador=estat-mecanic:bloquejat"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "alternativas": [
+            "mantenir-posicio"
+          ]
+        }
+      }
+    }
+  ]
+}

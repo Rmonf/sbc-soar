@@ -1,0 +1,35 @@
+{
+  "id": "caso_37_criterio_cultivo",
+  "descripcion": "Calor critic y radiación alta en s1: orientar-ombra (cultivo critic) es mejor que orientar-produccio por el criterio de cultivo. mantenir-posicio queda dominada por los dos candidatos que mueven, y el episodio anota ambos descartes.",
+  "requisito": "§5.5c.1 criterios ordenados (proteccio-cultiu)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "descartes": [
+            "mantenir-posicio:proteccio-cultiu",
+            "orientar-produccio:proteccio-cultiu",
+            "mantenir-posicio:produccio-energia"
+          ]
+        }
+      }
+    }
+  ]
+}
