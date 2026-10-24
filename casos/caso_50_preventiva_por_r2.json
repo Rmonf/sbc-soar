@@ -26,7 +26,8 @@
           "tipo-impasse": "dades-insuficients",
           "criterio-determinante": "integritat-mecanica",
           "traza-contiene": [
-            "Impasse: dades-insuficients (posicio-preventiva)"
+            "Impasse: dades-insuficients (posicio-preventiva)",
+            "posicio-preventiva: posicio-seguretat no rebutjada; R2 la requereix -> require posicio-seguretat"
           ]
         }
       }

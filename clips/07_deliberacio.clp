@@ -4,9 +4,30 @@
 ;;; único, y la siguiente solo si la anterior no se aplica. El resultado vuelve al estado padre
 ;;; S0 como preferencia (origen deliberacio); no se crean candidatos. Si ninguna se aplica, MAIN
 ;;; cierra el impasse como escalat (§4.2). Las funciones leen valoraciones, preferencias y
-;;; episodios, que no cambian durante la deliberación de un sector.
+;;; episodios, que no cambian durante la deliberación de un sector. La estrategia que se aplica
+;;; escribe en la traza una línea Deliberacio con lo que comparó (§5.9), con los elementos
+;;; ordenados para que no dependa del orden de disparo.
 
 (defmodule DELIBERACIO (import MAIN ?ALL))
+
+;; Orden alfabético y unión con comas, para la traza (§2.3.11).
+(deffunction DELIBERACIO::despues-de (?a ?b)
+   (> (str-compare ?a ?b) 0))
+
+(deffunction DELIBERACIO::juntar (?textos)
+   (bind ?r "")
+   (foreach ?x (sort despues-de ?textos)
+      (bind ?r (if (= ?x-index 1) then ?x else (str-cat ?r ", " ?x))))
+   ?r)
+
+;; Acción de un candidato.
+(deffunction DELIBERACIO::accion-de (?candidato)
+   (fact-slot-value (nth$ 1 (find-fact ((?c operador-candidato)) (eq ?c:id ?candidato))) accion))
+
+;; Línea de la deliberación en la traza (§5.9).
+(deffunction DELIBERACIO::traza-deliberacion (?sector ?tipo ?estrategia ?comparado ?resultado)
+   (printout traza "Deliberacio (t=" (instante-actual) "): sector=" ?sector ", " ?tipo ", "
+                   ?estrategia ": " ?comparado " -> " ?resultado crlf))
 
 ;; Valoración de un candidato.
 (deffunction DELIBERACIO::valoracion-de (?candidato)
@@ -69,6 +90,33 @@
            (riesgo-mecanico-reciente ?sector ?t))
       then ?id else nil))
 
+;; Qué miró posicio-preventiva en el sector: si posicio-seguretat existe y no está rechazada,
+;; el require de R2 y los episodios de la última hora con riesgo mecánico ≥ alt (§5.7).
+(deffunction DELIBERACIO::motivo-preventiva (?sector ?t)
+   (bind ?p (find-fact ((?c operador-candidato))
+               (and (eq ?c:sector ?sector) (eq ?c:accion posicio-seguretat))))
+   (if (= (length$ ?p) 0) then (return "sense candidat posicio-seguretat"))
+   (bind ?id (fact-slot-value (nth$ 1 ?p) id))
+   (if (rechazado ?id) then
+      (bind ?rs (create$))
+      (do-for-all-facts ((?r preferencia))
+            (and (eq ?r:tipo-preferencia reject) (eq ?r:operador-referencia ?id))
+         (bind ?rs (create$ ?rs (str-cat ?r:restriccion))))
+      (return (str-cat "posicio-seguretat rebutjada (" (juntar ?rs) ")")))
+   (if (> (length$ (find-fact ((?r preferencia))
+                      (and (eq ?r:tipo-preferencia require) (eq ?r:operador-referencia ?id)
+                           (eq ?r:restriccion R2))))
+          0)
+      then (return "posicio-seguretat no rebutjada; R2 la requereix"))
+   (bind ?es (create$))
+   (do-for-all-facts ((?e episodio))
+         (and (eq ?e:sector ?sector) (>= ?e:instante (- ?t ?*ventana-episodica*)) (< ?e:instante ?t)
+              (or (member$ risc-mecanic:alt ?e:situacion) (member$ risc-mecanic:critic ?e:situacion)))
+      (bind ?es (create$ ?es (str-cat "t=" ?e:instante))))
+   (if (> (length$ ?es) 0)
+      then (str-cat "posicio-seguretat no rebutjada; risc mecanic recent (episodis " (juntar ?es) ")")
+      else "posicio-seguretat no rebutjada; sense R2 ni risc mecanic recent"))
+
 ;; Crea el subestado de un impasse abierto, hijo de S0 (§5.7).
 (defrule DELIBERACIO::crear-subestado
    (estado-soar (id S0) (fase deliberacio))
@@ -93,6 +141,13 @@
          (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
                               (operador-referencia ?g) (operador-comparado ?o)
                               (criterio estabilitat) (origen deliberacio)))))
+   (bind ?deltas (create$))
+   (foreach ?o ?ops
+      (bind ?deltas (create$ ?deltas (str-cat "Δ " (accion-de ?o) "="
+                                               (fact-slot-value (valoracion-de ?o) desplazamiento)))))
+   (traza-deliberacion ?s tie minima-intervencio
+                       (str-cat (juntar ?deltas) " (tolerancia " (tolerancia-sector ?s) ")")
+                       (accion-de ?g))
    (modify ?imp (resuelto TRUE) (estrategia-resolucion minima-intervencio)))
 
 ;; tie, prioritat-objectius: si minima-intervencio no se aplica, el único empatado que sirve al
@@ -111,6 +166,14 @@
          (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
                               (operador-referencia ?g) (operador-comparado ?o)
                               (criterio (objetivo-de ?g)) (origen deliberacio)))))
+   (bind ?objetivos (create$))
+   (foreach ?o ?ops
+      (bind ?obj (objetivo-de ?o))
+      (bind ?objetivos (create$ ?objetivos
+                                (if (eq ?obj nil) then (str-cat (accion-de ?o) ": cap objectiu")
+                                 else (str-cat (accion-de ?o) ": " ?obj " (prioritat "
+                                               (prioridad-de ?obj) ")")))))
+   (traza-deliberacion ?s tie prioritat-objectius (juntar ?objetivos) (accion-de ?g))
    (modify ?imp (resuelto TRUE) (estrategia-resolucion prioritat-objectius)))
 
 ;; dades-insuficients, posicio-preventiva: require posicio-seguretat si no está rechazada y la
@@ -125,6 +188,8 @@
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia require)
                         (operador-referencia (posicio-preventiva-aplicable ?s ?t))
                         (criterio integritat-mecanica) (origen deliberacio)))
+   (traza-deliberacion ?s dades-insuficients posicio-preventiva (motivo-preventiva ?s ?t)
+                       "require posicio-seguretat")
    (modify ?imp (resuelto TRUE) (estrategia-resolucion posicio-preventiva)))
 
 ;; dades-insuficients, demanar-dades: si no, require diagnosticar (§5.7).
@@ -139,6 +204,9 @@
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia require)
                         (operador-referencia ?d) (criterio integritat-mecanica)
                         (origen deliberacio)))
+   (traza-deliberacion ?s dades-insuficients demanar-dades
+                       (str-cat "posicio-preventiva no aplicable: " (motivo-preventiva ?s ?t))
+                       "require diagnosticar")
    (modify ?imp (resuelto TRUE) (estrategia-resolucion demanar-dades)))
 
 ;; constraint-failure, restriccio-prioritaria: prevalecen los reject. Reject a todo requerido
@@ -152,7 +220,10 @@
    =>
    (bind ?criterio integritat-mecanica)
    (bind ?p-mejor 99)
+   (bind ?rechazos (create$))
    (do-for-all-facts ((?r preferencia)) (and (eq ?r:sector ?s) (eq ?r:tipo-preferencia reject))
+      (bind ?texto (str-cat ?r:restriccion " " ?r:criterio " (prioritat " (prioridad-de ?r:criterio) ")"))
+      (if (not (member$ ?texto ?rechazos)) then (bind ?rechazos (create$ ?rechazos ?texto)))
       (if (< (prioridad-de ?r:criterio) ?p-mejor)
          then (bind ?criterio ?r:criterio) (bind ?p-mejor (prioridad-de ?r:criterio))))
    ;; primero se recogen los requeridos que mueven; después se asertan los reject
@@ -166,4 +237,8 @@
                            (operador-referencia ?c) (criterio ?criterio) (origen deliberacio))))
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia require)
                         (operador-referencia ?q) (criterio ?criterio) (origen deliberacio)))
+   (traza-deliberacion ?s constraint-failure restriccio-prioritaria
+                       (str-cat "rebutjos " (if (= (length$ ?rechazos) 0) then "-" else (juntar ?rechazos))
+                                "; criteri " ?criterio)
+                       (str-cat "require " ?aq))
    (modify ?imp (resuelto TRUE) (estrategia-resolucion restriccio-prioritaria)))

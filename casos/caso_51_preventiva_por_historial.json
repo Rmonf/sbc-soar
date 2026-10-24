@@ -42,7 +42,8 @@
           "accion": "posicio-seguretat",
           "tipo-impasse": "dades-insuficients",
           "traza-contiene": [
-            "Impasse: dades-insuficients (posicio-preventiva)"
+            "Impasse: dades-insuficients (posicio-preventiva)",
+            "posicio-preventiva: posicio-seguretat no rebutjada; risc mecanic recent (episodis t=0) -> require posicio-seguretat"
           ]
         }
       }

@@ -25,7 +25,8 @@
             "sector=s2, ",
             "panell=desconegut",
             "incertesa-dades=observacio-panel:absent",
-            "Impasse: dades-insuficients (demanar-dades)"
+            "Impasse: dades-insuficients (demanar-dades)",
+            "demanar-dades: posicio-preventiva no aplicable: posicio-seguretat rebutjada (R5) -> require diagnosticar"
           ],
           "tipo-impasse": "dades-insuficients",
           "criterio-determinante": "integritat-mecanica"

@@ -51,8 +51,15 @@ def _comprobar_bloque(r, sector, expandido):
     assert cultivo == f"{e['beneficio-cultivo']}; renuncia cultiu={e['perdida-cultivo']}"
     impasse = l["Impasse"]
     assert (impasse == "-") == (e["tipo-impasse"] == "nil")
-    if e["tipo-impasse"] != "nil":
-        assert impasse.startswith(f"{e['tipo-impasse']} (")
+    deliberaciones = [b for b in ec.bloques(r.traza)
+                      if b.startswith("Deliberacio") and f": sector={sector}, " in b]
+    if e["tipo-impasse"] == "nil":
+        assert deliberaciones == []
+    else:
+        # una línea Deliberacio del sector, con el tipo y la estrategia del impasse (§5.9)
+        estrategia = impasse.removeprefix(f"{e['tipo-impasse']} (").removesuffix(")")
+        assert len(deliberaciones) == 1
+        assert f": sector={sector}, {e['tipo-impasse']}, {estrategia}: " in deliberaciones[0]
     energia, restricciones = l["Vista energetica"].split("; restriccions actives: ")
     assert energia == f"benefici energia={e['beneficio-energia']}; renuncia energia={e['perdida-energia']}"
     assert _conjunto(restricciones) == set(e["restricciones-activas"])

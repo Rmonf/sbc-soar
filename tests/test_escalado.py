@@ -33,3 +33,5 @@ def test_empate_sin_resolver_se_escala(tmp_path):
     assert (episodio["tipo-impasse"], episodio["criterio-determinante"]) == ("tie", "escalat")
     bloque = ec.bloque_de(paso.traza, "s3")
     assert "Impasse: tie (escalat)" in bloque and "Criteri: escalat" in bloque
+    assert ("sector=s3, tie, escalat: cap estrategia dona un resultat unic -> derivat a una persona"
+            in paso.traza)

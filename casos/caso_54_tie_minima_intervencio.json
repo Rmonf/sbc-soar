@@ -30,7 +30,8 @@
           "tipo-impasse": "tie",
           "criterio-determinante": "estabilitat",
           "traza-contiene": [
-            "Impasse: tie (minima-intervencio)"
+            "Impasse: tie (minima-intervencio)",
+            "minima-intervencio: Δ orientar-ombra=50.0, Δ orientar-produccio=10.0 (tolerancia 2.0) -> orientar-produccio"
           ]
         }
       }

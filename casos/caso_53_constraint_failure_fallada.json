@@ -25,7 +25,10 @@
           "accion": "diagnosticar",
           "escalado-humano": "TRUE",
           "tipo-impasse": "constraint-failure",
-          "criterio-determinante": "integritat-mecanica"
+          "criterio-determinante": "integritat-mecanica",
+          "traza-contiene": [
+            "restriccio-prioritaria: rebutjos R3 integritat-mecanica (prioritat 2); criteri integritat-mecanica -> require diagnosticar"
+          ]
         }
       },
       "prohibido": {

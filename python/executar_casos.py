@@ -74,10 +74,11 @@ def episodio_de(resultado: Paso, sector: str) -> dict | None:
 
 def bloques(traza: str) -> list[str]:
     """La traza en bloques: uno por decisión de sector (desde "Fets d'entrada") y uno por
-    línea "Resultat observat". El orden entre bloques depende de la estrategia (§2.3.11)."""
+    línea "Resultat observat" o "Deliberacio". El orden entre bloques depende de la estrategia
+    (§2.3.11)."""
     res = []
     for linea in traza.splitlines(keepends=True):
-        if linea.startswith(("Fets d'entrada:", "Resultat observat")) or not res:
+        if linea.startswith(("Fets d'entrada:", "Resultat observat", "Deliberacio")) or not res:
             res.append(linea)
         else:
             res[-1] += linea

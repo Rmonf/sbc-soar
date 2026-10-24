@@ -52,7 +52,10 @@
         "s3": {
           "accion": "orientar-produccio",
           "tipo-impasse": "tie",
-          "criterio-determinante": "estabilitat"
+          "criterio-determinante": "estabilitat",
+          "traza-contiene": [
+            "sector=s3, tie, minima-intervencio: Δ orientar-ombra=50.0, Δ orientar-produccio=10.0 (tolerancia 2.0) -> orientar-produccio"
+          ]
         }
       }
     }

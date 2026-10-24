@@ -27,7 +27,8 @@
           "criterio-determinante": "proteccio-cultiu",
           "escalado-humano": "FALSE",
           "traza-contiene": [
-            "Impasse: tie (prioritat-objectius)"
+            "Impasse: tie (prioritat-objectius)",
+            "prioritat-objectius: orientar-ombra: proteccio-cultiu (prioritat 3), orientar-produccio: produccio-energia (prioritat 4) -> orientar-ombra"
           ]
         }
       }

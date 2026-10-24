@@ -33,7 +33,8 @@
           ],
           "traza-contiene": [
             "Impasse: constraint-failure (restriccio-prioritaria)",
-            "escalat a persona: si"
+            "escalat a persona: si",
+            "restriccio-prioritaria: rebutjos R1 seguretat-persones (prioritat 1); criteri seguretat-persones -> require mantenir-posicio"
           ]
         }
       },

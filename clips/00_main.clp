@@ -397,6 +397,8 @@
 ;; La deliberación no ha resuelto un impasse: se deriva a una persona (§4.2.5, enunciado 3.7.3).
 (defrule MAIN::escalar-impasse
    (estado-soar (id S0) (fase deliberacio) (subfase feta))
-   ?i <- (impasse (resuelto FALSE))
+   ?i <- (impasse (sector ?s) (tipo-impasse ?ti) (resuelto FALSE))
    =>
+   (printout traza "Deliberacio (t=" (instante-actual) "): sector=" ?s ", " ?ti
+                   ", escalat: cap estrategia dona un resultat unic -> derivat a una persona" crlf)
    (modify ?i (resuelto TRUE) (estrategia-resolucion escalat)))

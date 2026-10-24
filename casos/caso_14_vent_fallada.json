@@ -31,7 +31,8 @@
           "traza-contiene": [
             "vent=82.0 (fallada)",
             "incertesa-dades=vent:fallada",
-            "Impasse: dades-insuficients (demanar-dades)"
+            "Impasse: dades-insuficients (demanar-dades)",
+            "demanar-dades: posicio-preventiva no aplicable: posicio-seguretat no rebutjada; sense R2 ni risc mecanic recent -> require diagnosticar"
           ],
           "tipo-impasse": "dades-insuficients",
           "criterio-determinante": "integritat-mecanica"
