@@ -19,6 +19,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import metricas
 import simulador as sm
 from pont_clips import RAIZ, Pont
 
@@ -97,7 +98,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.dias is not None:
         config["dias"] = args.dias
     ej = ejecutar(args.semilla, config, args.estrategia)
-    import metricas
     guardar(ej, RAIZ / args.salida / f"semilla_{args.semilla}", metricas.calcular(ej))
     print(f"semilla {args.semilla}: {len(ej.ciclos)} pasos, {len(ej.ordenes)} órdenes, "
           f"{len(ej.episodios)} episodios, errores: {ej.errores or 'ninguno'}")

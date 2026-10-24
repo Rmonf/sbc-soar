@@ -96,5 +96,26 @@
       20
     ],
     "calendari": []
+  },
+  "delta": {
+    "_nota": "Efecto mínimo relevante por semilla, fijado antes del piloto (roadmap §11.2). rel = fracción de la mediana del piloto.",
+    "tie-100": {
+      "abs": 1.0
+    },
+    "energia-kwh": {
+      "rel": 0.02
+    },
+    "horas-estres-sector-dia": {
+      "abs": 1.0
+    },
+    "movimientos-sector-dia": {
+      "abs": 2.0
+    },
+    "reglas-ciclo": {
+      "rel": 0.05
+    },
+    "cpu-ms-ciclo": {
+      "rel": 0.1
+    }
   }
 }
