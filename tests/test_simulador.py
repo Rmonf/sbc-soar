@@ -83,6 +83,16 @@ def test_el_panel_va_al_angulo_ordenado(config):
     assert sim.sectores["s2"]["angulo"] == 0.0               # nil = no mover
 
 
+def test_orden_dentro_de_la_tolerancia_no_mueve(config):
+    """Una orden a menos de la tolerancia del ángulo real (p. ej., mantener con el ángulo
+    observado, que lleva ruido) no mueve el panel; una fuera de ella, sí."""
+    sim = _a_mediodia(config)
+    tol = sim.instal["s1"]["tolerancia-angulo"]
+    sim.aplicar([_orden(sim, "s1", tol - 0.1), _orden(sim, "s2", tol + 3)])
+    assert sim.sectores["s1"]["angulo"] == 0.0
+    assert sim.sectores["s2"]["angulo"] != 0.0
+
+
 def test_el_orden_de_las_ordenes_no_importa(config):
     """El orden en que llegan las órdenes (depende de la estrategia de agenda) no cambia el efecto."""
     a, b = _a_mediodia(config), _a_mediodia(config)

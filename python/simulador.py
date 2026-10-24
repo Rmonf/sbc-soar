@@ -30,7 +30,8 @@ alarma, movimiento no ordenado y ocupación (personas en horario de trabajo, o m
 
 La meteorología de toda la ejecución se genera al crear el simulador (las predicciones miran al
 futuro). Cada proceso aleatorio tiene su propio generador (SeedSequence.spawn), de modo que
-inyectar un fallo no cambia el tiempo meteorológico de la semilla.
+inyectar un fallo no cambia el tiempo meteorológico de la semilla (y el error de posición del
+actuador tiene el suyo, para que las decisiones no cambien los fallos de los sensores).
 """
 
 import json
@@ -127,11 +128,12 @@ class Simulador:
         self.dt = self.config["dt-min"]
         self.pasos = int(self.config["dias"] * 24 * 60 / self.dt)
         self.instal = instalacion()
-        meteo_ss, sensores_ss, fallos_ss, ocupacion_ss = np.random.SeedSequence(semilla).spawn(4)
+        meteo_ss, sensores_ss, fallos_ss, ocupacion_ss, actuador_ss = np.random.SeedSequence(semilla).spawn(5)
         self.meteo = Meteorologia(self.config, np.random.default_rng(meteo_ss))
         self.rng_sensores = np.random.default_rng(sensores_ss)
         self.rng_fallos = np.random.default_rng(fallos_ss)
         self.rng_ocupacion = np.random.default_rng(ocupacion_ss)
+        self.rng_actuador = np.random.default_rng(actuador_ss)
         c = self.config["cultiu"]
         self.eventos = self._generar_eventos()
         for ev in self.eventos:
@@ -292,16 +294,21 @@ class Simulador:
 
     def aplicar(self, ordenes: list[dict]):
         """Aplica las órdenes del instante actual (nil = no mover), integra el paso y avanza.
-        Se aplican en orden de sector: el orden en que CLIPS las devuelve depende de la estrategia
-        de agenda y no debe cambiar qué error aleatorio de posición recibe cada panel."""
+        Una orden a menos de la tolerancia del ángulo real tampoco mueve el panel: el actuador no
+        se mueve para ir a donde ya está (sin esto, mantener con el ángulo observado, que lleva
+        ruido, hacía derivar el panel). Se aplican en orden de sector: el orden en que CLIPS las
+        devuelve depende de la estrategia de agenda y no debe cambiar qué error aleatorio de
+        posición recibe cada panel. El error sale de un generador propio, para que las decisiones
+        no cambien los fallos de los sensores."""
         p = self.config["panell"]
         for o in sorted(ordenes, key=lambda o: o["sector"]):
             if o["instante"] != self.instante() or o["angulo-ordenado"] == "nil":
                 continue
-            e = self.sectores[o["sector"]]
+            e, lim = self.sectores[o["sector"]], self.instal[o["sector"]]
+            if abs(o["angulo-ordenado"] - e["angulo"]) <= lim["tolerancia-angulo"]:
+                continue
             if e["estado-mecanico"] == "operatiu" and not self.activo("actuador-encallat", o["sector"]):
-                error = float(np.clip(self.rng_fallos.normal(0, p["error-posicio"]), -1, 1))
-                lim = self.instal[o["sector"]]
+                error = float(np.clip(self.rng_actuador.normal(0, p["error-posicio"]), -1, 1))
                 e["angulo"] = float(np.clip(o["angulo-ordenado"] + error, lim["angulo-minimo"],
                                             lim["angulo-maximo"]))
         self._integrar_humedad()
