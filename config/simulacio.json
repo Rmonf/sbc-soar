@@ -3,7 +3,18 @@
   "semilla-agenda": 42,
   "dt-min": 5,
   "dias": 7,
-  "semillas": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "semillas": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
   "meteo": {
     "radiacio-max": 950,
     "hora-sortida": 6,
@@ -14,8 +25,14 @@
     "vent-mitja": 12,
     "vent-desviacio": 4,
     "prob-tempesta-dia": 0.2,
-    "vent-tempesta": [55, 95],
-    "durada-tempesta-h": [1, 3],
+    "vent-tempesta": [
+      55,
+      95
+    ],
+    "durada-tempesta-h": [
+      1,
+      3
+    ],
     "prob-inici-pluja": 0.002,
     "prob-fi-pluja": 0.05,
     "pluja-mitjana": 3.0,
@@ -29,7 +46,11 @@
     "reg-hora": 6,
     "reg-objectiu": 20,
     "humitat-inicial": 20,
-    "kc": {"cultivo-s1": 1.05, "cultivo-s2": 1.0, "cultivo-s3": 0.7}
+    "kc": {
+      "cultivo-s1": 1.05,
+      "cultivo-s2": 1.0,
+      "cultivo-s3": 0.7
+    }
   },
   "panell": {
     "ombra-maxima": 0.6,
@@ -38,7 +59,42 @@
     "rendiment": 0.2
   },
   "soroll-sensors": {
-    "vent": 1.0, "radiacio": 10.0, "temp-cultiu": 0.3, "temp-ambient": 0.3,
-    "humitat-sol": 0.5, "pluja": 0.1, "angulo": 0.2, "prediccio-vent": 5.0, "prediccio-pluja": 0.5
+    "vent": 1.0,
+    "radiacio": 10.0,
+    "temp-cultiu": 0.3,
+    "temp-ambient": 0.3,
+    "humitat-sol": 0.5,
+    "pluja": 0.1,
+    "angulo": 0.2,
+    "prediccio-vent": 5.0,
+    "prediccio-pluja": 0.5
+  },
+  "fallos": {
+    "prob-sensor-fallada": 0.0005,
+    "prob-sensor-degradat": 0.002,
+    "prob-sensor-antic": 0.0005,
+    "prob-sensor-absent": 0.0003,
+    "prob-dia": {
+      "panell-sense-comunicacio": 0.15,
+      "panell-lectura-antiga": 0.15,
+      "actuador-encallat": 0.1,
+      "actuador-alarma": 0.05,
+      "moviment-no-ordenat": 0.1,
+      "persones": 0.4,
+      "maquinaria": 0.15
+    },
+    "durada-min": [
+      15,
+      90
+    ],
+    "hores-treball": [
+      8,
+      14
+    ],
+    "moviment-no-ordenat-graus": [
+      8,
+      20
+    ],
+    "calendari": []
   }
 }

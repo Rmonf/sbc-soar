@@ -22,6 +22,12 @@ cos(ángulo − angle-captacio). El cultivo se calienta con la radiación no som
 humedad por evapotranspiración (Kc × radiación × (1 − sombra)); gana humedad con la lluvia y con
 un riego diario fijo, que no decide el sistema.
 
+Fallos inyectables (configuración "fallos"): por lectura, sensor fallada, degradat, antiguo o
+ausente; por sector y día, episodios de comunicación del panel perdida (sin observación o con la
+última lectura antigua), actuador encallado (no se mueve pero informa operatiu), actuador en
+alarma, movimiento no ordenado y ocupación (personas en horario de trabajo, o maquinaria). El
+"calendari" fuerza eventos en un instante fijo (también tormentas), para los tests.
+
 La meteorología de toda la ejecución se genera al crear el simulador (las predicciones miran al
 futuro). Cada proceso aleatorio tiene su propio generador (SeedSequence.spawn), de modo que
 inyectar un fallo no cambia el tiempo meteorológico de la semilla.
@@ -127,10 +133,63 @@ class Simulador:
         self.rng_fallos = np.random.default_rng(fallos_ss)
         self.rng_ocupacion = np.random.default_rng(ocupacion_ss)
         c = self.config["cultiu"]
+        self.eventos = self._generar_eventos()
+        for ev in self.eventos:
+            if ev["tipo"] == "tempesta":
+                self._forzar_tormenta(ev)
         self.k = 0
+        self.ultimo_panel = {}
         self.sectores = {s: {"angulo": 0.0, "estado-mecanico": "operatiu", "ocupacion": "lliure",
                              "humitat": p["umbral-humedad-critica"] + c["humitat-inicial"]}
                          for s, p in self.instal.items()}
+        self._actualizar_eventos()
+
+    # --- fallos y eventos -------------------------------------------------------
+
+    def _generar_eventos(self) -> list[dict]:
+        """Eventos por sector y día (probabilidad) más los del calendario fijo."""
+        f = self.config["fallos"]
+        eventos = [dict(ev) for ev in f["calendari"]]
+        for d in range(math.ceil(self.config["dias"])):
+            for tipo, prob in f["prob-dia"].items():
+                rng = self.rng_ocupacion if tipo in ("persones", "maquinaria") else self.rng_fallos
+                for s in SECTORES:
+                    if rng.random() < prob:
+                        if tipo in ("persones", "maquinaria"):
+                            h0, h1 = f["hores-treball"]
+                            inicio = d * 1440 + int(rng.uniform(h0, h1) * 60)
+                        else:
+                            inicio = d * 1440 + int(rng.uniform(0, 1440))
+                        eventos.append({"tipo": tipo, "sector": s, "inicio-min": inicio,
+                                        "durada-min": int(rng.uniform(*f["durada-min"]))})
+        return eventos
+
+    def _forzar_tormenta(self, ev: dict):
+        m = self.meteo
+        k0, n = int(ev["inicio-min"] / self.dt), int(ev["durada-min"] / self.dt)
+        for k in range(k0, min(len(m.viento), k0 + n)):
+            m.viento[k] = max(m.viento[k], ev["vent"])
+
+    def activo(self, tipo: str, s: str) -> dict | None:
+        t = self.instante()
+        return next((ev for ev in self.eventos if ev["tipo"] == tipo and ev.get("sector") == s
+                     and ev["inicio-min"] <= t < ev["inicio-min"] + ev["durada-min"]), None)
+
+    def _actualizar_eventos(self):
+        """Estado mecánico, ocupación y movimientos no ordenados del paso actual (se llama al
+        empezar cada paso, antes de leer el estado real y las observaciones)."""
+        t = self.instante()
+        for s, e in self.sectores.items():
+            e["estado-mecanico"] = "alarma" if self.activo("actuador-alarma", s) else "operatiu"
+            e["ocupacion"] = ("persones" if self.activo("persones", s)
+                              else "maquinaria" if self.activo("maquinaria", s) else "lliure")
+            ev = self.activo("moviment-no-ordenat", s)
+            if ev and ev["inicio-min"] == t - t % self.dt and not ev.get("hecho"):
+                ev["hecho"] = True
+                grados = self.rng_fallos.uniform(*self.config["fallos"]["moviment-no-ordenat-graus"])
+                signo = 1 if e["angulo"] <= 0 else -1
+                e["angulo"] = float(np.clip(e["angulo"] + signo * grados, self.instal[s]["angulo-minimo"],
+                                            self.instal[s]["angulo-maximo"]))
 
     # --- estado real ---------------------------------------------------------
 
@@ -158,6 +217,8 @@ class Simulador:
     def estado_real(self) -> dict:
         m, k = self.meteo, self.k
         return {"instante": self.instante(), "viento": float(m.viento[k]), "lluvia": float(m.lluvia[k]),
+                "eventos": sorted({f"{ev['tipo']}:{ev.get('sector', '-')}" for ev in self.eventos
+                                   if ev["inicio-min"] <= self.instante() < ev["inicio-min"] + ev["durada-min"]}),
                 "radiacion": float(m.radiacion[k]), "precio": float(m.precio[k]),
                 "sectores": {s: {**{x: v for x, v in e.items()}, "temp-cultiu": self.temp_cultivo(s),
                                  "sombra": self.sombra(s), "produccion": self.produccion(s)}
@@ -167,6 +228,28 @@ class Simulador:
 
     def _ruido(self, valor: float, variable: str) -> float:
         return round(float(valor + self.rng_sensores.normal(0, self.config["soroll-sensors"][variable])), 2)
+
+    def _lectura(self, s: str, variable: str, valor: float, t: int) -> dict | None:
+        """Lectura de un sensor con los fallos por lectura: ausente (None), fallada, degradat
+        o antigua (instante anterior)."""
+        f, r = self.config["fallos"], self.rng_fallos.random()
+        if self._forzado("sensor-absent", s, variable):
+            return None
+        lectura = {"sector": s, "variable": variable, "valor": valor, "calidad": "ok"}
+        if self._forzado("sensor-fallada", s, variable) or r < f["prob-sensor-fallada"]:
+            lectura["calidad"] = "fallada"
+        elif r < f["prob-sensor-fallada"] + f["prob-sensor-degradat"]:
+            lectura["calidad"] = "degradat"
+        elif r < f["prob-sensor-fallada"] + f["prob-sensor-degradat"] + f["prob-sensor-antic"]:
+            lectura["instante"] = t - self.dt
+        elif r < (f["prob-sensor-fallada"] + f["prob-sensor-degradat"] + f["prob-sensor-antic"]
+                  + f["prob-sensor-absent"]):
+            return None
+        return lectura
+
+    def _forzado(self, tipo: str, s: str, variable: str) -> bool:
+        ev = self.activo(tipo, s)
+        return ev is not None and ev.get("variable") == variable
 
     def observaciones(self) -> dict:
         m, k, t = self.meteo, self.k, self.instante()
@@ -179,11 +262,20 @@ class Simulador:
                 v = self._ruido(valor, variable)
                 if variable in ("vent", "radiacio", "pluja", "humitat-sol"):
                     v = max(0.0, v)
-                sensores.append({"sector": s, "variable": variable, "valor": v, "calidad": "ok"})
+                lectura = self._lectura(s, variable, v, t)
+                if lectura:
+                    sensores.append(lectura)
             sensores.append({"sector": s, "variable": "produccio", "valor": round(self.produccion(s), 2),
                              "calidad": "ok"})
-            paneles.append({"sector": s, "angulo-actual": self._ruido(e["angulo"], "angulo"),
-                            "estado-mecanico": e["estado-mecanico"], "ocupacion": e["ocupacion"]})
+            panel = {"sector": s, "angulo-actual": self._ruido(e["angulo"], "angulo"),
+                     "estado-mecanico": e["estado-mecanico"], "ocupacion": e["ocupacion"], "instante": t}
+            if self.activo("panell-sense-comunicacio", s):
+                pass                                      # sin observación del panel
+            elif self.activo("panell-lectura-antiga", s) and s in self.ultimo_panel:
+                paneles.append(self.ultimo_panel[s])      # se repite la última lectura recibida
+            else:
+                paneles.append(panel)
+                self.ultimo_panel[s] = panel
             predicciones += [
                 {"sector": s, "variable": "angle-captacio", "valor": round(float(m.angulo_captacion[k]), 2)},
                 {"sector": s, "variable": "angle-ombra", "valor": round(m.angulo_sombra(k), 2)},
@@ -204,13 +296,14 @@ class Simulador:
             if o["instante"] != self.instante() or o["angulo-ordenado"] == "nil":
                 continue
             e = self.sectores[o["sector"]]
-            if e["estado-mecanico"] == "operatiu":
+            if e["estado-mecanico"] == "operatiu" and not self.activo("actuador-encallat", o["sector"]):
                 error = float(np.clip(self.rng_fallos.normal(0, p["error-posicio"]), -1, 1))
                 lim = self.instal[o["sector"]]
                 e["angulo"] = float(np.clip(o["angulo-ordenado"] + error, lim["angulo-minimo"],
                                             lim["angulo-maximo"]))
         self._integrar_humedad()
         self.k += 1
+        self._actualizar_eventos()
 
     def _integrar_humedad(self):
         c, m, k, horas = self.config["cultiu"], self.meteo, self.k, self.dt / 60

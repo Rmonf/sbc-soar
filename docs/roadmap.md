@@ -579,6 +579,8 @@ Por cada paso t:
 
 **Geometría:** el simulador calcula `angle-captacio` y `angle-ombra` (supuesto documentado: cultivo entre filas). Qué ángulo se ordena lo decide CLIPS.
 
+**Fallos inyectables** (`simulacio.json`, por probabilidad o con un calendario fijo): sensor `fallada`, `degradat`, antiguo o ausente; panel sin comunicación (sin observación o con la última lectura antigua); actuador encallado (no se mueve pero informa `operatiu`); actuador en `alarma`; movimiento no ordenado; ocupación (personas en horario de trabajo, maquinaria); tormenta. Cada proceso aleatorio tiene su generador, así que activar fallos no cambia la meteorología de una semilla.
+
 ---
 
 ## 10. Verificación y validación

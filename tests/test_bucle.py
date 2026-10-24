@@ -26,12 +26,20 @@ def test_un_dia_sin_errores(un_dia):
 
 
 def test_episodios_en_su_ultima_version(un_dia):
-    """Todo episodio salvo los del último paso tiene el resultado verificado en t+1 (§5.2)."""
+    """Todo episodio con ángulo ordenado y panel vigente en t+1 tiene el resultado verificado
+    (§5.2); sin panel vigente en t+1 queda pendent."""
     config, ej = un_dia
-    ultimo = ej.ciclos[-1]["instante"]
+    dt = config["dt-min"]
+    vigente = {(o["instante"], p["sector"]) for o in ej.observaciones for p in o["paneles"]
+               if p["instante"] == o["instante"]}
+    verificados = 0
     for e in ej.episodios:
-        if e["instante"] < ultimo and e["angulo-ordenado"] != "nil":
+        if e["angulo-ordenado"] != "nil" and (e["instante"] + dt, e["sector"]) in vigente:
             assert e["resultado"] in ("ok", "fallada-actuador"), e
+            verificados += 1
+        else:
+            assert e["resultado"] == "pendent", e
+    assert verificados > 0
     # se conservan los episodios que NETEJA retiró al salir de la ventana episódica
     assert min(e["instante"] for e in ej.episodios) == 0
 
