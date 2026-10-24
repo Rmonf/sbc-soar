@@ -43,3 +43,13 @@ def test_comprobar_detecta_prohibido(resultados):
     mutado = copy.deepcopy(caso)
     mutado["pasos"][0]["prohibido"] = {"accion": ["posicio-seguretat"]}
     assert ec.comprobar(mutado, pasos)
+
+
+def test_a1_invariancia():
+    """Hipótesis de A1 (§11.3): depth y breadth cambian la secuencia pero no lo que se decide."""
+    import experiments
+    res = experiments.a1(["depth", "breadth"])
+    for c in res["ciclos"]:
+        assert c["multiconjunto_igual"] and c["ordenes_iguales"] and c["episodios_iguales"], c["caso"]
+        assert c["traza_igual"], c["caso"]
+    assert not all(c["secuencia_igual"] for c in res["ciclos"])   # el experimento discrimina
