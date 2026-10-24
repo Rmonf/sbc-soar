@@ -490,6 +490,21 @@ def verificar_completitud(onto: Ontologia) -> list[Anomalia]:
     return an
 
 
+def verificar_tolerancia(onto: Ontologia) -> list[Anomalia]:
+    """La tolerancia de cada seguidor es menor que el límite baix/mitja del umbral moviment: así
+    el candidato que empata con la acción sin movimiento siempre difiere en más de la tolerancia
+    y el chunk sigue siendo correcto sin el invariante para ella (§6.2)."""
+    mitja = [u for u in onto.de_clase("Umbral")
+             if str(_valor(u, "variable")) == "moviment" and str(_valor(u, "nivel")) == "mitja"]
+    if len(mitja) != 1 or _valor(mitja[0], "limite-inferior") is None:
+        return [Anomalia("tolerancia", "falta el límite baix/mitja del umbral moviment")]
+    limite = _numero(mitja[0], "limite-inferior", float("nan"))
+    return [Anomalia("tolerancia", f"{s.nombre}: tolerancia-angulo {tol} no es menor que el límite "
+                                   f"baix/mitja de moviment ({limite})")
+            for s in onto.de_clase("SeguidorSolar")
+            if not (tol := _numero(s, "tolerancia-angulo", float("nan"))) < limite]
+
+
 def _restriccion_esperada(prop: Propiedad, opcional: bool) -> tuple[set[str], frozenset[str] | None]:
     """Tipo y allowed-symbols que §2.3 asigna a la propiedad."""
     nil = {"nil"} if opcional else set()
@@ -554,7 +569,8 @@ def verificar(onto: Ontologia, plantillas: dict[str, dict[str, Slot]]) -> tuple[
     """Todas las comprobaciones de §10.1 que no necesitan la batería de casos."""
     an_plantillas, avisos = verificar_plantillas(onto, plantillas)
     anomalias = (verificar_vocabulario(onto, plantillas) + verificar_umbrales(onto)
-                 + verificar_fases(onto) + verificar_completitud(onto) + an_plantillas)
+                 + verificar_fases(onto) + verificar_completitud(onto) + verificar_tolerancia(onto)
+                 + an_plantillas)
     avisos.append("reglas no disparadas en la batería de casos: las informa python/executar_casos.py")
     return anomalias, avisos
 

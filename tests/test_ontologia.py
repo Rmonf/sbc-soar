@@ -195,6 +195,8 @@ MUTACIONES_TTL = [
     ("sector sin seguidor", _quitar("s2", "tiene-seguidor"), "sectores"),
     ("seguidor compartido", _cambiar("s2", "tiene-seguidor", A["seguidor-s1"]), "sectores"),
     ("dato requerido sin umbrales", _sin_umbrales_humitat, "datos-requeridos"),
+    ("tolerancia igual al límite de moviment", _cambiar("seguidor-s2", "tolerancia-angulo", _decimal(5.0)), "tolerancia"),
+    ("límite de moviment bajo la tolerancia", _cambiar("llindar-moviment-mitja", "limite-inferior", _decimal(1.5)), "tolerancia"),
 ]
 
 MUTACIONES_CLP = [
