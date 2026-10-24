@@ -22,9 +22,8 @@ def cargar_casos(directorio: Path = CASOS) -> list[dict]:
 
 
 def ejecutar_caso(caso: dict, estrategia: str | None = None) -> list[Paso]:
-    with Pont(estrategia) as pont:
-        return [pont.paso(p["instante"], p.get("sensores", []), p.get("paneles", []))
-                for p in caso["pasos"]]
+    pont = Pont(estrategia)
+    return [pont.paso(p["instante"], p.get("sensores", []), p.get("paneles", [])) for p in caso["pasos"]]
 
 
 def sector_de(paso_caso: dict) -> str:

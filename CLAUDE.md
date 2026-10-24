@@ -60,6 +60,8 @@ uv run python python/executar_casos.py          # batería de casos con pass/fai
 uv run python python/experiments.py a1          # experimento de agenda A1 (§11.3), salida en resultats/i1_a1/
 ```
 
+Al final de la salida de estos comandos puede aparecer `[ENVRNMNT8] Environment data not fully deallocated`. Es una fuga conocida de CLIPS, documentada en roadmap §13, y no indica ningún error: no se filtra.
+
 Si cambia algún comando, actualiza esta sección. El generador lee las plantillas de `clips/00_main.clp`: al añadir o cambiar una plantilla, regenera y verifica.
 
 ## Forma de trabajar
