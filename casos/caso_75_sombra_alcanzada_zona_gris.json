@@ -1,0 +1,39 @@
+{
+  "id": "caso_75_sombra_alcanzada_zona_gris",
+  "descripcion": "Viña (s3) con estrés mitja y oportunidad alt, y el panel ya en sombra (−30°): mantener hereda cultivo mitja y frente a producción (energía alt) queda en zona gris: empate de dos que minima-intervencio resuelve a favor de mantener (Δ 0 frente a 60).",
+  "requisito": "§5.5b herencia; §5.5c.1 zona gris; §5.6 S6; §5.7 minima-intervencio",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "tie",
+          "criterio-determinante": "estabilitat",
+          "traza-contiene": [
+            "Impasse: tie (minima-intervencio)"
+          ]
+        }
+      }
+    }
+  ]
+}

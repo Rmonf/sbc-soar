@@ -1,0 +1,43 @@
+{
+  "id": "caso_74_sombra_alcanzada_estres_alt",
+  "descripcion": "Tomate (s1) con estrés térmico y oportunidad alt, y el panel ya en el ángulo de sombra (−30°): mantener hereda el beneficio de cultivo de orientar-ombra (coste baix) y gana a orientar-produccio por proteccio-cultiu. Es la situación que en el piloto de I3 hacía oscilar el panel entre sombra y producción.",
+  "requisito": "§5.5b (herencia de la acción sin movimiento); §5.5c.1 (proteccio-cultiu); §5.5c.2 cercanía",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": -30.0,
+          "criterio-determinante": "proteccio-cultiu",
+          "beneficio-cultivo": "critic",
+          "tipo-impasse": "nil",
+          "descartes": [
+            "orientar-ombra:estabilitat",
+            "orientar-ombra:proteccio-cultiu",
+            "orientar-produccio:proteccio-cultiu",
+            "orientar-ombra:produccio-energia"
+          ]
+        }
+      }
+    }
+  ]
+}

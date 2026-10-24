@@ -1,7 +1,8 @@
 ;;; 05_avaluacio.clp: módulo AVALUACIO, restricciones, valoración y preferencias (roadmap §5.5).
 ;;; Cada valoracion se aserta completa en una sola regla, sin modificaciones posteriores, para
-;;; que ninguna preferencia vea una valoración a medias. Por el invariante de §5.5b, cada acción
-;;; solo tiene beneficio en su propio criterio.
+;;; que ninguna preferencia vea una valoración a medias. Cada acción que mueve solo tiene
+;;; beneficio en su propio criterio; la acción sin movimiento hereda los beneficios de los
+;;; candidatos que la posición actual ya sirve (coste baix, §5.5b).
 ;;; Las restricciones no rechazan nunca una acción sin movimiento, así que nunca quedan todos
 ;;; los candidatos rechazados (§5.5a).
 
@@ -21,6 +22,26 @@
       (case energia then
          (if (eq ?accion orientar-produccio)
              then (nivel-diagnostico ?sector oportunitat-energetica) else baix))))
+
+;; Nivel de coste de un desplazamiento según el umbral moviment (§5.5b).
+(deffunction AVALUACIO::coste-de (?delta)
+   (fact-slot-value
+      (nth$ 1 (find-fact ((?u umbral))
+                 (and (eq ?u:variable moviment) (dins-interval ?delta ?u:limite-inferior ?u:limite-superior))))
+      nivel))
+
+;; Beneficio que hereda la acción sin movimiento en un criterio: el mayor beneficio propio de
+;; los candidatos que mueven con coste baix desde el panel vigente, porque la posición actual
+;; ya los sirve; baix sin panel vigente (§5.5b). Candidatos y diagnósticos no cambian aquí.
+(deffunction AVALUACIO::beneficio-heredado (?criterio ?sector)
+   (bind ?actual (angulo-observado ?sector))
+   (bind ?nivel baix)
+   (if (eq ?actual nil) then (return ?nivel))
+   (do-for-all-facts ((?c operador-candidato))
+         (and (eq ?c:sector ?sector) (not (accion-sin-movimiento ?c:accion))
+              (eq (coste-de (abs (- ?c:angulo-objetivo ?actual))) baix))
+      (bind ?nivel (nivel-max ?nivel (beneficio ?c:accion ?criterio ?sector))))
+   ?nivel)
 
 ;;; --- (a) Restricciones duras (§5.5a) ----------------------------------------
 
@@ -115,24 +136,27 @@
                        (beneficio-energia (if ?util then (beneficio ?a energia ?s) else baix))
                        (coste-movimiento ?coste) (desplazamiento (abs (- ?obj ?act))))))
 
-;; Valoración de una acción sin movimiento: Δ = 0 y, por tanto, todos los beneficios baix (§5.5b).
+;; Valoración de una acción sin movimiento: Δ = 0 y los beneficios heredados de los candidatos
+;; que la posición actual ya sirve (§5.5b).
 (defrule AVALUACIO::valorar-sin-movimiento
    (estado-soar (id S0) (fase avaluacio))
-   (operador-candidato (id ?c) (accion ?a&:(accion-sin-movimiento ?a)))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a&:(accion-sin-movimiento ?a)))
    (umbral (variable moviment) (nivel ?coste) (limite-inferior ?inf) (limite-superior ?sup))
    (test (dins-interval 0 ?inf ?sup))
    =>
-   (assert (valoracion (evalua-operador ?c) (beneficio-mecanico baix) (beneficio-cultivo baix)
-                       (beneficio-energia baix) (coste-movimiento ?coste) (desplazamiento 0.0))))
+   (assert (valoracion (evalua-operador ?c) (beneficio-mecanico (beneficio-heredado mecanico ?s))
+                       (beneficio-cultivo (beneficio-heredado cultivo ?s))
+                       (beneficio-energia (beneficio-heredado energia ?s))
+                       (coste-movimiento ?coste) (desplazamiento 0.0))))
 
 ;;; --- (c) Preferencias blandas (§5.5c) ---------------------------------------
 
-;; Criterio mecánico entre dos candidatos que mueven: si difieren y el mayor es ≥ alt, better
+;; Criterio mecánico entre dos candidatos cualesquiera: si difieren y el mayor es ≥ alt, better
 ;; el mayor; si el mayor es mitja, zona gris (§5.5c.1).
 (defrule AVALUACIO::preferir-por-mecanico
    (estado-soar (id S0) (fase avaluacio))
-   (operador-candidato (id ?c) (sector ?s) (accion ?a&:(not (accion-sin-movimiento ?a))))
-   (operador-candidato (id ?q&~?c) (sector ?s) (accion ?aq&:(not (accion-sin-movimiento ?aq))))
+   (operador-candidato (id ?c) (sector ?s))
+   (operador-candidato (id ?q&~?c) (sector ?s))
    (valoracion (evalua-operador ?c) (beneficio-mecanico ?mc&:(>= (nivel-num ?mc) (nivel-num alt))))
    (valoracion (evalua-operador ?q) (beneficio-mecanico ?mq&:(< (nivel-num ?mq) (nivel-num ?mc))))
    =>
@@ -140,11 +164,11 @@
                         (operador-referencia ?c) (operador-comparado ?q)
                         (criterio integritat-mecanica) (origen regla))))
 
-;; Criterio de cultivo, con el mecánico igual (§5.5c.1).
+;; Criterio de cultivo entre dos candidatos cualesquiera, con el mecánico igual (§5.5c.1).
 (defrule AVALUACIO::preferir-por-cultivo
    (estado-soar (id S0) (fase avaluacio))
-   (operador-candidato (id ?c) (sector ?s) (accion ?a&:(not (accion-sin-movimiento ?a))))
-   (operador-candidato (id ?q&~?c) (sector ?s) (accion ?aq&:(not (accion-sin-movimiento ?aq))))
+   (operador-candidato (id ?c) (sector ?s))
+   (operador-candidato (id ?q&~?c) (sector ?s))
    (valoracion (evalua-operador ?c) (beneficio-mecanico ?m)
                (beneficio-cultivo ?cc&:(>= (nivel-num ?cc) (nivel-num alt))))
    (valoracion (evalua-operador ?q) (beneficio-mecanico ?m)
@@ -154,11 +178,12 @@
                         (operador-referencia ?c) (operador-comparado ?q)
                         (criterio proteccio-cultiu) (origen regla))))
 
-;; Criterio de energía, con el mecánico y el de cultivo iguales (§5.5c.1).
+;; Criterio de energía entre dos candidatos cualesquiera, con el mecánico y el de cultivo
+;; iguales (§5.5c.1).
 (defrule AVALUACIO::preferir-por-energia
    (estado-soar (id S0) (fase avaluacio))
-   (operador-candidato (id ?c) (sector ?s) (accion ?a&:(not (accion-sin-movimiento ?a))))
-   (operador-candidato (id ?q&~?c) (sector ?s) (accion ?aq&:(not (accion-sin-movimiento ?aq))))
+   (operador-candidato (id ?c) (sector ?s))
+   (operador-candidato (id ?q&~?c) (sector ?s))
    (valoracion (evalua-operador ?c) (beneficio-mecanico ?m) (beneficio-cultivo ?cu)
                (beneficio-energia ?ec&:(>= (nivel-num ?ec) (nivel-num alt))))
    (valoracion (evalua-operador ?q) (beneficio-mecanico ?m) (beneficio-cultivo ?cu)
@@ -169,7 +194,8 @@
                         (criterio produccio-energia) (origen regla))))
 
 ;; Acción útil: un candidato que mueve con algún beneficio ≥ mitja es mejor que la acción sin
-;; movimiento, con el objetivo de mayor prioridad que sirve (§5.5c.3).
+;; movimiento si esta no hereda ningún beneficio, con el objetivo de mayor prioridad que sirve
+;; (§5.5c.3).
 (defrule AVALUACIO::preferir-accion-util
    (estado-soar (id S0) (fase avaluacio))
    (operador-candidato (id ?c) (sector ?s) (accion ?a&:(not (accion-sin-movimiento ?a))))
@@ -177,6 +203,8 @@
                (beneficio-energia ?e))
    (test (neq (criterio-servido ?m ?cu ?e) nil))
    (operador-candidato (id ?q) (sector ?s) (accion ?aq&:(accion-sin-movimiento ?aq)))
+   (valoracion (evalua-operador ?q) (beneficio-mecanico baix) (beneficio-cultivo baix)
+               (beneficio-energia baix))
    =>
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
                         (operador-referencia ?c) (operador-comparado ?q)
@@ -211,6 +239,19 @@
                (beneficio-energia ?e) (desplazamiento ?dq))
    (valoracion (evalua-operador ?c) (beneficio-mecanico ?m) (beneficio-cultivo ?cu)
                (beneficio-energia ?e) (desplazamiento ?dc&:(<= (abs (- ?dc ?dq)) ?tol)))
+   =>
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
+                        (operador-referencia ?q) (operador-comparado ?c)
+                        (criterio estabilitat) (origen regla))))
+
+;; Cercanía: la acción sin movimiento es mejor que un candidato que mueve con coste baix, cuyo
+;; objetivo la posición actual ya sirve (§5.5c.2, tercer punto).
+(defrule AVALUACIO::preferir-sin-movimiento-cercano
+   (estado-soar (id S0) (fase avaluacio))
+   (operador-candidato (id ?q) (sector ?s) (accion ?aq&:(accion-sin-movimiento ?aq)))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a&:(not (accion-sin-movimiento ?a))))
+   (valoracion (evalua-operador ?q))
+   (valoracion (evalua-operador ?c) (coste-movimiento baix))
    =>
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
                         (operador-referencia ?q) (operador-comparado ?c)

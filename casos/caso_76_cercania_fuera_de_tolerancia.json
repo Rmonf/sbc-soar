@@ -1,0 +1,35 @@
+{
+  "id": "caso_76_cercania_fuera_de_tolerancia",
+  "descripcion": "Tomate (s1) con estrés térmico y el panel a 3° del ángulo de sombra (Δ > tolerancia, coste baix): moverse 3° no aporta nada porque la posición actual ya sirve a la sombra; mantener es better por cercanía y por proteccio-cultiu.",
+  "requisito": "§5.5c.2 cercanía (coste baix); §5.5b herencia",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -27
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": -27.0,
+          "criterio-determinante": "proteccio-cultiu",
+          "descartes": [
+            "orientar-ombra:estabilitat",
+            "orientar-ombra:proteccio-cultiu"
+          ]
+        }
+      }
+    }
+  ]
+}

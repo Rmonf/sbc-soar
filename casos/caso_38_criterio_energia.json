@@ -1,7 +1,7 @@
 {
   "id": "caso_38_criterio_energia",
-  "descripcion": "Viento alt en s2 con el panel a 3° de defensa (posicio sin beneficio: coste baix) y radiación alta: orientar-produccio gana a posicio-seguretat por el criterio de energía, y mantener gana a posicio por estabilidad.",
-  "requisito": "§5.5c.1 criterios ordenados (produccio-energia); §5.5c.2 estabilidad",
+  "descripcion": "Viento alt en s2 con el panel a 3° de defensa y radiación alta: mantener hereda el beneficio mecánico alt de posicio-seguretat (coste baix) y gana a orientar-produccio por integritat-mecanica; orientar-produccio sigue ganando a posicio-seguretat por el criterio de energía.",
+  "requisito": "§5.5b (herencia de la acción sin movimiento); §5.5c.1 criterios ordenados (integritat-mecanica, produccio-energia); §5.5c.2",
   "base": "_base_tranquil",
   "pasos": [
     {
@@ -25,15 +25,17 @@
       },
       "esperado": {
         "s2": {
-          "accion": "orientar-produccio",
-          "criterio-determinante": "produccio-energia",
+          "accion": "mantenir-posicio",
+          "criterio-determinante": "integritat-mecanica",
           "descartes": [
-            "mantenir-posicio:produccio-energia",
+            "posicio-seguretat:estabilitat",
+            "posicio-seguretat:integritat-mecanica",
             "posicio-seguretat:produccio-energia",
-            "posicio-seguretat:estabilitat"
+            "orientar-produccio:integritat-mecanica"
           ]
         }
       }
     }
-  ]
+  ],
+  "cambio": "Cambio de acción tras la corrección de §5.5b (I3): antes el panel salía de la defensa con viento alt para producir (orientar-produccio por produccio-energia), porque posicio-seguretat con coste baix no tenía beneficio y mantener tampoco. Era el mismo defecto que la oscilación sombra-producción del piloto. Ahora la posición actual ya sirve a integritat-mecanica (prioridad 2), que pesa más que la energía (prioridad 4): se mantiene la defensa."
 }

@@ -24,9 +24,10 @@
         "s2": {
           "accion": "mantenir-posicio",
           "restricciones-activas": [],
-          "criterio-determinante": "estabilitat"
+          "criterio-determinante": "integritat-mecanica"
         }
       }
     }
-  ]
+  ],
+  "cambio": "Cambio tras la corrección de §5.5b (I3): antes posicio-seguretat (coste baix) y mantener tenían todos los beneficios baix y mantener ganaba solo por estabilidad. Ahora mantener hereda el beneficio mecánico alt de posicio-seguretat, porque la posición actual ya es la de defensa: mantener es better por integritat-mecanica (§5.5c.1) además de por estabilidad, y el criterio determinante pasa a integritat-mecanica, el objetivo más prioritario (§5.9). La acción no cambia."
 }
