@@ -1,0 +1,41 @@
+{
+  "id": "caso_09_coste_bajo",
+  "descripcion": "Viento alt con el panel a 3° de defensa: coste baix, beneficios baix; la estabilidad prefiere mantener.",
+  "requisito": "§5.5b (coste baix → beneficios baix); §5.5c.2 estabilidad",
+  "pasos": [
+    {
+      "instante": 0,
+      "sensores": [
+        {
+          "sector": "s2",
+          "variable": "vent",
+          "valor": 60
+        }
+      ],
+      "paneles": [
+        {
+          "sector": "s2",
+          "angulo-actual": 3,
+          "estado-mecanico": "operatiu",
+          "ocupacion": "lliure"
+        }
+      ],
+      "esperado": {
+        "accion": "mantenir-posicio",
+        "angulo-ordenado": 3.0,
+        "situacion": [
+          "risc-mecanic:alt"
+        ],
+        "alternativas": [
+          "mantenir-posicio",
+          "posicio-seguretat"
+        ],
+        "descartes": [
+          "posicio-seguretat:estabilitat"
+        ],
+        "restricciones-activas": [],
+        "criterio-determinante": "estabilitat"
+      }
+    }
+  ]
+}

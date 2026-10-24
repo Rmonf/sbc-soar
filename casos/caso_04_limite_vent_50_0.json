@@ -1,0 +1,41 @@
+{
+  "id": "caso_04_limite_vent_50_0",
+  "descripcion": "Valor límite: 50,0 km/h es alt (delta −20): se va a defensa por acción útil.",
+  "requisito": "§10.2 valores límite; §5.5c.3 acción útil; §5.6 S4",
+  "pasos": [
+    {
+      "instante": 0,
+      "sensores": [
+        {
+          "sector": "s2",
+          "variable": "vent",
+          "valor": 50.0
+        }
+      ],
+      "paneles": [
+        {
+          "sector": "s2",
+          "angulo-actual": 30,
+          "estado-mecanico": "operatiu",
+          "ocupacion": "lliure"
+        }
+      ],
+      "esperado": {
+        "accion": "posicio-seguretat",
+        "angulo-ordenado": 0.0,
+        "situacion": [
+          "risc-mecanic:alt"
+        ],
+        "alternativas": [
+          "mantenir-posicio",
+          "posicio-seguretat"
+        ],
+        "descartes": [
+          "mantenir-posicio:integritat-mecanica"
+        ],
+        "restricciones-activas": [],
+        "criterio-determinante": "integritat-mecanica"
+      }
+    }
+  ]
+}

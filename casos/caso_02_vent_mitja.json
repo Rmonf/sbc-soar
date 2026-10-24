@@ -1,0 +1,41 @@
+{
+  "id": "caso_02_vent_mitja",
+  "descripcion": "Viento mitja: hay abstracción pero no diagnóstico risc-mecanic (exige ≥ alt).",
+  "requisito": "§5.3 risc-mecanic ≥ alt",
+  "pasos": [
+    {
+      "instante": 0,
+      "sensores": [
+        {
+          "sector": "s2",
+          "variable": "vent",
+          "valor": 40
+        }
+      ],
+      "paneles": [
+        {
+          "sector": "s2",
+          "angulo-actual": 30,
+          "estado-mecanico": "operatiu",
+          "ocupacion": "lliure"
+        }
+      ],
+      "esperado": {
+        "accion": "mantenir-posicio",
+        "angulo-ordenado": 30.0,
+        "situacion": [],
+        "alternativas": [
+          "mantenir-posicio"
+        ],
+        "descartes": [],
+        "restricciones-activas": [],
+        "criterio-determinante": "nil"
+      },
+      "prohibido": {
+        "accion": [
+          "posicio-seguretat"
+        ]
+      }
+    }
+  ]
+}

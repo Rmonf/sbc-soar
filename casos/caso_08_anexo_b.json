@@ -1,0 +1,48 @@
+{
+  "id": "caso_08_anexo_b",
+  "descripcion": "Ejemplo del anexo B: s2, viento 82, panel operatiu: posicio-seguretat a 0°.",
+  "requisito": "enunciado anexo B; R2; negativo §10.2: nunca mantener con viento crítico",
+  "pasos": [
+    {
+      "instante": 0,
+      "sensores": [
+        {
+          "sector": "s2",
+          "variable": "vent",
+          "valor": 82
+        }
+      ],
+      "paneles": [
+        {
+          "sector": "s2",
+          "angulo-actual": 30,
+          "estado-mecanico": "operatiu",
+          "ocupacion": "lliure"
+        }
+      ],
+      "esperado": {
+        "accion": "posicio-seguretat",
+        "angulo-ordenado": 0.0,
+        "situacion": [
+          "risc-mecanic:critic"
+        ],
+        "alternativas": [
+          "mantenir-posicio",
+          "posicio-seguretat"
+        ],
+        "descartes": [
+          "mantenir-posicio:integritat-mecanica"
+        ],
+        "restricciones-activas": [
+          "R2"
+        ],
+        "criterio-determinante": "integritat-mecanica"
+      },
+      "prohibido": {
+        "accion": [
+          "mantenir-posicio"
+        ]
+      }
+    }
+  ]
+}

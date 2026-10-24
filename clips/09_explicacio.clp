@@ -3,7 +3,10 @@
 ;;; (not (member$ ...)). La traza la escribe una sola regla, imprimir-traza, que solo se activa
 ;;; cuando no queda nada por anotar: su LHS niega la condición de cada regla acumulativa.
 ;;; Así la traza sale completa y una sola vez, sea cual sea la estrategia de agenda.
-;;; I1: sin impasses, chunks ni resultado observado (t+1), que llegan en I2–I4.
+;;; I1: sin impasses, chunks ni resultado observado (t+1), que llegan en I2–I4. Tampoco
+;;; están el descarte por reject ni el cálculo de las pérdidas (mayor beneficio de cultivo y de
+;;; energía entre los descartados): en I1 no hay reject ni beneficios de cultivo o energía,
+;;; así que serían reglas muertas (§10.1). Llegan en I2 con R1, R3, R5 y orientar-*.
 
 (defmodule EXPLICACIO (import MAIN ?ALL))
 
@@ -20,7 +23,8 @@
    ?texto)
 
 ;; Crea el episodio del sector con la acción aplicada, el ángulo previo y los beneficios
-;; de la acción elegida; las pérdidas parten de baix, el máximo de un conjunto vacío (§5.9).
+;; de la acción elegida; las pérdidas parten de baix, el máximo de un conjunto vacío, y en I1
+;; se quedan así porque ningún candidato tiene beneficio de cultivo ni de energía (§5.9).
 (defrule EXPLICACIO::crear-episodio
    (estado-soar (id S0) (fase explicacio))
    (ciclo-temporal (instante ?t))
@@ -53,17 +57,6 @@
    (operador-candidato (sector ?s) (accion ?a&:(not (member$ ?a ?alt))))
    =>
    (modify ?e (alternativas ?alt ?a)))
-
-;; Descartado por un reject: accion:criterio del reject (§5.9).
-(defrule EXPLICACIO::anotar-descarte-reject
-   (estado-soar (id S0) (fase explicacio))
-   ?e <- (episodio (sector ?s) (instante ?t) (descartes $?des))
-   (ciclo-temporal (instante ?t))
-   (operador-candidato (id ?o) (sector ?s) (accion ?a) (estado-candidato descartat))
-   (preferencia (tipo-preferencia reject) (operador-referencia ?o) (criterio ?k))
-   (test (not (member$ (sym-cat ?a ":" ?k) ?des)))
-   =>
-   (modify ?e (descartes ?des (sym-cat ?a ":" ?k))))
 
 ;; Descartado no rechazado pero dominado: accion:criterio de cada better efectivo (§5.9).
 (defrule EXPLICACIO::anotar-descarte-better
@@ -126,26 +119,6 @@
    =>
    (modify ?e (criterio-determinante ?k)))
 
-;; Pérdida de cultivo: el mayor beneficio de cultivo entre los descartados (§5.9).
-(defrule EXPLICACIO::anotar-perdida-cultivo
-   (estado-soar (id S0) (fase explicacio))
-   ?e <- (episodio (sector ?s) (instante ?t) (perdida-cultivo ?pc))
-   (ciclo-temporal (instante ?t))
-   (operador-candidato (id ?o) (sector ?s) (estado-candidato descartat))
-   (valoracion (evalua-operador ?o) (beneficio-cultivo ?b&:(> (nivel-num ?b) (nivel-num ?pc))))
-   =>
-   (modify ?e (perdida-cultivo ?b)))
-
-;; Pérdida de energía: el mayor beneficio de energía entre los descartados (§5.9).
-(defrule EXPLICACIO::anotar-perdida-energia
-   (estado-soar (id S0) (fase explicacio))
-   ?e <- (episodio (sector ?s) (instante ?t) (perdida-energia ?pe))
-   (ciclo-temporal (instante ?t))
-   (operador-candidato (id ?o) (sector ?s) (estado-candidato descartat))
-   (valoracion (evalua-operador ?o) (beneficio-energia ?b&:(> (nivel-num ?b) (nivel-num ?pe))))
-   =>
-   (modify ?e (perdida-energia ?b)))
-
 ;; Con el episodio completo (ninguna regla anotar-* aplicable), escribe la traza en el
 ;; router traza: formato del anexo B y §5.9, con las dos vistas del enunciado 3.1.
 (defrule EXPLICACIO::imprimir-traza
@@ -162,10 +135,6 @@
              (test (not (member$ (sym-cat ?d ":" ?n) ?sit)))))
    ;; anotar-alternativa
    (not (operador-candidato (sector ?s) (accion ?x&:(not (member$ ?x ?alt)))))
-   ;; anotar-descarte-reject
-   (not (and (operador-candidato (id ?o1) (sector ?s) (accion ?a1) (estado-candidato descartat))
-             (preferencia (tipo-preferencia reject) (operador-referencia ?o1) (criterio ?k1))
-             (test (not (member$ (sym-cat ?a1 ":" ?k1) ?des)))))
    ;; anotar-descarte-better
    (not (and (operador-candidato (id ?o2) (sector ?s) (accion ?a2) (estado-candidato descartat))
              (not (preferencia (tipo-preferencia reject) (operador-referencia ?o2)))
@@ -187,13 +156,6 @@
    (not (and (test (eq ?cd nil))
              (operador-candidato (id ?c) (sector ?s) (estado-candidato aplicat))
              (preferencia (tipo-preferencia require|better) (operador-referencia ?c))))
-   ;; anotar-perdida-cultivo y anotar-perdida-energia
-   (not (and (operador-candidato (id ?o4) (sector ?s) (estado-candidato descartat))
-             (valoracion (evalua-operador ?o4)
-                         (beneficio-cultivo ?b4&:(> (nivel-num ?b4) (nivel-num ?pc))))))
-   (not (and (operador-candidato (id ?o5) (sector ?s) (estado-candidato descartat))
-             (valoracion (evalua-operador ?o5)
-                         (beneficio-energia ?b5&:(> (nivel-num ?b5) (nivel-num ?pe))))))
    =>
    (bind ?entradas (create$))
    (do-for-all-facts ((?h observacion-sensor)) (eq ?h:sector ?s)

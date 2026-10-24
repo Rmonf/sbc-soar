@@ -1,0 +1,43 @@
+{
+  "id": "caso_10_critic_en_defensa",
+  "descripcion": "Viento crítico con el panel a 1° de defensa: R2 requiere posicio-seguretat aunque Δ ≤ tolerancia.",
+  "requisito": "R2 (§5.5a); §5.6 S3 sin movimiento; descarte por require (§5.9)",
+  "pasos": [
+    {
+      "instante": 0,
+      "sensores": [
+        {
+          "sector": "s2",
+          "variable": "vent",
+          "valor": 82
+        }
+      ],
+      "paneles": [
+        {
+          "sector": "s2",
+          "angulo-actual": 1,
+          "estado-mecanico": "operatiu",
+          "ocupacion": "lliure"
+        }
+      ],
+      "esperado": {
+        "accion": "posicio-seguretat",
+        "angulo-ordenado": 0.0,
+        "situacion": [
+          "risc-mecanic:critic"
+        ],
+        "alternativas": [
+          "mantenir-posicio",
+          "posicio-seguretat"
+        ],
+        "descartes": [
+          "mantenir-posicio:integritat-mecanica"
+        ],
+        "restricciones-activas": [
+          "R2"
+        ],
+        "criterio-determinante": "integritat-mecanica"
+      }
+    }
+  ]
+}

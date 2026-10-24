@@ -555,7 +555,7 @@ def verificar(onto: Ontologia, plantillas: dict[str, dict[str, Slot]]) -> tuple[
     an_plantillas, avisos = verificar_plantillas(onto, plantillas)
     anomalias = (verificar_vocabulario(onto, plantillas) + verificar_umbrales(onto)
                  + verificar_fases(onto) + verificar_completitud(onto) + an_plantillas)
-    avisos.append("reglas no disparadas en la batería de casos: pendiente hasta que haya reglas (I2)")
+    avisos.append("reglas no disparadas en la batería de casos: las informa python/executar_casos.py")
     return anomalias, avisos
 
 
