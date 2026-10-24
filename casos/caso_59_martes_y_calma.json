@@ -1,0 +1,97 @@
+{
+  "id": "caso_59_martes_y_calma",
+  "descripcion": "Dos pasos con los tres sectores: el martes difícil en t=0 y, en t=5, cada panel está donde se le ordenó y vuelve la calma: tres episodios ok y los tres mantienen.",
+  "requisito": "§5.2 verificación por sector; caso temporal con tres sectores",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "nil"
+        },
+        "s2": {
+          "accion": "posicio-seguretat",
+          "angulo-ordenado": 0.0,
+          "restricciones-activas": [
+            "R2"
+          ]
+        },
+        "s3": {
+          "accion": "orientar-ombra",
+          "tipo-impasse": "tie",
+          "criterio-determinante": "proteccio-cultiu"
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s1": {
+          "panel": {
+            "angulo-actual": -30
+          }
+        },
+        "s2": {
+          "panel": {
+            "angulo-actual": 0
+          }
+        },
+        "s3": {
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "resultado-previo": "ok",
+          "accion": "mantenir-posicio"
+        },
+        "s2": {
+          "resultado-previo": "ok",
+          "accion": "mantenir-posicio"
+        },
+        "s3": {
+          "resultado-previo": "ok",
+          "accion": "mantenir-posicio"
+        }
+      }
+    }
+  ]
+}

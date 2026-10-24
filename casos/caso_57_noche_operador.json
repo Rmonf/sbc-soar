@@ -1,0 +1,63 @@
+{
+  "id": "caso_57_noche_operador",
+  "descripcion": "La «noche del operador»: de noche (radiación 0) se estropea el anemómetro de s2. Hay un solo diagnóstico en s2 (incertesa-dades critic, evidencia vent:fallada) y se inspecciona; s1 y s3 siguen sin diagnósticos ni escalados.",
+  "requisito": "testimonio operador («do not send me twenty alarms for one failed sensor»); §2.3.10; §5.1",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            },
+            "vent": {
+              "valor": 10,
+              "calidad": "fallada"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "situacion": [],
+          "escalado-humano": "FALSE"
+        },
+        "s2": {
+          "accion": "diagnosticar",
+          "situacion": [
+            "incertesa-dades:critic"
+          ],
+          "escalado-humano": "FALSE",
+          "traza-contiene": [
+            "Evidencies: incertesa-dades=vent:fallada"
+          ]
+        },
+        "s3": {
+          "accion": "mantenir-posicio",
+          "situacion": [],
+          "escalado-humano": "FALSE"
+        }
+      }
+    }
+  ]
+}

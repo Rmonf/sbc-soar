@@ -1,0 +1,60 @@
+{
+  "id": "caso_58_tres_impasses",
+  "descripcion": "Los tres tipos de impasse en el mismo ciclo, uno por sector: s1 sin panel (dades-insuficients), s2 viento crítico con personas (constraint-failure) y s3 empate real (tie). Cada uno se delibera en su propio subestado.",
+  "requisito": "§5.6 S1, S2 y S6; §5.7 un subestado por impasse; terminación (§4.2)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "panel": null
+        },
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "ocupacion": "persones"
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "diagnosticar",
+          "tipo-impasse": "dades-insuficients",
+          "angulo-ordenado": "nil"
+        },
+        "s2": {
+          "accion": "mantenir-posicio",
+          "tipo-impasse": "constraint-failure",
+          "escalado-humano": "TRUE"
+        },
+        "s3": {
+          "accion": "orientar-produccio",
+          "tipo-impasse": "tie",
+          "criterio-determinante": "estabilitat"
+        }
+      }
+    }
+  ]
+}
