@@ -649,9 +649,10 @@ Cada iteración termina con:
 - **Unidad experimental:** una **ejecución** (*run*) de D días simulados con una semilla. Las decisiones de una misma ejecución no son independientes: analizarlas como muestras independientes sería pseudorreplicación.
 - **Diseño pareado:** todas las configuraciones se ejecutan con las mismas semillas (números aleatorios comunes), y se comparan las diferencias por semilla.
 - **Tamaño de muestra:**
-  - un piloto de 10 semillas estima la desviación típica de las diferencias, σ_d;
+  - un piloto de 10 semillas estima la desviación típica de las diferencias, σ_d. En I3 solo existe el núcleo, así que el piloto estima σ por métrica y usa la cota σ_d ≤ √2·σ, **válida si ρ ≥ 0** (las dos configuraciones no están correlacionadas negativamente sobre las mismas semillas). El n resultante es **provisional hasta I4**, que mide σ_d con las diferencias reales C0–C1;
   - n = ((z₁₋α/₂ + z₁₋β) · σ_d / δ)², con α = 0,05, potencia 0,8 y δ el efecto mínimo relevante (fijado de antemano para cada métrica);
   - mínimo 30 semillas.
+- **δ fijados antes del piloto** (`simulacio.json`), por semilla: impasses `tie` 1 por cada 100 decisiones; energía 2 % de la mediana del piloto; horas de estrés 1 por sector y día; movimientos 2 por sector y día; reglas disparadas por ciclo 5 % y tiempo de CPU por ciclo 10 % de la mediana.
 - **Pruebas:**
   - *dos configuraciones, métrica numérica:* Wilcoxon de rangos con signo pareado (no se supone normalidad), tamaño del efecto (correlación biserial de rangos) e intervalo de confianza del 95 % de la mediana de las diferencias por *bootstrap*;
   - *más de dos configuraciones* (estrategias de agenda): Friedman y, si es significativo, comparaciones por pares de Wilcoxon;
@@ -659,11 +660,12 @@ Cada iteración termina con:
   - *varias métricas o pares:* corrección de Holm.
 - **Informe:** mediana y rango intercuartílico, efecto e intervalo de confianza, p corregida. Las hipótesis y los δ se fijan antes de ver los resultados completos.
 - **Métricas:**
-  - violaciones de restricciones duras (deben ser 0);
+  - violaciones de restricciones duras, en dos medidas: **violaciones de decisión**, contra lo observado en el ciclo (lo que CLIPS sabía), que deben ser 0 y se informan con Clopper–Pearson; y **exposición real**, las mismas condiciones contra el estado real del simulador (p. ej., personas que un panel sin comunicación no mostraba), informativa;
   - movimientos;
   - impasses por tipo y por cada 100 decisiones;
   - escalados;
-  - reglas disparadas por ciclo (métrica principal de rendimiento, determinista);
+  - impasses `tie` por cada 100 decisiones: **métrica principal de H1** (§11.4);
+  - reglas disparadas por ciclo (secundaria, determinista);
   - tiempo de CPU por ciclo (secundaria, ruidosa);
   - chunks vivos (máximo y final);
   - energía simulada;
@@ -688,7 +690,7 @@ Cada iteración termina con:
 | | |
 |---|---|
 | Configuraciones | **C0:** línea base, sin aprendizaje. **C1:** chunking sin olvido (umbral de olvido muy bajo). **C2:** chunking con olvido (valores por defecto). Las tres con las mismas semillas. |
-| H1, rendimiento | C1 y C2 reducen los impasses `tie` por cada 100 decisiones y las reglas disparadas por ciclo frente a C0 (Wilcoxon unilateral). |
+| H1, rendimiento | C1 y C2 reducen los impasses `tie` por cada 100 decisiones (**métrica principal**, δ = 1) frente a C0 (Wilcoxon unilateral). Las reglas disparadas por ciclo son una métrica secundaria. |
 | H2, competencia | C1 y C2 toman las mismas decisiones que C0 en todos los pasos (fidelidad del 100 %, informada como proporción de ejecuciones idénticas con Clopper–Pearson). Las métricas de dominio no cambian. |
 | H3, olvido | C2 mantiene menos chunks vivos que C1, a cambio de un aumento de impasses (reaprendizaje) menor que δ. |
 | Sensibilidad | Barrido del umbral de olvido (−1, −2, −3) con d = 0,5, para elegir el valor en la iteración I4. |
