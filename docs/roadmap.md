@@ -529,8 +529,8 @@ proyecto-sbc-agrovoltaica/
 ├── casos/caso_XX.json                  # entradas por paso, salida esperada, requisito que cubre
 ├── tests/                              # pytest: generador, verificador (mutación) y casos (§10)
 ├── resultats/                          # trazas, episodios, chunks, métricas, configuración usada
-├── pyproject.toml + uv lock            # versiones fijadas (clipspy, rdflib, numpy, scipy)
-└── README.md                           # instalación y ejecución desde entorno limpio 
+├── pyproject.toml + uv                 # versiones fijadas y requirements (clipspy, rdflib, numpy, scipy)
+└── README.md                           # instalación y ejecución desde entorno limpio
 ```
 
 **Deffunctions de MAIN:**
