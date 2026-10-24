@@ -52,10 +52,12 @@ def test_comprobar_detecta_prohibido(resultados, prohibido):
     assert ec.comprobar(mutado, pasos)
 
 
-def test_a1_invariancia():
-    """Hipótesis de A1 (§11.3): depth y breadth cambian la secuencia pero no lo que se decide."""
+@pytest.mark.parametrize("experimento", ["a1", "a2"])
+def test_agenda_invariancia(experimento):
+    """Hipótesis de A1 y A2 (§11.3): las estrategias cambian la secuencia de disparo pero no lo
+    que se decide ni se explica."""
     import experiments
-    res = experiments.a1(["depth", "breadth"])
+    res = getattr(experiments, experimento)()
     for c in res["ciclos"]:
         assert c["multiconjunto_igual"] and c["ordenes_iguales"] and c["episodios_iguales"], c["caso"]
         assert c["traza_igual"], c["caso"]

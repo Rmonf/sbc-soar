@@ -26,8 +26,12 @@ def ficheros(base: Path = BASE) -> list[Path]:
     return [CLIPS_DIR / "00_main.clp", base, *modulos]
 
 
+def simulacio() -> dict:
+    return json.loads(SIMULACIO.read_text(encoding="utf-8"))
+
+
 def estrategia_por_defecto() -> str:
-    return json.loads(SIMULACIO.read_text(encoding="utf-8"))["estrategia"]
+    return simulacio()["estrategia"]
 
 
 class Captura(clips.Router):
@@ -97,6 +101,8 @@ class Pont:
         for ruta in ficheros(base):
             self.env.load(str(ruta))
         self.env.eval(f"(set-strategy {self.estrategia})")
+        if self.estrategia == "random":         # estrategia random reproducible (§11.3)
+            self.env.eval(f"(seed {simulacio()['semilla-agenda']})")
         self.env.eval("(watch rules)")
         self.env.reset()
         # env.rules() solo da las del módulo actual; get-defrule-list * da las de todos,

@@ -1,3 +1,4 @@
 {
-  "estrategia": "depth"
+  "estrategia": "depth",
+  "semilla-agenda": 42
 }

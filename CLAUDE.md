@@ -13,7 +13,7 @@ Práctica de Sistemes Basats en Coneixement (GIA, UPC). Es un sistema basado en 
 | `fuentes/testimonios.md` | Testimonios de los usuarios (en inglés); de ahí salen requisitos (roadmap §1.2). |
 | `fuentes/*.pdf` | Material de clase (ver "Fuentes" al final). |
 
-Estado tras I1: prototipo vertical de un sector (viento → `mantenir-posicio` o `posicio-seguretat`). Existen los 11 módulos de `clips/`; `01_percepcio`, `07_deliberacio` y `10_aprenentatge` son stubs (solo `defmodule`) porque la tabla de fases los enfoca. Cada fichero dice en su cabecera qué falta y en qué iteración llega. Faltan las plantillas `prediccion` (I2) y `chunk` (I4). `casos/` tiene la batería y `resultats/` (ignorado por git) se regenera con los experimentos. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
+Estado tras I2: las 11 fases con los tres sectores, R1–R5, S1–S7 (salvo S5, el chunk) y DELIBERACIO. Solo `10_aprenentatge` es un stub (I4), y falta la plantilla `chunk`. Cada fichero dice en su cabecera qué falta. `casos/` tiene la batería: cada caso parte de `casos/_base_tranquil.json` (los tres sectores con datos completos que mantienen la posición) e indica solo lo que cambia por sector; `null` quita una observación. `resultats/` (ignorado por git) se regenera con los experimentos. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
 
 ## Jerarquía de fuentes
 
@@ -57,7 +57,8 @@ uv run python python/ontologia.py --verificar   # verificación de la base de co
 uv run python python/ontologia.py --set aprendizaje-activo=FALSE --salida <ruta>   # variante de experimento (§2.2)
 uv run pytest                                   # casos de prueba y regresión (§10.2)
 uv run python python/executar_casos.py          # batería de casos con pass/fail y reglas no disparadas (§10.1, §10.2)
-uv run python python/experiments.py a1          # experimento de agenda A1 (§11.3), salida en resultats/i1_a1/
+uv run python python/experiments.py a1          # experimento de agenda A1, 7 estrategias (§11.3), salida en resultats/i2_a1/
+uv run python python/experiments.py a2          # experimento A2, complexity frente a simplicity (§11.3)
 ```
 
 Al final de la salida de estos comandos puede aparecer `[ENVRNMNT8] Environment data not fully deallocated`. Es una fuga conocida de CLIPS, documentada en roadmap §13, y no indica ningún error: no se filtra.
