@@ -7,6 +7,7 @@ Práctica de Sistemes Basats en Coneixement (GIA, UPC). Es un sistema basado en 
 | Ruta | Contenido |
 |---|---|
 | `docs/roadmap.md` | **Especificación del diseño.** Léela antes de escribir código. Se cita como §n. |
+| `docs/iteraciones.md` | **Registro de iteraciones:** qué se hizo en cada una, decisiones que cambiaron el roadmap (commit y motivo), resultados de los experimentos, incidencias abiertas y siguiente paso. Léelo para retomar el trabajo. |
 | `docs/ontologia-explicada.md` | Resumen en lenguaje llano de cada clase y propiedad del TTL. |
 | `ontologia/agrovoltaica-soar.ttl` | Ontología OWL: esquema de la memoria de trabajo e individuos del conocimiento estático. |
 | `fuentes/enunciado.md` | Enunciado oficial (en catalán). El roadmap lo cita como "enunciado 3.x". |
@@ -77,7 +78,7 @@ Si cambia algún comando, actualiza esta sección. El generador lee las plantill
   1. verificación (§10.1);
   2. regresión de casos (§10.2);
   3. experimento piloto (§11.2);
-  4. resumen final para el equipo: qué se ha hecho, resultados, decisiones tomadas e incidencias.
+  4. actualizar `docs/iteraciones.md`.
 - **Commits pequeños**, uno por paso lógico, con mensaje en castellano.
 - **Comentarios del código en castellano.** Cada regla lleva una línea que explica qué hace y la sección del roadmap que implementa.
 
