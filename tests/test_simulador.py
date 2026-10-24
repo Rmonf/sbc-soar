@@ -116,3 +116,23 @@ def test_fallos_no_cambian_la_meteorologia(config):
     a, b = sm.Simulador(5, config), sm.Simulador(5, copy.deepcopy(config))
     b.rng_fallos.random(1000)
     assert np.array_equal(a.meteo.viento, b.meteo.viento)
+
+
+def test_tipos_de_dia(config):
+    """Un día de calor es más cálido y soleado que uno nublado; el tipo se sortea por día con las
+    probabilidades configuradas y queda en el estado real."""
+    def solo(tipo):
+        c = copy.deepcopy(config)
+        for nombre, p in c["meteo"]["tipus-dia"].items():
+            p["prob"] = 1.0 if nombre == tipo else 0.0
+        return sm.Simulador(0, c).meteo
+    calor, nuvol = solo("calor"), solo("nuvol")
+    assert set(calor.tipos_dia) == {"calor"} and set(nuvol.tipos_dia) == {"nuvol"}
+    assert calor.temp_ambiente.max() > nuvol.temp_ambiente.max() + 5
+    assert calor.radiacion.sum() > 1.5 * nuvol.radiacion.sum()
+    c = copy.deepcopy(config)
+    c["dias"] = 200
+    tipos = sm.Simulador(0, c).meteo.tipos_dia
+    for nombre, p in config["meteo"]["tipus-dia"].items():
+        assert abs(tipos.count(nombre) / len(tipos) - p["prob"]) < 0.1
+    assert sm.Simulador(0, config).estado_real()["tipus-dia"] in config["meteo"]["tipus-dia"]

@@ -19,9 +19,30 @@
     "radiacio-max": 950,
     "hora-sortida": 6,
     "hora-posta": 20,
-    "temp-mitjana": 24,
-    "temp-amplitud": 8,
-    "temp-desviacio-dia": 2.5,
+    "_estacio": "Final de primavera (junio, ≈ 41° N, unas 14 h de luz). Datos sintéticos: los parámetros son heurísticos y plausibles, no un registro meteorológico real (roadmap §9).",
+    "tipus-dia": {
+      "templat": {
+        "prob": 0.5,
+        "temp-mitjana": 19,
+        "temp-amplitud": 6,
+        "nuvolositat": 0.2
+      },
+      "calor": {
+        "prob": 0.3,
+        "temp-mitjana": 27,
+        "temp-amplitud": 8,
+        "nuvolositat": 0.1
+      },
+      "nuvol": {
+        "prob": 0.2,
+        "temp-mitjana": 18,
+        "temp-amplitud": 4,
+        "nuvolositat": 0.7
+      }
+    },
+    "nuvolositat-retorn": 0.05,
+    "nuvolositat-desviacio": 0.05,
+    "temp-desviacio-dia": 1.5,
     "vent-mitja": 12,
     "vent-desviacio": 4,
     "prob-tempesta-dia": 0.2,

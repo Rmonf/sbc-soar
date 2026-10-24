@@ -4,10 +4,14 @@ Calcula, para tres sectores y con pasos de dt minutos, la meteorología, la geom
 estado del cultivo y de los paneles, y las observaciones y predicciones que Python aserta en
 CLIPS. Aplica las órdenes que decide CLIPS: Python calcula o simula, pero no decide.
 
-Todos los modelos son heurísticos y sus datos son sintéticos (informe, capítulo 8):
+Todos los modelos son heurísticos y sus datos son sintéticos (informe, capítulo 8). La estación
+simulada es el final de la primavera (junio, ≈ 41° N, unas 14 h de luz):
+  - tipo de día, sorteado cada día con las probabilidades de "tipus-dia": templat, calor o
+    nuvol, cada uno con su temperatura media, su amplitud y su nubosidad de referencia;
   - radiación: curva diurna (seno entre la salida y la puesta del sol) × (1 − 0,75·nubosidad),
-    con la nubosidad como paseo aleatorio;
-  - temperatura ambiente: curva diurna con máximo a las 15 h y desviación aleatoria por día;
+    con la nubosidad como proceso AR(1) que vuelve a la referencia del tipo de día;
+  - temperatura ambiente: curva diurna del tipo de día con máximo a las 15 h y desviación
+    aleatoria por día;
   - viento: media diurna con ruido AR(1) y tormentas (probabilidad por día, duración e
     intensidad aleatorias);
   - lluvia: cadena de Markov (empieza y para con probabilidad fija por paso);
@@ -78,23 +82,31 @@ class Meteorologia:
         fraccion = np.clip((horas - salida) / (posta - salida), 0, 1)
         self.elevacion = np.where((horas > salida) & (horas < posta), np.sin(np.pi * fraccion), 0.0)
         self.angulo_captacion = np.where(self.elevacion > 0, -60 + 120 * fraccion, 0.0)
-        # nubosidad (paseo aleatorio) y lluvia (cadena de Markov)
+        # tipo de día (templat, calor o nuvol), sorteado cada día
+        tipos = list(m["tipus-dia"])
+        prob = [m["tipus-dia"][x]["prob"] for x in tipos]
+        self.tipos_dia = [tipos[i] for i in rng.choice(len(tipos), size=dias.max() + 1, p=prob)]
+        param = [m["tipus-dia"][x] for x in self.tipos_dia]
+        # nubosidad (AR(1) hacia la referencia del tipo de día) y lluvia (cadena de Markov)
         nubes, lluvia = np.zeros(n), np.zeros(n)
-        c, lloviendo = rng.uniform(0, 0.3), False
+        c, lloviendo = param[0]["nuvolositat"], False
         for k in range(n):
             if not lloviendo and rng.random() < m["prob-inici-pluja"]:
                 lloviendo, intensidad = True, rng.lognormal(math.log(m["pluja-mitjana"]), 0.6)
             elif lloviendo and rng.random() < m["prob-fi-pluja"]:
                 lloviendo = False
-            c = float(np.clip(c + rng.normal(0, 0.05), 0, 1))
+            referencia = param[dias[k]]["nuvolositat"]
+            c = float(np.clip(c + m["nuvolositat-retorn"] * (referencia - c)
+                              + rng.normal(0, m["nuvolositat-desviacio"]), 0, 1))
             nubes[k] = max(c, 0.9) if lloviendo else c
             lluvia[k] = intensidad if lloviendo else 0.0
         self.lluvia = lluvia
         self.radiacion = m["radiacio-max"] * self.elevacion * (1 - 0.75 * nubes)
-        # temperatura ambiente: curva diurna con desviación por día
+        # temperatura ambiente: curva diurna del tipo de día con desviación por día
         desviacion = rng.normal(0, m["temp-desviacio-dia"], dias.max() + 1)[dias]
-        self.temp_ambiente = (m["temp-mitjana"] + desviacion
-                              + m["temp-amplitud"] * np.sin(np.pi * (horas - 9) / 12))
+        media = np.array([p["temp-mitjana"] for p in param])[dias]
+        amplitud = np.array([p["temp-amplitud"] for p in param])[dias]
+        self.temp_ambiente = media + desviacion + amplitud * np.sin(np.pi * (horas - 9) / 12)
         # viento: media diurna + AR(1) + tormentas
         viento, e = np.zeros(n), 0.0
         for k in range(n):
@@ -218,7 +230,8 @@ class Simulador:
 
     def estado_real(self) -> dict:
         m, k = self.meteo, self.k
-        return {"instante": self.instante(), "viento": float(m.viento[k]), "lluvia": float(m.lluvia[k]),
+        return {"instante": self.instante(), "tipus-dia": m.tipos_dia[self.instante() // 1440],
+                "viento": float(m.viento[k]), "lluvia": float(m.lluvia[k]),
                 "eventos": sorted({f"{ev['tipo']}:{ev.get('sector', '-')}" for ev in self.eventos
                                    if ev["inicio-min"] <= self.instante() < ev["inicio-min"] + ev["durada-min"]}),
                 "radiacion": float(m.radiacion[k]), "precio": float(m.precio[k]),

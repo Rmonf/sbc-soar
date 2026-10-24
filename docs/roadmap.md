@@ -577,8 +577,10 @@ Por cada paso t:
 1. El simulador calcula el estado de los sectores y las predicciones.
 2. Python aserta las observaciones y las predicciones (las globales sin sector) y luego `ciclo-temporal (instante t)`, con valores numéricos como `float`.
 3. Python ejecuta `env.run()` y registra el número de reglas disparadas.
-4. Aplica las órdenes de instante t al simulador, que puede inyectar fallos; nil = no mover.
+4. Aplica las órdenes de instante t al simulador, que puede inyectar fallos; nil = no mover, y una orden a menos de la tolerancia del ángulo real tampoco mueve el panel (el actuador no se mueve para ir a donde ya está).
 5. Exporta episodios, chunks vivos y métricas del ciclo a `resultats/`.
+
+**Meteorología (datos sintéticos, capítulo 8):** se simula el final de la primavera (junio, ≈ 41° N, unas 14 h de luz). Cada día se sortea un tipo: `templat` (probabilidad 0,5; 19 ± 6 °C; nubosidad 0,2), `calor` (0,3; 27 ± 8 °C; 0,1) o `nuvol` (0,2; 18 ± 4 °C; 0,7). La nubosidad es un AR(1) que vuelve a la del tipo de día. Los parámetros son heurísticos y plausibles, no un registro real; están en `simulacio.json` y el tipo de cada día queda en el estado real exportado.
 
 **Geometría:** el simulador calcula `angle-captacio` y `angle-ombra` (supuesto documentado: cultivo entre filas). Qué ángulo se ordena lo decide CLIPS.
 
