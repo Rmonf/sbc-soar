@@ -1,0 +1,36 @@
+{
+  "id": "caso_55_tie_prioritat_objectius",
+  "descripcion": "Empate real en s3 con el panel a 0°: los dos mueven 30° y minima-intervencio no decide; prioritat-objectius elige la sombra (proteccio-cultiu, prioridad 3, frente a produccio-energia, 4).",
+  "requisito": "§5.5 empate real; §5.6 S6; §5.7 prioritat-objectius",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "tipo-impasse": "tie",
+          "criterio-determinante": "proteccio-cultiu",
+          "escalado-humano": "FALSE",
+          "traza-contiene": [
+            "Impasse: tie (prioritat-objectius)"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "caso_53_constraint_failure_fallada",
+  "descripcion": "Viento crítico en s2 con el seguidor en alarma: R2 requiere defensa y R3 la rechaza; prevalece el reject, se diagnostica sin mover y se deriva a una persona.",
+  "requisito": "§5.6 S2; §5.7 restriccio-prioritaria (criterio integritat-mecanica); §5.8",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "alarma"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "escalado-humano": "TRUE",
+          "tipo-impasse": "constraint-failure",
+          "criterio-determinante": "integritat-mecanica"
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "accion": [
+            "posicio-seguretat"
+          ]
+        }
+      }
+    }
+  ]
+}

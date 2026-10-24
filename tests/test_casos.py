@@ -20,10 +20,12 @@ def test_caso(resultados, id_caso):
 
 
 def test_reglas_no_disparadas(resultados):
-    """En I1 solo quedan sin disparar las reglas de MAIN que abren y cierran impasses (§10.1)."""
+    """Solo quedan sin disparar las reglas de la reserva de escalado, inalcanzable con el
+    conocimiento actual y probada en test_escalado.py (§10.1)."""
     disparadas = {r for _, pasos in resultados.values() for p in pasos for r in p.reglas}
     todas = next(iter(resultados.values()))[1][0].modulo_de
-    assert {r for r in todas if r not in disparadas} == {"abrir-deliberacio", "escalar-impasse"}
+    assert {r for r in todas if r not in disparadas} == {
+        "escalar-impasse", "s7-escalado", "anotar-criterio-escalat"}
 
 
 @pytest.mark.parametrize("slot, valor", [

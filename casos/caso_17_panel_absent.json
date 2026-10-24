@@ -1,7 +1,7 @@
 {
   "id": "caso_17_panel_absent",
-  "descripcion": "Sin observación de panel en s2: incertesa critic; diagnosticar sin ángulo (nil = no mover); el episodio tiene angulo-previo nil y beneficios baix, y la traza dice panell=desconegut.",
-  "requisito": "§5.1 sin panel → critic; §5.9 episodio sin panel ni valoración; testimonio agricultor (no mover sin saber)",
+  "descripcion": "Sin observación de panel en s2: incertesa critic; diagnosticar sin ángulo (nil = no mover); el episodio tiene angulo-previo nil y beneficios baix, y la traza dice panell=desconegut. Con incertesa critic, S1 abre un impasse dades-insuficients y la deliberación (demanar-dades) requiere diagnosticar.",
+  "requisito": "§5.1 sin panel → critic; §5.9 episodio sin panel ni valoración; testimonio agricultor (no mover sin saber); §5.6 S1; §5.7 demanar-dades",
   "base": "_base_tranquil",
   "pasos": [
     {
@@ -24,8 +24,11 @@
           "traza-contiene": [
             "sector=s2, ",
             "panell=desconegut",
-            "incertesa-dades=observacio-panel:absent"
-          ]
+            "incertesa-dades=observacio-panel:absent",
+            "Impasse: dades-insuficients (demanar-dades)"
+          ],
+          "tipo-impasse": "dades-insuficients",
+          "criterio-determinante": "integritat-mecanica"
         }
       }
     }

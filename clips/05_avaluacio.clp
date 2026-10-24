@@ -22,22 +22,6 @@
          (if (eq ?accion orientar-produccio)
              then (nivel-diagnostico ?sector oportunitat-energetica) else baix))))
 
-;; Objetivo de mayor prioridad (objetivo-activo) entre los que sirve una valoración con
-;; beneficio ≥ mitja (§5.5c.3).
-(deffunction AVALUACIO::criterio-servido (?mecanico ?cultivo ?energia)
-   (bind ?mejor nil)
-   (bind ?prioridad 0)
-   (foreach ?par (create$ integritat-mecanica ?mecanico proteccio-cultiu ?cultivo produccio-energia ?energia)
-      (if (= (mod ?par-index 2) 1) then (bind ?objetivo ?par)
-       else (if (>= (nivel-num ?par) (nivel-num mitja)) then
-               (bind ?p (fact-slot-value
-                           (nth$ 1 (find-fact ((?o objetivo-activo)) (eq ?o:nombre-objetivo ?objetivo)))
-                           prioridad))
-               (if (or (eq ?mejor nil) (< ?p ?prioridad)) then
-                  (bind ?mejor ?objetivo)
-                  (bind ?prioridad ?p)))))
-   ?mejor)
-
 ;;; --- (a) Restricciones duras (§5.5a) ----------------------------------------
 
 ;; R1: con personas o maquinaria debajo, se rechaza todo candidato que mueva (§5.5a).

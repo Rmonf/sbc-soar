@@ -1,0 +1,39 @@
+{
+  "id": "caso_54_tie_minima_intervencio",
+  "descripcion": "Empate real en s3: estrés mitja (sombra) frente a oportunidad alt (producción), zona gris en el criterio de cultivo. Con el panel a 20°, producción mueve 10° y sombra 50°: minima-intervencio elige producción.",
+  "requisito": "§5.5 empate real; §5.6 S6; §5.7 minima-intervencio",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-produccio",
+          "angulo-ordenado": 30.0,
+          "tipo-impasse": "tie",
+          "criterio-determinante": "estabilitat",
+          "traza-contiene": [
+            "Impasse: tie (minima-intervencio)"
+          ]
+        }
+      }
+    }
+  ]
+}

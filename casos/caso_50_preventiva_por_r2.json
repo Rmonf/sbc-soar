@@ -1,0 +1,35 @@
+{
+  "id": "caso_50_preventiva_por_r2",
+  "descripcion": "Falta el viento en s2 (incertesa critic) pero el previsto es crítico (80 km/h): R2 requiere posicio-seguretat; S1 abre dades-insuficients y posicio-preventiva la requiere.",
+  "requisito": "§5.6 S1 y S3 tras el impasse; §5.7 posicio-preventiva (R2)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": null
+          },
+          "predicciones": {
+            "vent-previst": 80
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat",
+          "angulo-ordenado": 0.0,
+          "tipo-impasse": "dades-insuficients",
+          "criterio-determinante": "integritat-mecanica",
+          "traza-contiene": [
+            "Impasse: dades-insuficients (posicio-preventiva)"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -289,6 +289,22 @@
 (deffunction MAIN::recortar-angulo (?angulo ?minimo ?maximo)
    (max ?minimo (min ?maximo ?angulo)))
 
+;; Objetivo de mayor prioridad (objetivo-activo) entre los que sirve una valoración con
+;; beneficio ≥ mitja (§5.5c.3).
+(deffunction MAIN::criterio-servido (?mecanico ?cultivo ?energia)
+   (bind ?mejor nil)
+   (bind ?prioridad 0)
+   (foreach ?par (create$ integritat-mecanica ?mecanico proteccio-cultiu ?cultivo produccio-energia ?energia)
+      (if (= (mod ?par-index 2) 1) then (bind ?objetivo ?par)
+       else (if (>= (nivel-num ?par) (nivel-num mitja)) then
+               (bind ?p (fact-slot-value
+                           (nth$ 1 (find-fact ((?o objetivo-activo)) (eq ?o:nombre-objetivo ?objetivo)))
+                           prioridad))
+               (if (or (eq ?mejor nil) (< ?p ?prioridad)) then
+                  (bind ?mejor ?objetivo)
+                  (bind ?prioridad ?p)))))
+   ?mejor)
+
 ;; El mayor de dos niveles de la escala ordinal (§2.3.5, §2.3.10).
 (deffunction MAIN::nivel-max (?a ?b)
    (if (>= (nivel-num ?a) (nivel-num ?b)) then ?a else ?b))
@@ -316,6 +332,16 @@
    (bind ?actual (angulo-observado ?sector))
    (if (eq ?actual nil) then (return TRUE))
    (> (abs (- ?objetivo ?actual)) (tolerancia-sector ?sector)))
+
+;; ¿Hubo riesgo mecánico ≥ alt en algún episodio del sector en [t − ventana, t)? Consulta
+;; del historial para posicio-preventiva (§5.7).
+(deffunction MAIN::riesgo-mecanico-reciente (?sector ?t)
+   (> (length$ (find-fact ((?e episodio))
+                  (and (eq ?e:sector ?sector) (>= ?e:instante (- ?t ?*ventana-episodica*))
+                       (< ?e:instante ?t)
+                       (or (member$ risc-mecanic:alt ?e:situacion)
+                           (member$ risc-mecanic:critic ?e:situacion)))))
+      0))
 
 ;; Episodios del sector en [t − ventana, t) en los que se movió el panel: |angulo-ordenado −
 ;; angulo-previo| > tolerancia (R4, §5.5a). Los episodios no cambian en AVALUACIO.

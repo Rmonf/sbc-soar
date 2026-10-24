@@ -1,0 +1,49 @@
+{
+  "id": "caso_52_constraint_failure_personas",
+  "descripcion": "Viento crítico en s2 con personas debajo y el panel a 30°: R2 requiere ir a defensa y R1 lo rechaza (constraint-failure). Prevalece el reject: se mantiene y se deriva a una persona.",
+  "requisito": "§5.6 S2; §5.7 restriccio-prioritaria; §5.8 escalado-humano; testimonios agricultor y operador",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "ocupacion": "persones"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 30.0,
+          "escalado-humano": "TRUE",
+          "tipo-impasse": "constraint-failure",
+          "criterio-determinante": "seguretat-persones",
+          "restricciones-activas": [
+            "R1",
+            "R2"
+          ],
+          "traza-contiene": [
+            "Impasse: constraint-failure (restriccio-prioritaria)",
+            "escalat a persona: si"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "accion": [
+            "posicio-seguretat"
+          ]
+        }
+      }
+    }
+  ]
+}

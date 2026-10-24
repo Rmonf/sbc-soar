@@ -356,9 +356,10 @@ Todas las reglas exigen que no haya un `seleccionat` en *s* (una selección por 
 
 ### 5.7 DELIBERACIO (subestados)
 
-- Por cada impasse abierto se crea `estado-soar (id <gensym>) (estado-padre S0) (fase deliberacio) (impasse-asociado ?i)`.
+- Por cada impasse abierto se crea `estado-soar (id sub-<impasse>) (estado-padre S0) (fase deliberacio) (impasse-asociado ?i)`. El id se deriva del impasse en lugar de `gensym`, como los demás ids, para que no dependa del orden de disparo.
 - El resultado vuelve al padre como `preferencia (origen deliberacio)`. No se crean candidatos (enunciado 3.6).
 - Las estrategias son mutuamente excluyentes y solo se aplican si dan un **resultado único**. Si ninguna se aplica, MAIN cierra el impasse como `escalat` (§4.2).
+- **`escalat` es una reserva inalcanzable con el conocimiento actual:** `demanar-dades` y `restriccio-prioritaria` siempre se aplican, y el único empate posible (sombra `mitja` frente a producción) siempre lo resuelve `prioritat-objectius`, porque sirven a objetivos de prioridad distinta. `escalar-impasse`, S7 y el criterio `escalat` se mantienen para garantizar la terminación y se prueban en `tests/test_escalado.py` con una variante de configuración (dos objetivos con la misma prioridad).
 
 | Impasse | Estrategias, en orden |
 |---|---|
@@ -379,7 +380,8 @@ Todas las reglas exigen que no haya un `seleccionat` en *s* (una selección por 
 Se crea el `episodio` del sector con `resultado pendent` y `angulo-previo` = `angulo-actual`. Reglas acumulativas, protegidas con `(not (member$ ...))`, rellenan:
 - `situacion`, `alternativas`, `descartes` y `restricciones-activas`;
 - `beneficio-cultivo` y `beneficio-energia` de la acción elegida, y `perdida-cultivo` y `perdida-energia` (mayor beneficio entre los descartados);
-- `chunk-aplicado` y `criterio-determinante` (del `require`, del `better` decisivo, del chunk o de la estrategia del impasse).
+- `chunk-aplicado` y `criterio-determinante`, en este orden: `escalat` si el impasse del sector se cerró así; si no, el `require` de la acción aplicada; si no, su `better` de deliberación o de chunk; si no, su `better` de regla (con varios, el del objetivo más prioritario). Un candidato único sin preferencias deja `nil`.
+- `tipo-impasse`, del impasse del sector en el ciclo.
 
 Traza en el router `traza` (formato del anexo B, más las dos vistas del enunciado 3.1 y el aprendizaje):
 
@@ -394,7 +396,7 @@ Vista energetica: benefici energia=baix; renuncia energia=alt; restriccions acti
 Resultat observat (t+1): angle=-34.5, ok -> chunk-4 reforcat
 ```
 
-En la implementación, cada sector escribe su bloque (desde `Fets d'entrada`) en una sola regla, cuando el episodio está completo, y el orden entre bloques depende de la estrategia: la traza se compara como multiconjunto de bloques (§2.3.11). El bloque añade una línea `Evidencies` con las evidencias de cada diagnóstico (anexo B: qué hechos sustentan la inferencia); sin `observacion-panel` dice `panell=desconegut` y el episodio tiene `angulo-previo` nil y beneficios `baix`. La línea `Resultat observat (t=…): sector=…, ordre t=…, angle=…, ok|fallada-actuador` la escribe MONITORATGE en el ciclo siguiente (§5.2).
+En la implementación, cada sector escribe su bloque (desde `Fets d'entrada`) en una sola regla, cuando el episodio está completo, y el orden entre bloques depende de la estrategia: la traza se compara como multiconjunto de bloques (§2.3.11). El bloque añade una línea `Impasse: <tipo> (<estrategia>)` (o `-`), el escalado en la línea `Ordre` (`escalat a persona: si|no`), los estrés del sector en la vista agronómica y una línea `Evidencies` con las evidencias de cada diagnóstico (anexo B: qué hechos sustentan la inferencia); sin `observacion-panel` dice `panell=desconegut` y el episodio tiene `angulo-previo` nil y beneficios `baix`. La línea `Resultat observat (t=…): sector=…, ordre t=…, angle=…, ok|fallada-actuador` la escribe MONITORATGE en el ciclo siguiente (§5.2).
 
 ### 5.10 APRENENTATGE (extensión, §6)
 
@@ -552,6 +554,8 @@ proyecto-sbc-agrovoltaica/
 - `nivel-diagnostico`: nivel del diagnóstico de un tipo en el sector, o `baix` si no existe (§5.5b);
 - `tolerancia-sector` y `candidato-mueve`: definición de "candidato que mueve" de §5 (Δ > tolerancia o Δ desconocido sin panel);
 - `movimientos-recientes`: episodios del sector con movimiento en `[t − ?*ventana-episodica*, t)` (R4);
+- `riesgo-mecanico-reciente`: algún episodio del sector en la ventana con `risc-mecanic` ≥ `alt` (`posicio-preventiva`, §5.7);
+- `criterio-servido`: objetivo de mayor prioridad que sirve una valoración con beneficio ≥ `mitja` (§5.5c.3, §5.7);
 - `angulo-observado`: ángulo del panel del sector, o nil sin observación (§3.2);
 - `relacio-delta`: `menor`, `similar` o `major`;
 - `activacio`: activación base de un chunk;
@@ -594,7 +598,7 @@ Cada iteración (§11.1) ejecuta las dos y usa los resultados de la anterior par
 | La tabla de fases recorre todas las fases desde `percepcio` hasta `espera`; `deliberacio` vuelve a `seleccio`; un módulo por fase | Circularidad, fases inalcanzables |
 | Las prioridades de los objetivos son 1…5 y cubren la enumeración; cada sector tiene un cultivo y un seguidor propios; cada dato requerido tiene umbrales | Incompletitud |
 | Los slots de los `deftemplate` de `00_main.clp` coinciden con los de §3 | Discrepancia entre especificación e implementación |
-| Reglas que no se disparan en ningún caso de la batería (estadísticas de `watch rules`) | Reglas muertas o inalcanzables, y reglas de más (sobreespecialización, SEEK) |
+| Reglas que no se disparan en ningún caso de la batería (estadísticas de `watch rules`, que lista `executar_casos.py`) | Reglas muertas o inalcanzables, y reglas de más (sobreespecialización, SEEK). Las únicas justificadas son las de la reserva de escalado (`escalar-impasse`, S7, `anotar-criterio-escalat`, §5.7), que se prueban aparte |
 
 El propio verificador se prueba **por mutación** (Vermesan y Hogberg, citado en el artículo): se introducen errores conocidos en una copia del TTL y se comprueba que los detecta (experimento de cierre de I0).
 

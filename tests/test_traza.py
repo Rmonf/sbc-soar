@@ -43,9 +43,16 @@ def _comprobar_bloque(r, sector, expandido):
     assert _conjunto(l["Descartats"]) == set(e["descartes"])
     criterio = "-" if e["criterio-determinante"] == "nil" else e["criterio-determinante"]
     assert l["Decisio"] == f"{e['accion']}   Criteri: {criterio}"
-    assert l["Ordre"] == f"sector={e['sector']}, angle={e['angulo-ordenado']}"
-    assert l["Vista agronomica"] == (f"benefici cultiu={e['beneficio-cultivo']}; "
-                                     f"renuncia cultiu={e['perdida-cultivo']}")
+    escalado = "si" if e["escalado-humano"] == "TRUE" else "no"
+    assert l["Ordre"] == f"sector={e['sector']}, angle={e['angulo-ordenado']}, escalat a persona: {escalado}"
+    estres = {x for x in e["situacion"] if x.startswith("estres")}
+    agronomica, cultivo = l["Vista agronomica"].split("; benefici cultiu=")
+    assert _conjunto(agronomica.removeprefix("estres=")) == estres
+    assert cultivo == f"{e['beneficio-cultivo']}; renuncia cultiu={e['perdida-cultivo']}"
+    impasse = l["Impasse"]
+    assert (impasse == "-") == (e["tipo-impasse"] == "nil")
+    if e["tipo-impasse"] != "nil":
+        assert impasse.startswith(f"{e['tipo-impasse']} (")
     energia, restricciones = l["Vista energetica"].split("; restriccions actives: ")
     assert energia == f"benefici energia={e['beneficio-energia']}; renuncia energia={e['perdida-energia']}"
     assert _conjunto(restricciones) == set(e["restricciones-activas"])

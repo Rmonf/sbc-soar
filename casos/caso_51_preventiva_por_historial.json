@@ -1,0 +1,51 @@
+{
+  "id": "caso_51_preventiva_por_historial",
+  "descripcion": "Dos pasos: en t=0 viento alt y el panel va a defensa; en t=5 la lectura de viento está fallada (incertesa critic): el historial episódico tiene riesgo mecánico reciente y posicio-preventiva mantiene la defensa.",
+  "requisito": "§5.7 posicio-preventiva (memoria episódica en una deliberación, enunciado 3.6)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat"
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "fallada"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat",
+          "tipo-impasse": "dades-insuficients",
+          "traza-contiene": [
+            "Impasse: dades-insuficients (posicio-preventiva)"
+          ]
+        }
+      }
+    }
+  ]
+}

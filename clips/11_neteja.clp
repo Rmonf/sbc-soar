@@ -1,7 +1,7 @@
 ;;; 11_neteja.clp: módulo NETEJA, limpieza explícita de la memoria de trabajo (roadmap §5.11).
-;;; I1: familias 1, 2 y 4 y episodios fuera de la ventana episódica. Conserva S0, el
-;;; conocimiento estático, las órdenes del ciclo y los episodios recientes. La retirada de
-;;; impasses y subestados llega en I2.
+;;; Retira las familias 1, 2 y 4, los impasses, los subestados y los episodios fuera de la
+;;; ventana episódica. Conserva S0, el conocimiento estático, las órdenes del ciclo, los
+;;; episodios recientes y los chunks.
 
 (defmodule NETEJA (import MAIN ?ALL))
 
@@ -75,5 +75,19 @@
 (defrule NETEJA::retirar-preferencia
    (estado-soar (id S0) (fase neteja))
    ?h <- (preferencia)
+   =>
+   (retract ?h))
+
+;; Retira los impasses del ciclo (familia 3, §5.11).
+(defrule NETEJA::retirar-impasse
+   (estado-soar (id S0) (fase neteja))
+   ?h <- (impasse)
+   =>
+   (retract ?h))
+
+;; Retira los subestados de deliberación (familia 3, §5.11).
+(defrule NETEJA::retirar-subestado
+   (estado-soar (id S0) (fase neteja))
+   ?h <- (estado-soar (id ~S0))
    =>
    (retract ?h))
