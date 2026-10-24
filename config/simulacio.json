@@ -1,4 +1,44 @@
 {
   "estrategia": "depth",
-  "semilla-agenda": 42
+  "semilla-agenda": 42,
+  "dt-min": 5,
+  "dias": 7,
+  "semillas": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "meteo": {
+    "radiacio-max": 950,
+    "hora-sortida": 6,
+    "hora-posta": 20,
+    "temp-mitjana": 24,
+    "temp-amplitud": 8,
+    "temp-desviacio-dia": 2.5,
+    "vent-mitja": 12,
+    "vent-desviacio": 4,
+    "prob-tempesta-dia": 0.2,
+    "vent-tempesta": [55, 95],
+    "durada-tempesta-h": [1, 3],
+    "prob-inici-pluja": 0.002,
+    "prob-fi-pluja": 0.05,
+    "pluja-mitjana": 3.0,
+    "horitzo-prediccio-min": 30,
+    "preu-base": 60
+  },
+  "cultiu": {
+    "efecte-radiacio-temp": 8.0,
+    "et-maxima-per-hora": 1.2,
+    "pluja-a-humitat": 1.5,
+    "reg-hora": 6,
+    "reg-objectiu": 20,
+    "humitat-inicial": 20,
+    "kc": {"cultivo-s1": 1.05, "cultivo-s2": 1.0, "cultivo-s3": 0.7}
+  },
+  "panell": {
+    "ombra-maxima": 0.6,
+    "error-posicio": 0.5,
+    "superficie-m2": 1000,
+    "rendiment": 0.2
+  },
+  "soroll-sensors": {
+    "vent": 1.0, "radiacio": 10.0, "temp-cultiu": 0.3, "temp-ambient": 0.3,
+    "humitat-sol": 0.5, "pluja": 0.1, "angulo": 0.2, "prediccio-vent": 5.0, "prediccio-pluja": 0.5
+  }
 }
