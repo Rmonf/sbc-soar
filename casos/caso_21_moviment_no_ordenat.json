@@ -1,0 +1,36 @@
+{
+  "id": "caso_21_moviment_no_ordenat",
+  "descripcion": "Dos pasos: en t=0 se mantiene en 0°; en t=5 el panel aparece en 15° sin orden: fallada-actuador con moviment-no-ordenat.",
+  "requisito": "§5.2 moviment-no-ordenat (canvis inesperats, enunciado 3.7)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 0.0
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s2": {
+          "panel": {
+            "angulo-actual": 15
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "resultado-previo": "fallada-actuador",
+          "accion": "diagnosticar",
+          "traza-contiene": [
+            "fallada-actuador=moviment-no-ordenat"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -3,16 +3,37 @@
 ;;; (not (member$ ...)). La traza la escribe una sola regla, imprimir-traza, que solo se activa
 ;;; cuando no queda nada por anotar: su LHS niega la condición de cada regla acumulativa.
 ;;; Así la traza sale completa y una sola vez, sea cual sea la estrategia de agenda.
-;;; I1: sin impasses, chunks ni resultado observado (t+1), que llegan en I2–I4. Tampoco
-;;; están el descarte por reject ni el cálculo de las pérdidas (mayor beneficio de cultivo y de
-;;; energía entre los descartados): en I1 no hay reject ni beneficios de cultivo o energía,
-;;; así que serían reglas muertas (§10.1). Llegan en I2 con R1, R3, R5 y orientar-*.
+;;; El episodio y la traza no necesitan observacion-panel ni valoracion: sin panel (R5), el
+;;; ángulo previo es nil, los beneficios baix y la traza dice panell=desconegut.
+;;; Pendiente en I2: descarte por reject y pérdidas (P3), impasses (P4); chunks en I4.
 
 (defmodule EXPLICACIO (import MAIN ?ALL))
 
 ;; Orden alfabético para imprimir los multislots como conjuntos (§2.3.11).
 (deffunction EXPLICACIO::despues-de (?a ?b)
    (> (str-compare ?a ?b) 0))
+
+;; Beneficio de un candidato en un slot de su valoración, o baix si no tiene: sin panel no
+;; hay Δ ni valoración (§5.5b).
+(deffunction EXPLICACIO::beneficio-de (?candidato ?slot)
+   (bind ?v (find-fact ((?f valoracion)) (eq ?f:evalua-operador ?candidato)))
+   (if (= (length$ ?v) 0) then baix else (fact-slot-value (nth$ 1 ?v) ?slot)))
+
+;; Panel observado del sector para la traza, o desconegut sin observacion-panel (§3.2).
+(deffunction EXPLICACIO::descripcion-panel (?sector)
+   (bind ?p (find-fact ((?o observacion-panel)) (eq ?o:sector ?sector)))
+   (if (= (length$ ?p) 0) then (return "desconegut"))
+   (bind ?o (nth$ 1 ?p))
+   (str-cat (fact-slot-value ?o angulo-actual) " (" (fact-slot-value ?o estado-mecanico) ", "
+            (fact-slot-value ?o ocupacion) ")"))
+
+;; Evidencias de los diagnósticos del sector, tipo=ev1 ev2, para la traza (§5.9, anexo B:
+;; qué hechos sustentan la inferencia).
+(deffunction EXPLICACIO::evidencias-de (?sector)
+   (bind ?r (create$))
+   (do-for-all-facts ((?d diagnostico)) (eq ?d:sector ?sector)
+      (bind ?r (create$ ?r (str-cat ?d:tipo-diagnostico "=" (implode$ (sort despues-de ?d:evidencias))))))
+   ?r)
 
 ;; Multislot ordenado y separado por comas, o "-" si está vacío.
 (deffunction EXPLICACIO::lista (?valores)
@@ -22,20 +43,19 @@
       (bind ?texto (if (= ?v-index 1) then (str-cat ?v) else (str-cat ?texto ", " ?v))))
    ?texto)
 
-;; Crea el episodio del sector con la acción aplicada, el ángulo previo y los beneficios
-;; de la acción elegida; las pérdidas parten de baix, el máximo de un conjunto vacío, y en I1
-;; se quedan así porque ningún candidato tiene beneficio de cultivo ni de energía (§5.9).
+;; Crea el episodio del sector con la acción aplicada, el ángulo previo (nil sin panel) y los
+;; beneficios de la acción elegida (baix sin valoración); las pérdidas parten de baix, el
+;; máximo de un conjunto vacío (§5.9).
 (defrule EXPLICACIO::crear-episodio
    (estado-soar (id S0) (fase explicacio))
    (ciclo-temporal (instante ?t))
    (operador-candidato (id ?c) (sector ?s) (accion ?a) (estado-candidato aplicat))
    (orden-actuador (sector ?s) (instante ?t) (angulo-ordenado ?ang) (escalado-humano ?esc))
-   (observacion-panel (sector ?s) (angulo-actual ?previo))
-   (valoracion (evalua-operador ?c) (beneficio-cultivo ?bc) (beneficio-energia ?be))
    =>
    (assert (episodio (id (sym-cat episodio- ?s "-" ?t)) (sector ?s) (instante ?t) (accion ?a)
-                     (angulo-previo ?previo) (angulo-ordenado ?ang)
-                     (beneficio-cultivo ?bc) (beneficio-energia ?be)
+                     (angulo-previo (angulo-observado ?s)) (angulo-ordenado ?ang)
+                     (beneficio-cultivo (beneficio-de ?c beneficio-cultivo))
+                     (beneficio-energia (beneficio-de ?c beneficio-energia))
                      (perdida-cultivo baix) (perdida-energia baix)
                      (escalado-humano ?esc) (resultado pendent))))
 
@@ -126,10 +146,9 @@
    (ciclo-temporal (instante ?t))
    (episodio (sector ?s) (instante ?t) (situacion $?sit) (alternativas $?alt) (descartes $?des)
              (restricciones-activas $?ra) (criterio-determinante ?cd) (accion ?a)
-             (angulo-previo ?previo) (angulo-ordenado ?ang)
+             (angulo-ordenado ?ang)
              (beneficio-cultivo ?bc) (beneficio-energia ?be)
              (perdida-cultivo ?pc) (perdida-energia ?pe))
-   (observacion-panel (sector ?s) (estado-mecanico ?em) (ocupacion ?oc))
    ;; anotar-situacion
    (not (and (diagnostico (sector ?s) (tipo-diagnostico ?d) (nivel ?n))
              (test (not (member$ (sym-cat ?d ":" ?n) ?sit)))))
@@ -163,8 +182,9 @@
                                (str-cat ?h:variable "=" ?h:valor
                                         (if (eq ?h:calidad ok) then "" else (str-cat " (" ?h:calidad ")"))))))
    (printout traza "Fets d'entrada: t=" ?t ", sector=" ?s ", " (lista ?entradas)
-                   ", panell=" ?previo " (" ?em ", " ?oc ")" crlf)
+                   ", panell=" (descripcion-panel ?s) crlf)
    (printout traza "Diagnosi: " (lista ?sit) crlf)
+   (printout traza "Evidencies: " (lista (evidencias-de ?s)) crlf)
    (printout traza "Candidats: " (lista ?alt) crlf)
    (printout traza "Descartats: " (lista ?des) crlf)
    (printout traza "Decisio: " ?a "   Criteri: " (if (eq ?cd nil) then "-" else ?cd) crlf)

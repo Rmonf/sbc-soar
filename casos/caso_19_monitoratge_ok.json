@@ -1,0 +1,52 @@
+{
+  "id": "caso_19_monitoratge_ok",
+  "descripcion": "Dos pasos: en t=0 viento crítico, posicio-seguretat a 0°; en t=5 el panel está a 0°: el episodio de t=0 pasa a ok y la orden se retira.",
+  "requisito": "§5.2 verificación ok; enunciado 3.8 paso 8; testimonio operador (órdenes confirmadas por el equipo)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat",
+          "angulo-ordenado": 0.0
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82
+            }
+          },
+          "panel": {
+            "angulo-actual": 0.5
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "resultado-previo": "ok",
+          "traza-contiene": [
+            "Resultat observat (t=5): sector=s2, ordre t=0, angle=0.5, ok"
+          ]
+        }
+      }
+    }
+  ]
+}

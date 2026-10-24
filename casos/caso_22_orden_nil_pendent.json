@@ -1,0 +1,31 @@
+{
+  "id": "caso_22_orden_nil_pendent",
+  "descripcion": "Dos pasos: en t=0 falta el panel y se ordena diagnosticar sin ángulo (nil); en t=5 vuelve el panel: no hay ángulo que verificar, el episodio de t=0 queda pendent y la orden se retira igualmente.",
+  "requisito": "§5.2 orden nil → pendent, y se retracta",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "panel": null
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "angulo-ordenado": "nil"
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "esperado": {
+        "s2": {
+          "resultado-previo": "pendent",
+          "accion": "mantenir-posicio"
+        }
+      }
+    }
+  ]
+}

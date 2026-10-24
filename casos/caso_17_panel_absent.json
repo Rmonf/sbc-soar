@@ -1,0 +1,33 @@
+{
+  "id": "caso_17_panel_absent",
+  "descripcion": "Sin observación de panel en s2: incertesa critic; diagnosticar sin ángulo (nil = no mover); el episodio tiene angulo-previo nil y beneficios baix, y la traza dice panell=desconegut.",
+  "requisito": "§5.1 sin panel → critic; §5.9 episodio sin panel ni valoración; testimonio agricultor (no mover sin saber)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "panel": null
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "angulo-ordenado": "nil",
+          "angulo-previo": "nil",
+          "beneficio-cultivo": "baix",
+          "beneficio-energia": "baix",
+          "situacion": [
+            "incertesa-dades:critic"
+          ],
+          "traza-contiene": [
+            "sector=s2, ",
+            "panell=desconegut",
+            "incertesa-dades=observacio-panel:absent"
+          ]
+        }
+      }
+    }
+  ]
+}

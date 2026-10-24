@@ -1,0 +1,40 @@
+{
+  "id": "caso_16_radiacio_absent",
+  "descripcion": "Falta la radiación en s2 (dato requerido alt): incertesa-dades alt, no se propone mantener y se propone diagnosticar en el ángulo actual.",
+  "requisito": "§5.1 dato ausente; §5.4 diagnosticar; §3.2 dato ausente = desconocido",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "radiacio": null
+          },
+          "panel": {
+            "angulo-actual": 12
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "angulo-ordenado": 12.0,
+          "situacion": [
+            "incertesa-dades:alt"
+          ],
+          "traza-contiene": [
+            "incertesa-dades=radiacio:absent"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "alternativas": [
+            "mantenir-posicio"
+          ]
+        }
+      }
+    }
+  ]
+}

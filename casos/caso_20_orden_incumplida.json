@@ -1,0 +1,59 @@
+{
+  "id": "caso_20_orden_incumplida",
+  "descripcion": "Dos pasos: en t=0 se ordena posicio-seguretat a 0° desde 30°; en t=5 el panel sigue en 30°: fallada-actuador con ordre-incomplerta, y se propone diagnosticar.",
+  "requisito": "§5.2 fallada-actuador (ordre-incomplerta); §5.4 diagnosticar; testimonio ingeniera (comportamiento seguro ante fallos)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat"
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s2": {
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "resultado-previo": "fallada-actuador",
+          "accion": "diagnosticar",
+          "angulo-ordenado": 30.0,
+          "situacion": [
+            "fallada-actuador:alt"
+          ],
+          "traza-contiene": [
+            "fallada-actuador=ordre-incomplerta",
+            "Resultat observat (t=5): sector=s2, ordre t=0, angle=30.0, fallada-actuador"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "alternativas": [
+            "mantenir-posicio"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -4,7 +4,9 @@ Cada caso es una ejecución (un Environment nuevo) de uno o varios pasos. Un cas
 base (casos/_base_*.json, los tres sectores con datos completos) e indica solo lo que cambia por
 sector y paso; null quita una observación. La mezcla la hace este arnés, no el sistema: lo que se
 aserta queda escrito en la base y en el caso. Por paso se comprueba lo esperado y lo prohibido
-por sector y unos invariantes generales. Al final lista las reglas no disparadas (§10.1).
+por sector y unos invariantes generales. Además de los slots de la orden y del episodio,
+esperado admite resultado-previo (resultado del episodio del paso anterior) y traza-contiene
+(textos que deben aparecer en la traza del paso). Al final lista las reglas no disparadas (§10.1).
 
     uv run python python/executar_casos.py [--estrategia depth]
 """
@@ -124,7 +126,14 @@ def comprobar(caso: dict, resultados: list[Paso]) -> list[str]:
             if decisiones != 1:
                 fallos.append(f"{donde}: la traza tiene {decisiones} bloques de {s}, se esperaba 1")
             for slot, valor in p.get("esperado", {}).get(s, {}).items():
-                obtenido = orden[slot] if slot in orden else episodio.get(slot)
+                if slot == "resultado-previo":              # episodio del paso anterior (§5.2)
+                    previo = next((e for e in r.episodios if e["sector"] == s
+                                   and e["instante"] == caso["pasos"][n - 2]["instante"]), {})
+                    obtenido = previo.get("resultado")
+                elif slot == "traza-contiene":              # textos que la traza del paso incluye
+                    obtenido = [t for t in valor if t in r.traza]
+                else:
+                    obtenido = orden[slot] if slot in orden else episodio.get(slot)
                 if not _igual(valor, obtenido):
                     fallos.append(f"{donde}: {s}.{slot} = {obtenido!r}, se esperaba {valor!r}")
             for slot, valores in p.get("prohibido", {}).get(s, {}).items():

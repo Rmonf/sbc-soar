@@ -65,3 +65,15 @@ def test_base_completa_mantiene(resultados):
     caso, pasos = resultados["caso_08_anexo_b"]
     acciones = {o["sector"]: o["accion"] for o in pasos[0].ordenes}
     assert acciones == {"s1": "mantenir-posicio", "s2": "posicio-seguretat", "s3": "mantenir-posicio"}
+
+
+@pytest.mark.parametrize("id_caso, slot, valor", [
+    ("caso_19_monitoratge_ok", "resultado-previo", "fallada-actuador"),
+    ("caso_19_monitoratge_ok", "traza-contiene", ["texto que no aparece"]),
+])
+def test_comprobar_detecta_claves_especiales(resultados, id_caso, slot, valor):
+    """resultado-previo y traza-contiene también detectan discrepancias."""
+    caso, pasos = resultados[id_caso]
+    mutado = copy.deepcopy(caso)
+    mutado["pasos"][1]["esperado"]["s2"][slot] = valor
+    assert ec.comprobar(mutado, pasos)

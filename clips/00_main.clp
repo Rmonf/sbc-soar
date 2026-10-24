@@ -275,6 +275,16 @@
    (and (or (eq ?inferior nil) (>= ?x ?inferior))
         (or (eq ?superior nil) (< ?x ?superior))))
 
+;; El mayor de dos niveles de la escala ordinal (§2.3.5, §2.3.10).
+(deffunction MAIN::nivel-max (?a ?b)
+   (if (>= (nivel-num ?a) (nivel-num ?b)) then ?a else ?b))
+
+;; Ángulo observado del panel del sector, o nil si no hay observacion-panel: dato
+;; desconocido (§3.2). Las observaciones no cambian durante el ciclo.
+(deffunction MAIN::angulo-observado (?sector)
+   (bind ?p (find-fact ((?o observacion-panel)) (eq ?o:sector ?sector)))
+   (if (= (length$ ?p) 0) then nil else (fact-slot-value (nth$ 1 ?p) angulo-actual)))
+
 ;; ¿Es una acción sin movimiento? (definiciones de §5).
 (deffunction MAIN::accion-sin-movimiento (?accion)
    (if (member$ ?accion (create$ mantenir-posicio diagnosticar)) then TRUE else FALSE))

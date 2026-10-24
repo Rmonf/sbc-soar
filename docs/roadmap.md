@@ -169,7 +169,7 @@ Persistencia y escritor están en §3.2; aquí van el significado y el dominio (
 | `observacion-sensor` | `valor` (número, unidades de §3.1); `calidad` (`ok`, `degradat`, `fallada`) |
 | `observacion-panel` | `angulo-actual` (°); `estado-mecanico` (`operatiu`, `bloquejat`, `alarma`); `ocupacion` (`lliure`, `persones`, `maquinaria`) |
 | `prediccion` | `sector` (nil si es global); `variable` (`vent-previst`, `pluja-prevista`, `angle-captacio`, `angle-ombra`, `preu-energia`); `instante` al que se refiere |
-| `diagnostico` | `tipo-diagnostico`; `nivel`; `evidencias` (`variable:nivel`, `observacio-panel:absent`, `ordre-incomplerta`, `moviment-no-ordenat`) |
+| `diagnostico` | `tipo-diagnostico`; `nivel`; `evidencias` (`variable:nivel`; en `incertesa-dades`, `variable:absent`, `variable:fallada`, `variable:antiga`, `variable:degradat` y `observacio-panel:absent`; en `fallada-actuador`, `ordre-incomplerta`, `moviment-no-ordenat` y `estat-mecanic:<estado>`; en `risc-persones`, `ocupacio:<valor>`) |
 | `estado-soar` | `id` (`S0` o generado); `estado-padre` (solo subestados); `fase`; `subfase` (`pendent`, `feta`); `impasse-asociado` (solo subestados) |
 | `impasse` | `en-estado`; `tipo-impasse`; `operadores-en-conflicto` (ids); `resuelto`; `estrategia-resolucion` (§5.7) |
 | `operador-candidato` | `accion`; `angulo-objetivo` (°; nil en acción sin movimiento sin panel); `estado-candidato` (`candidat`, `descartat`, `seleccionat`, `aplicat`); `motivos` |
@@ -390,6 +390,8 @@ Vista energetica: benefici energia=baix; renuncia energia=alt; restriccions acti
 Resultat observat (t+1): angle=-34.5, ok -> chunk-4 reforcat
 ```
 
+En la implementación, cada sector escribe su bloque (desde `Fets d'entrada`) en una sola regla, cuando el episodio está completo, y el orden entre bloques depende de la estrategia: la traza se compara como multiconjunto de bloques (§2.3.11). El bloque añade una línea `Evidencies` con las evidencias de cada diagnóstico (anexo B: qué hechos sustentan la inferencia); sin `observacion-panel` dice `panell=desconegut` y el episodio tiene `angulo-previo` nil y beneficios `baix`. La línea `Resultat observat (t=…): sector=…, ordre t=…, angle=…, ok|fallada-actuador` la escribe MONITORATGE en el ciclo siguiente (§5.2).
+
 ### 5.10 APRENENTATGE (extensión, §6)
 
 Solo actúa si `parametros-aprendizaje (aprendizaje-activo TRUE)`. Tiene tres grupos de reglas, que no dependen del orden de disparo:
@@ -541,6 +543,8 @@ proyecto-sbc-agrovoltaica/
 - `nivel-num` y `recortar-angulo`;
 - `accion-sin-movimiento`: `mantenir-posicio` o `diagnosticar` (definiciones de §5);
 - `dins-interval`: límites nil = infinito;
+- `nivel-max`: el mayor de dos niveles (§2.3.10);
+- `angulo-observado`: ángulo del panel del sector, o nil sin observación (§3.2);
 - `relacio-delta`: `menor`, `similar` o `major`;
 - `activacio`: activación base de un chunk;
 - `chunk-aplicable`: busca con `find-fact` el chunk que encaja con un par.

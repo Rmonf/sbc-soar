@@ -1,0 +1,31 @@
+{
+  "id": "caso_23_orden_sin_panel_pendent",
+  "descripcion": "Dos pasos: en t=0 se mantiene en 0°; en t=5 falta el panel: la orden no se puede verificar, el episodio de t=0 queda pendent y la orden se retira.",
+  "requisito": "§5.2 sin observación de panel → pendent, y se retracta",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio"
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s2": {
+          "panel": null
+        }
+      },
+      "esperado": {
+        "s2": {
+          "resultado-previo": "pendent",
+          "accion": "diagnosticar",
+          "angulo-ordenado": "nil"
+        }
+      }
+    }
+  ]
+}

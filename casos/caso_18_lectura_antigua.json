@@ -1,0 +1,31 @@
+{
+  "id": "caso_18_lectura_antigua",
+  "descripcion": "La temperatura del cultivo de s2 llega con un instante anterior al ciclo: es un dato antiguo, incertesa-dades alt y diagnosticar.",
+  "requisito": "§5.1 instante < t; testimonio operador (identificar datos antiguos)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 10,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "temp-cultiu": {
+              "instante": 5
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "situacion": [
+            "incertesa-dades:alt"
+          ],
+          "traza-contiene": [
+            "incertesa-dades=temp-cultiu:antiga"
+          ]
+        }
+      }
+    }
+  ]
+}

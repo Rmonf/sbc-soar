@@ -1,0 +1,32 @@
+{
+  "id": "caso_15_lectura_degradada",
+  "descripcion": "Radiación con calidad degradat en s2: incertesa-dades baix, solo informativa; se sigue manteniendo.",
+  "requisito": "§5.1 degradat → incertesa baix; testimonio operador (no alarmar por todo)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "calidad": "degradat"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "situacion": [
+            "incertesa-dades:baix"
+          ],
+          "traza-contiene": [
+            "radiacio=100.0 (degradat)",
+            "incertesa-dades=radiacio:degradat"
+          ]
+        }
+      }
+    }
+  ]
+}

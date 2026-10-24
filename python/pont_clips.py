@@ -105,7 +105,10 @@ class Pont:
                           (str(r).split("::") for r in self.env.eval("(get-defrule-list *)"))}
 
     def _asertar(self, plantilla: str, instante: int, slots: dict):
-        """El instante es INTEGER; el resto de números son reales (§2.3.9)."""
+        """El instante es INTEGER (el del ciclo, salvo que la lectura traiga el suyo, p. ej. una
+        lectura antigua); el resto de números son reales (§2.3.9)."""
+        slots = dict(slots)
+        instante = int(slots.pop("instante", instante))
         self.env.find_template(plantilla).assert_fact(
             instante=instante, **{k: _clips(v) for k, v in slots.items()})
 
