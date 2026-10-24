@@ -9,7 +9,8 @@
         {
           "sector": "s2",
           "variable": "vent",
-          "valor": 50.0
+          "valor": 50.0,
+          "calidad": "ok"
         }
       ],
       "paneles": [

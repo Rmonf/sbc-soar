@@ -122,10 +122,15 @@ class Pont:
                 for f in self.env.facts() if f.template.name == plantilla]
 
     def paso(self, instante: int, sensores: list[dict] = (), paneles: list[dict] = ()) -> Paso:
-        """Aserta las observaciones y el ciclo-temporal del instante y ejecuta el ciclo."""
+        """Aserta las observaciones y el ciclo-temporal del instante y ejecuta el ciclo.
+        La calidad de cada lectura es obligatoria: sin ella, CLIPS pondría el primer valor
+        permitido (ok) y se imputaría en silencio un dato que nadie ha observado (§3.2)."""
+        for s in sensores:
+            if "calidad" not in s:
+                raise ValueError(f"observación de sensor sin calidad: {s}")
         for s in sensores:
             self._asertar("observacion-sensor", instante, {
-                "id": f"{s['sector']}-{s['variable']}-{instante}", "calidad": "ok", **s})
+                "id": f"{s['sector']}-{s['variable']}-{instante}", **s})
         for p in paneles:
             self._asertar("observacion-panel", instante, p)
         self.env.find_template("ciclo-temporal").assert_fact(instante=instante)

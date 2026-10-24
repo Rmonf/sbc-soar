@@ -25,8 +25,7 @@ def test_traza_contiene_el_episodio(resultados, id_caso):
         assert l["Fets d'entrada"].startswith(f"t={e['instante']}, sector={e['sector']}, ")
         assert f"panell={e['angulo-previo']} " in l["Fets d'entrada"]
         for s in p["sensores"]:
-            calidad = s.get("calidad", "ok")
-            marca = "" if calidad == "ok" else f" ({calidad})"
+            marca = "" if s["calidad"] == "ok" else f" ({s['calidad']})"
             assert f"{s['variable']}={float(s['valor'])}{marca}" in l["Fets d'entrada"]
         assert _conjunto(l["Diagnosi"]) == set(e["situacion"])
         assert _conjunto(l["Candidats"]) == set(e["alternativas"])
