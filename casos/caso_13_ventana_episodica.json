@@ -2,102 +2,106 @@
   "id": "caso_13_ventana_episodica",
   "descripcion": "Tres pasos (t=0, 60, 65): el episodio de t=0 sigue vivo en t=60 (límite de la ventana) y se retira en t=65.",
   "requisito": "§2.3.8 ventana episódica; §5.11 retirada de episodios antiguos; §10.2 valor límite",
+  "base": "_base_tranquil",
   "pasos": [
     {
       "instante": 0,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 82,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 30,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "posicio-seguretat",
-        "angulo-ordenado": 0.0,
-        "situacion": [
-          "risc-mecanic:critic"
-        ],
-        "alternativas": [
-          "mantenir-posicio",
-          "posicio-seguretat"
-        ],
-        "descartes": [
-          "mantenir-posicio:integritat-mecanica"
-        ],
-        "restricciones-activas": [
-          "R2"
-        ],
-        "criterio-determinante": "integritat-mecanica"
+        "s2": {
+          "accion": "posicio-seguretat",
+          "angulo-ordenado": 0.0,
+          "situacion": [
+            "risc-mecanic:critic"
+          ],
+          "alternativas": [
+            "mantenir-posicio",
+            "posicio-seguretat"
+          ],
+          "descartes": [
+            "mantenir-posicio:integritat-mecanica"
+          ],
+          "restricciones-activas": [
+            "R2"
+          ],
+          "criterio-determinante": "integritat-mecanica"
+        }
       }
     },
     {
       "instante": 60,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 20,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 20,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 0,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 0,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "mantenir-posicio",
-        "angulo-ordenado": 0.0,
-        "situacion": [],
-        "alternativas": [
-          "mantenir-posicio"
-        ],
-        "descartes": [],
-        "restricciones-activas": [],
-        "criterio-determinante": "nil"
+        "s2": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 0.0,
+          "situacion": [],
+          "alternativas": [
+            "mantenir-posicio"
+          ],
+          "descartes": [],
+          "restricciones-activas": [],
+          "criterio-determinante": "nil"
+        }
       }
     },
     {
       "instante": 65,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 20,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 20,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 0,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 0,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "mantenir-posicio",
-        "angulo-ordenado": 0.0,
-        "situacion": [],
-        "alternativas": [
-          "mantenir-posicio"
-        ],
-        "descartes": [],
-        "restricciones-activas": [],
-        "criterio-determinante": "nil"
+        "s2": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 0.0,
+          "situacion": [],
+          "alternativas": [
+            "mantenir-posicio"
+          ],
+          "descartes": [],
+          "restricciones-activas": [],
+          "criterio-determinante": "nil"
+        }
       }
     }
   ]

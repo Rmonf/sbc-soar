@@ -6,7 +6,8 @@ cada estrategia sobre las mismas entradas y se compara, ciclo a ciclo, con la pr
     (puede diferir), indicando en qué módulos difiere;
   - las órdenes y los episodios por contenido, sin ids generados y con los multislots
     como conjuntos (§2.3.11);
-  - la traza y el número de reglas disparadas.
+  - la traza como multiconjunto de bloques (uno por sector y resultado observado) y el
+    número de reglas disparadas.
 En I1 la ejecución es determinista y no hay simulador, así que no hay semillas (§11.2 empieza en I3).
 
     uv run python python/experiments.py a1 [--estrategias depth breadth]
@@ -49,7 +50,7 @@ def comparar_paso(ref: Paso, otro: Paso) -> dict:
                                                  if mod_ref.get(m) != mod_otro.get(m)),
         "ordenes_iguales": _contenido(ref.ordenes) == _contenido(otro.ordenes),
         "episodios_iguales": _contenido(ref.episodios) == _contenido(otro.episodios),
-        "traza_igual": ref.traza == otro.traza,
+        "traza_igual": Counter(ec.bloques(ref.traza)) == Counter(ec.bloques(otro.traza)),
         "secuencias": [ref.reglas, otro.reglas],
     }
 

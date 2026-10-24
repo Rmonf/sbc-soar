@@ -2,40 +2,42 @@
   "id": "caso_06_limite_vent_69_9",
   "descripcion": "Valor límite: 69,9 km/h es alt: posicio-seguretat por better, sin R2.",
   "requisito": "§10.2 valores límite (69,9 / 70,0)",
+  "base": "_base_tranquil",
   "pasos": [
     {
       "instante": 0,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 69.9,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 69.9,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 30,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "posicio-seguretat",
-        "angulo-ordenado": 0.0,
-        "situacion": [
-          "risc-mecanic:alt"
-        ],
-        "alternativas": [
-          "mantenir-posicio",
-          "posicio-seguretat"
-        ],
-        "descartes": [
-          "mantenir-posicio:integritat-mecanica"
-        ],
-        "restricciones-activas": [],
-        "criterio-determinante": "integritat-mecanica"
+        "s2": {
+          "accion": "posicio-seguretat",
+          "angulo-ordenado": 0.0,
+          "situacion": [
+            "risc-mecanic:alt"
+          ],
+          "alternativas": [
+            "mantenir-posicio",
+            "posicio-seguretat"
+          ],
+          "descartes": [
+            "mantenir-posicio:integritat-mecanica"
+          ],
+          "restricciones-activas": [],
+          "criterio-determinante": "integritat-mecanica"
+        }
       }
     }
   ]

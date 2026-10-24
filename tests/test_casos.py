@@ -34,7 +34,7 @@ def test_comprobar_detecta_discrepancias(resultados, slot, valor):
     """La comparación no es vacía: una expectativa alterada del caso del anexo B falla."""
     caso, pasos = resultados["caso_08_anexo_b"]
     mutado = copy.deepcopy(caso)
-    mutado["pasos"][0]["esperado"][slot] = valor
+    mutado["pasos"][0]["esperado"]["s2"][slot] = valor
     assert ec.comprobar(mutado, pasos)
 
 
@@ -43,9 +43,10 @@ def test_comprobar_detecta_discrepancias(resultados, slot, valor):
     {"situacion": ["risc-mecanic:critic"]},           # multislot del episodio
 ])
 def test_comprobar_detecta_prohibido(resultados, prohibido):
+    """Lo prohibido se comprueba en la orden y en los multislots del episodio."""
     caso, pasos = resultados["caso_08_anexo_b"]
     mutado = copy.deepcopy(caso)
-    mutado["pasos"][0]["prohibido"] = prohibido
+    mutado["pasos"][0]["prohibido"] = {"s2": prohibido}
     assert ec.comprobar(mutado, pasos)
 
 
@@ -57,3 +58,10 @@ def test_a1_invariancia():
         assert c["multiconjunto_igual"] and c["ordenes_iguales"] and c["episodios_iguales"], c["caso"]
         assert c["traza_igual"], c["caso"]
     assert not all(c["secuencia_igual"] for c in res["ciclos"])   # el experimento discrimina
+
+
+def test_base_completa_mantiene(resultados):
+    """La base tranquila: en los casos de un sector, los otros dos mantienen la posición."""
+    caso, pasos = resultados["caso_08_anexo_b"]
+    acciones = {o["sector"]: o["accion"] for o in pasos[0].ordenes}
+    assert acciones == {"s1": "mantenir-posicio", "s2": "posicio-seguretat", "s3": "mantenir-posicio"}

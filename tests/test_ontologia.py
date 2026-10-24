@@ -52,8 +52,9 @@ def test_plantillas(plantillas):
     assert set(plantillas) == {
         "sector", "cultivo", "seguidor-solar", "objetivo-activo", "dato-requerido",
         "definicion-fase", "umbral", "parametros-aprendizaje", "estado-soar",
-        # I1: familias dinámicas del prototipo; faltan prediccion (I2) y chunk (I4)
-        "impasse", "ciclo-temporal", "observacion-sensor", "observacion-panel", "abstraccion",
+        # familias dinámicas; falta chunk (I4)
+        "impasse", "ciclo-temporal", "observacion-sensor", "observacion-panel", "prediccion",
+        "abstraccion",
         "diagnostico", "operador-candidato", "valoracion", "preferencia", "orden-actuador",
         "episodio",
     }
@@ -68,6 +69,7 @@ def test_plantillas(plantillas):
     assert plantillas["episodio"]["tipo-impasse"].simbolos == {"tie", "dades-insuficients",
                                                               "constraint-failure", "nil"}
     assert plantillas["episodio"]["situacion"].multi
+    assert plantillas["prediccion"]["sector"].opcional
 
 
 # --- Generación de base_coneixement.clp --------------------------------------

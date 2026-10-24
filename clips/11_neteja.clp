@@ -36,6 +36,13 @@
    =>
    (retract ?h))
 
+;; Retira las predicciones (familia 1, §5.11).
+(defrule NETEJA::retirar-prediccion
+   (estado-soar (id S0) (fase neteja))
+   ?h <- (prediccion)
+   =>
+   (retract ?h))
+
 ;; Retira las abstracciones (familia 2, §5.11).
 (defrule NETEJA::retirar-abstraccion
    (estado-soar (id S0) (fase neteja))

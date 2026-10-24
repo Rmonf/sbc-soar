@@ -1,6 +1,6 @@
 ;;; 00_main.clp: módulo MAIN con las plantillas, las deffunction y las reglas de control (roadmap §4.3, §8).
-;;; I1: plantillas del conocimiento estático (§3.1) y de las familias que usa el prototipo
-;;; de un sector; faltan prediccion (I2) y chunk (I4). Convenciones de §2.3.
+;;; Plantillas del conocimiento estático (§3.1) y de las cinco familias de hechos dinámicos
+;;; (§3.2); falta chunk (I4). Convenciones de §2.3.
 
 (defmodule MAIN (export ?ALL))
 
@@ -134,6 +134,16 @@
    (slot angulo-actual (type NUMBER))
    (slot estado-mecanico (type SYMBOL) (allowed-symbols operatiu bloquejat alarma))
    (slot ocupacion (type SYMBOL) (allowed-symbols lliure persones maquinaria))
+   (slot instante (type INTEGER)))
+
+;; Previsión de una variable; sector nil = magnitud global, como el precio (§2.3.7, §3.3).
+(deftemplate MAIN::prediccion
+   (slot sector (type SYMBOL) (default nil))
+   (slot variable (type SYMBOL)
+      (allowed-symbols radiacio temp-cultiu temp-ambient humitat-sol vent vent-previst
+                       pluja pluja-prevista preu-energia produccio moviment
+                       angle-captacio angle-ombra))
+   (slot valor (type NUMBER))
    (slot instante (type INTEGER)))
 
 ;;; ---------------------------------------------------------------------------

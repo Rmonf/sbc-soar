@@ -2,35 +2,37 @@
   "id": "caso_01_calma",
   "descripcion": "Viento en calma: solo se propone mantener y se mantiene el ángulo.",
   "requisito": "enunciado 3.6 (ciclo completo); §5.4 mantenir-posicio; §5.6 S4",
+  "base": "_base_tranquil",
   "pasos": [
     {
       "instante": 0,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 20,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 20,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 30,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "mantenir-posicio",
-        "angulo-ordenado": 30.0,
-        "situacion": [],
-        "alternativas": [
-          "mantenir-posicio"
-        ],
-        "descartes": [],
-        "restricciones-activas": [],
-        "criterio-determinante": "nil"
+        "s2": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 30.0,
+          "situacion": [],
+          "alternativas": [
+            "mantenir-posicio"
+          ],
+          "descartes": [],
+          "restricciones-activas": [],
+          "criterio-determinante": "nil"
+        }
       }
     }
   ]

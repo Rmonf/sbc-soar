@@ -1,4 +1,4 @@
-"""La traza contiene todos los datos del episodio y se escribe una vez por episodio (§5.9)."""
+"""La traza contiene todos los datos del episodio y se escribe un bloque por episodio (§5.9)."""
 
 import pytest
 
@@ -19,22 +19,30 @@ def _conjunto(texto: str) -> set[str]:
 def test_traza_contiene_el_episodio(resultados, id_caso):
     caso, pasos = resultados[id_caso]
     for p, r in zip(caso["pasos"], pasos):
-        e = ec.episodio_de(r, ec.sector_de(p))
-        assert r.traza.count("Decisio:") == 1
-        l = _lineas(r.traza)
-        assert l["Fets d'entrada"].startswith(f"t={e['instante']}, sector={e['sector']}, ")
-        assert f"panell={e['angulo-previo']} " in l["Fets d'entrada"]
-        for s in p["sensores"]:
-            marca = "" if s["calidad"] == "ok" else f" ({s['calidad']})"
-            assert f"{s['variable']}={float(s['valor'])}{marca}" in l["Fets d'entrada"]
-        assert _conjunto(l["Diagnosi"]) == set(e["situacion"])
-        assert _conjunto(l["Candidats"]) == set(e["alternativas"])
-        assert _conjunto(l["Descartats"]) == set(e["descartes"])
-        criterio = "-" if e["criterio-determinante"] == "nil" else e["criterio-determinante"]
-        assert l["Decisio"] == f"{e['accion']}   Criteri: {criterio}"
-        assert l["Ordre"] == f"sector={e['sector']}, angle={e['angulo-ordenado']}"
-        assert l["Vista agronomica"] == (f"benefici cultiu={e['beneficio-cultivo']}; "
-                                         f"renuncia cultiu={e['perdida-cultivo']}")
-        energia, restricciones = l["Vista energetica"].split("; restriccions actives: ")
-        assert energia == f"benefici energia={e['beneficio-energia']}; renuncia energia={e['perdida-energia']}"
-        assert _conjunto(restricciones) == set(e["restricciones-activas"])
+        expandido = ec.expandir_paso(caso, p)
+        assert sum(b.startswith("Fets d'entrada:") for b in ec.bloques(r.traza)) == len(expandido["sectores"])
+        for sector in expandido["sectores"]:
+            _comprobar_bloque(r, sector, expandido)
+
+
+def _comprobar_bloque(r, sector, expandido):
+    e = ec.episodio_de(r, sector)
+    l = _lineas(ec.bloque_de(r.traza, sector))
+    assert l["Fets d'entrada"].startswith(f"t={e['instante']}, sector={e['sector']}, ")
+    assert f"panell={e['angulo-previo']} " in l["Fets d'entrada"]
+    for s in expandido["sensores"]:
+        if s["sector"] != sector:
+            continue
+        marca = "" if s["calidad"] == "ok" else f" ({s['calidad']})"
+        assert f"{s['variable']}={float(s['valor'])}{marca}" in l["Fets d'entrada"]
+    assert _conjunto(l["Diagnosi"]) == set(e["situacion"])
+    assert _conjunto(l["Candidats"]) == set(e["alternativas"])
+    assert _conjunto(l["Descartats"]) == set(e["descartes"])
+    criterio = "-" if e["criterio-determinante"] == "nil" else e["criterio-determinante"]
+    assert l["Decisio"] == f"{e['accion']}   Criteri: {criterio}"
+    assert l["Ordre"] == f"sector={e['sector']}, angle={e['angulo-ordenado']}"
+    assert l["Vista agronomica"] == (f"benefici cultiu={e['beneficio-cultivo']}; "
+                                     f"renuncia cultiu={e['perdida-cultivo']}")
+    energia, restricciones = l["Vista energetica"].split("; restriccions actives: ")
+    assert energia == f"benefici energia={e['beneficio-energia']}; renuncia energia={e['perdida-energia']}"
+    assert _conjunto(restricciones) == set(e["restricciones-activas"])

@@ -1,0 +1,36 @@
+{
+  "descripcion": "Situación tranquila y completa de los tres sectores: los cuatro datos requeridos con calidad ok y en nivel baix, panel a 0° operatiu y lliure, y predicciones de ángulos, viento y precio. Con ella, cada sector decide mantenir-posicio. Los casos solo indican lo que cambia (roadmap §10.2).",
+  "sectores": {
+    "s1": {
+      "sensores": {
+        "vent": {"valor": 10, "calidad": "ok"},
+        "radiacio": {"valor": 100, "calidad": "ok"},
+        "temp-cultiu": {"valor": 24, "calidad": "ok"},
+        "humitat-sol": {"valor": 60, "calidad": "ok"}
+      },
+      "panel": {"angulo-actual": 0, "estado-mecanico": "operatiu", "ocupacion": "lliure"},
+      "predicciones": {"vent-previst": 10, "angle-captacio": 30, "angle-ombra": -30}
+    },
+    "s2": {
+      "sensores": {
+        "vent": {"valor": 10, "calidad": "ok"},
+        "radiacio": {"valor": 100, "calidad": "ok"},
+        "temp-cultiu": {"valor": 20, "calidad": "ok"},
+        "humitat-sol": {"valor": 70, "calidad": "ok"}
+      },
+      "panel": {"angulo-actual": 0, "estado-mecanico": "operatiu", "ocupacion": "lliure"},
+      "predicciones": {"vent-previst": 10, "angle-captacio": 30, "angle-ombra": -30}
+    },
+    "s3": {
+      "sensores": {
+        "vent": {"valor": 10, "calidad": "ok"},
+        "radiacio": {"valor": 100, "calidad": "ok"},
+        "temp-cultiu": {"valor": 28, "calidad": "ok"},
+        "humitat-sol": {"valor": 45, "calidad": "ok"}
+      },
+      "panel": {"angulo-actual": 0, "estado-mecanico": "operatiu", "ocupacion": "lliure"},
+      "predicciones": {"vent-previst": 10, "angle-captacio": 30, "angle-ombra": -30}
+    }
+  },
+  "predicciones-globales": {"preu-energia": 40}
+}

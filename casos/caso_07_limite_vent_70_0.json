@@ -2,47 +2,51 @@
   "id": "caso_07_limite_vent_70_0",
   "descripcion": "Valor límite: 70,0 km/h es critic: R2 requiere posicio-seguretat (S3).",
   "requisito": "§10.2 valores límite; R2 (§5.5a); §5.6 S3",
+  "base": "_base_tranquil",
   "pasos": [
     {
       "instante": 0,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 70.0,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 70.0,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 30,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "posicio-seguretat",
-        "angulo-ordenado": 0.0,
-        "situacion": [
-          "risc-mecanic:critic"
-        ],
-        "alternativas": [
-          "mantenir-posicio",
-          "posicio-seguretat"
-        ],
-        "descartes": [
-          "mantenir-posicio:integritat-mecanica"
-        ],
-        "restricciones-activas": [
-          "R2"
-        ],
-        "criterio-determinante": "integritat-mecanica"
+        "s2": {
+          "accion": "posicio-seguretat",
+          "angulo-ordenado": 0.0,
+          "situacion": [
+            "risc-mecanic:critic"
+          ],
+          "alternativas": [
+            "mantenir-posicio",
+            "posicio-seguretat"
+          ],
+          "descartes": [
+            "mantenir-posicio:integritat-mecanica"
+          ],
+          "restricciones-activas": [
+            "R2"
+          ],
+          "criterio-determinante": "integritat-mecanica"
+        }
       },
       "prohibido": {
-        "accion": [
-          "mantenir-posicio"
-        ]
+        "s2": {
+          "accion": [
+            "mantenir-posicio"
+          ]
+        }
       }
     }
   ]

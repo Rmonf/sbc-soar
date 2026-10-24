@@ -2,40 +2,42 @@
   "id": "caso_05_vent_alt",
   "descripcion": "Viento alt con el panel lejos de defensa: posicio-seguretat es mejor que mantener.",
   "requisito": "§5.5b valoración; §5.5c.3 acción útil; testimonio ingeniera (comportamiento seguro)",
+  "base": "_base_tranquil",
   "pasos": [
     {
       "instante": 0,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 60,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 30,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "posicio-seguretat",
-        "angulo-ordenado": 0.0,
-        "situacion": [
-          "risc-mecanic:alt"
-        ],
-        "alternativas": [
-          "mantenir-posicio",
-          "posicio-seguretat"
-        ],
-        "descartes": [
-          "mantenir-posicio:integritat-mecanica"
-        ],
-        "restricciones-activas": [],
-        "criterio-determinante": "integritat-mecanica"
+        "s2": {
+          "accion": "posicio-seguretat",
+          "angulo-ordenado": 0.0,
+          "situacion": [
+            "risc-mecanic:alt"
+          ],
+          "alternativas": [
+            "mantenir-posicio",
+            "posicio-seguretat"
+          ],
+          "descartes": [
+            "mantenir-posicio:integritat-mecanica"
+          ],
+          "restricciones-activas": [],
+          "criterio-determinante": "integritat-mecanica"
+        }
       }
     }
   ]

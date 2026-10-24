@@ -113,8 +113,10 @@ class Pont:
         return [{k: _python(v) for k, v in dict(f).items()}
                 for f in self.env.facts() if f.template.name == plantilla]
 
-    def paso(self, instante: int, sensores: list[dict] = (), paneles: list[dict] = ()) -> Paso:
-        """Aserta las observaciones y el ciclo-temporal del instante y ejecuta el ciclo.
+    def paso(self, instante: int, sensores: list[dict] = (), paneles: list[dict] = (),
+             predicciones: list[dict] = ()) -> Paso:
+        """Aserta las observaciones, las predicciones (sin sector = globales) y el
+        ciclo-temporal del instante, y ejecuta el ciclo (§9).
         La calidad de cada lectura es obligatoria: sin ella, CLIPS pondría el primer valor
         permitido (ok) y se imputaría en silencio un dato que nadie ha observado (§3.2)."""
         for s in sensores:
@@ -125,6 +127,8 @@ class Pont:
                 "id": f"{s['sector']}-{s['variable']}-{instante}", **s})
         for p in paneles:
             self._asertar("observacion-panel", instante, p)
+        for p in predicciones:
+            self._asertar("prediccion", instante, p)
         self.env.find_template("ciclo-temporal").assert_fact(instante=instante)
         disparos = self.env.run()
         return Paso(

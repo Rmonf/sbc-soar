@@ -2,40 +2,44 @@
   "id": "caso_03_limite_vent_49_9",
   "descripcion": "Valor límite: 49,9 km/h es mitja (delta −20,1).",
   "requisito": "§10.2 valores límite; umbral vent mitja/alt",
+  "base": "_base_tranquil",
   "pasos": [
     {
       "instante": 0,
-      "sensores": [
-        {
-          "sector": "s2",
-          "variable": "vent",
-          "valor": 49.9,
-          "calidad": "ok"
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 49.9,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "estado-mecanico": "operatiu",
+            "ocupacion": "lliure"
+          }
         }
-      ],
-      "paneles": [
-        {
-          "sector": "s2",
-          "angulo-actual": 30,
-          "estado-mecanico": "operatiu",
-          "ocupacion": "lliure"
-        }
-      ],
+      },
       "esperado": {
-        "accion": "mantenir-posicio",
-        "angulo-ordenado": 30.0,
-        "situacion": [],
-        "alternativas": [
-          "mantenir-posicio"
-        ],
-        "descartes": [],
-        "restricciones-activas": [],
-        "criterio-determinante": "nil"
+        "s2": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 30.0,
+          "situacion": [],
+          "alternativas": [
+            "mantenir-posicio"
+          ],
+          "descartes": [],
+          "restricciones-activas": [],
+          "criterio-determinante": "nil"
+        }
       },
       "prohibido": {
-        "accion": [
-          "posicio-seguretat"
-        ]
+        "s2": {
+          "accion": [
+            "posicio-seguretat"
+          ]
+        }
       }
     }
   ]
