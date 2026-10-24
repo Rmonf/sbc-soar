@@ -1,0 +1,41 @@
+{
+  "id": "caso_12_vent_alt_en_defensa",
+  "descripcion": "Viento alt con el panel ya en defensa (0°): beneficios iguales y Δ dentro de la tolerancia; mantener es better por estabilidad, sin tie.",
+  "requisito": "§5.5c.2 (Δ dentro de la tolerancia); testimonio operador (un incidente, no veinte alarmas)",
+  "pasos": [
+    {
+      "instante": 0,
+      "sensores": [
+        {
+          "sector": "s2",
+          "variable": "vent",
+          "valor": 60
+        }
+      ],
+      "paneles": [
+        {
+          "sector": "s2",
+          "angulo-actual": 0,
+          "estado-mecanico": "operatiu",
+          "ocupacion": "lliure"
+        }
+      ],
+      "esperado": {
+        "accion": "mantenir-posicio",
+        "angulo-ordenado": 0.0,
+        "situacion": [
+          "risc-mecanic:alt"
+        ],
+        "alternativas": [
+          "mantenir-posicio",
+          "posicio-seguretat"
+        ],
+        "descartes": [
+          "posicio-seguretat:estabilitat"
+        ],
+        "restricciones-activas": [],
+        "criterio-determinante": "estabilitat"
+      }
+    }
+  ]
+}

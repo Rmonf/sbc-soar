@@ -310,12 +310,14 @@ Ninguna restricción rechaza una acción sin movimiento, así que nunca quedan t
    - con niveles iguales, se pasa al siguiente criterio;
    - si difieren y el mayor es ≥ `alt`, `better(mayor, menor)`;
    - si difieren y el mayor es `mitja`, no hay preferencia y no se miran más criterios (**zona gris**).
-2. **Estabilidad**, entre dos candidatos cualesquiera: con los tres beneficios iguales y Δ que difieren más que la tolerancia, `better` el de menor Δ (criterio `estabilitat`).
+2. **Estabilidad**, entre dos candidatos cualesquiera con los tres beneficios iguales (criterio `estabilitat`):
+   - si los Δ difieren más que la tolerancia, `better` el de menor Δ;
+   - si los Δ están dentro de la tolerancia y uno de los dos es la acción sin movimiento, esta es `better`. Así un panel que ya está en el ángulo de otra acción (p. ej., en defensa con viento `alt`) no abre un `tie`: moverlo no aporta nada.
 3. **Acción útil:** un candidato que no es acción sin movimiento y tiene un beneficio ≥ `mitja` es `better` que la acción sin movimiento, con criterio el objetivo de mayor prioridad que sirve.
 
 **Independencia del orden de disparo.** (b) y (c) no consultan los `reject`, y SELECCIO no cuenta los `better` cuyo `operador-referencia` está rechazado. Por tanto, el conjunto de preferencias que cuentan no depende del orden en que se asertaron.
 
-**Sin ciclos.** Todo `better` de AVALUACIO respeta el orden lexicográfico estricto (mecánico, cultivo, energía, −Δ). Los `better` de DELIBERACIO y de los chunks salen de un candidato no dominado hacia otro empatado con él, así que tampoco pueden cerrar un ciclo. Por eso no hace falta el impasse `conflict`.
+**Sin ciclos.** Todo `better` de AVALUACIO respeta el orden lexicográfico estricto (mecánico, cultivo, energía, −Δ fuera de la tolerancia y, dentro de ella, la acción sin movimiento). Como la acción sin movimiento tiene Δ = 0, las dos reglas de estabilidad apuntan siempre en el mismo sentido. Los `better` de DELIBERACIO y de los chunks salen de un candidato no dominado hacia otro empatado con él, así que tampoco pueden cerrar un ciclo. Por eso no hace falta el impasse `conflict`.
 
 **Empate real:** estrés `mitja` tras el ajuste por sensibilidad (con los datos actuales, solo en s3) frente a oportunidad energética.
 

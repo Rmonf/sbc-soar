@@ -1,6 +1,6 @@
 ;;; 05_avaluacio.clp: módulo AVALUACIO, restricciones, valoración y preferencias (roadmap §5.5).
 ;;; I1: R2, valoración de posicio-seguretat y de las acciones sin movimiento, acción útil
-;;; (criterio mecánico) y estabilidad. Cada valoracion se aserta completa en una sola regla,
+;;; (criterio mecánico) y las dos reglas de estabilidad. Cada valoracion se aserta completa en una sola regla,
 ;;; sin modificaciones posteriores, para que ninguna preferencia vea una valoración a medias.
 
 (defmodule AVALUACIO (import MAIN ?ALL))
@@ -54,7 +54,7 @@
                         (criterio integritat-mecanica) (origen regla))))
 
 ;; Estabilidad: con los tres beneficios iguales y Δ que difieren más que la tolerancia,
-;; es mejor el de menor Δ (§5.5c.2).
+;; es mejor el de menor Δ (§5.5c.2, primer punto).
 (defrule AVALUACIO::preferir-estabilidad
    (estado-soar (id S0) (fase avaluacio))
    (operador-candidato (id ?c) (sector ?s))
@@ -68,4 +68,21 @@
    =>
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
                         (operador-referencia ?c) (operador-comparado ?q)
+                        (criterio estabilitat) (origen regla))))
+
+;; Estabilidad: con los tres beneficios iguales y Δ dentro de la tolerancia, la acción sin
+;; movimiento es mejor que la que mueve (§5.5c.2, segundo punto).
+(defrule AVALUACIO::preferir-sin-movimiento-estable
+   (estado-soar (id S0) (fase avaluacio))
+   (operador-candidato (id ?q) (sector ?s) (accion ?aq&:(accion-sin-movimiento ?aq)))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a&:(not (accion-sin-movimiento ?a))))
+   (sector (id ?s) (tiene-seguidor ?sg))
+   (seguidor-solar (id ?sg) (tolerancia-angulo ?tol))
+   (valoracion (evalua-operador ?q) (beneficio-mecanico ?m) (beneficio-cultivo ?cu)
+               (beneficio-energia ?e) (desplazamiento ?dq))
+   (valoracion (evalua-operador ?c) (beneficio-mecanico ?m) (beneficio-cultivo ?cu)
+               (beneficio-energia ?e) (desplazamiento ?dc&:(<= (abs (- ?dc ?dq)) ?tol)))
+   =>
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
+                        (operador-referencia ?q) (operador-comparado ?c)
                         (criterio estabilitat) (origen regla))))
