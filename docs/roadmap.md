@@ -714,6 +714,7 @@ Cada iteración termina con:
 - **Sin modo manual:** `escalado-humano` marca la derivación, pero la respuesta de la persona no se modela.
 - **Objetivos siempre activos;** fase fenológica constante; subestados de un nivel.
 - **Datos:** umbrales provisionales; datos sintéticos etiquetados como tales (capítulo 8).
+- **Fuga de memoria de CLIPS 6.4 (clipspy 1.0.6).** Cuando Python ha obtenido un envoltorio `Fact` de un hecho con multislot (aunque ya lo haya liberado) y después una regla lo retracta, al destruir el `Environment` quedan unos 128 bytes por hecho sin liberar. CLIPS lo avisa con `[ENVRNMNT8] Environment data not fully deallocated`. Ocurre con los episodios que NETEJA retira de la ventana episódica (§5.11) después de que Python los haya leído. clipspy equilibra `RetainFact` y `ReleaseFact`, así que el fallo está en CLIPS. No cambia ningún resultado: son unos 3 MB en una ejecución de 30 días con 3 sectores. `pont_clips.Pont.cerrar` destruye cada `Environment` de forma explícita y filtra solo ese aviso. Si una versión posterior de clipspy o CLIPS lo corrige, se quita el filtro.
 
 ---
 

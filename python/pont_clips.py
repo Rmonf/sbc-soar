@@ -5,8 +5,12 @@ Carga el sistema en un Environment nuevo por ejecución, aserta los hechos obser
 secuencia de reglas disparadas. Python no decide: nunca modifica ni retracta hechos.
 """
 
+import ctypes
 import json
+import os
 import re
+import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -18,6 +22,9 @@ BASE = RAIZ / "config" / "base_coneixement.clp"
 SIMULACIO = RAIZ / "config" / "simulacio.json"
 
 FIRE = re.compile(r"FIRE\s+\d+\s+(\S+):")
+# Aviso de CLIPS al destruir un Environment con memoria sin liberar (roadmap §13)
+AVISO_FUGA = re.compile(r"\n?\[ENVRNMNT8\][^\n]*\n")
+_LIBC = ctypes.CDLL(None)
 
 
 def ficheros(base: Path = BASE) -> list[Path]:
@@ -87,7 +94,8 @@ def _clips(valor):
 
 
 class Pont:
-    """Una ejecución: un Environment nuevo, un único reset (§9, §14)."""
+    """Una ejecución: un Environment nuevo, un único reset (§9, §14). Se usa con `with`
+    (o llamando a cerrar) para destruir el Environment al terminar."""
 
     def __init__(self, estrategia: str | None = None, base: Path = BASE):
         self.estrategia = estrategia or estrategia_por_defecto()
@@ -136,3 +144,33 @@ class Pont:
 
     def reglas(self) -> list[str]:
         return list(self.modulo_de)
+
+    def cerrar(self):
+        """Destruye el Environment y filtra solo el aviso ENVRNMNT8 de la fuga conocida de
+        CLIPS (roadmap §13). CLIPS lo escribe con stdio de C en el fd 1 al destruirse, fuera
+        de los routers, así que se captura el fd 1 durante la destrucción y se reescribe
+        todo lo demás."""
+        if self.env is None:
+            return
+        sys.stdout.flush()
+        _LIBC.fflush(None)
+        original = os.dup(1)
+        with tempfile.TemporaryFile() as tmp:
+            os.dup2(tmp.fileno(), 1)
+            try:
+                self.env = None             # única referencia: se destruye aquí
+                _LIBC.fflush(None)
+            finally:
+                os.dup2(original, 1)
+                os.close(original)
+            tmp.seek(0)
+            resto = AVISO_FUGA.sub("", tmp.read().decode(errors="replace"))
+        if resto:
+            sys.stdout.write(resto)
+            sys.stdout.flush()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.cerrar()
