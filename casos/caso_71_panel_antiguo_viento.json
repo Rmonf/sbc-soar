@@ -1,0 +1,47 @@
+{
+  "id": "caso_71_panel_antiguo_viento",
+  "descripcion": "La observación del panel de s2 llega con un instante anterior al ciclo (t=5 en t=10) y hay viento alt: el panel cuenta como ausente (incertesa critic, observacio-panel:antiga), R5 rechaza ir a defensa y se diagnostica sin mover.",
+  "requisito": "§5.1 panel antiguo = ausente; R5; testimonio operador (identificar datos antiguos)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 10,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "instante": 5
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "angulo-ordenado": "nil",
+          "angulo-previo": "nil",
+          "tipo-impasse": "dades-insuficients",
+          "restricciones-activas": [
+            "R5"
+          ],
+          "traza-contiene": [
+            "incertesa-dades=observacio-panel:antiga",
+            "panell=desconegut (antiga, t=5)"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "accion": [
+            "posicio-seguretat"
+          ]
+        }
+      }
+    }
+  ]
+}

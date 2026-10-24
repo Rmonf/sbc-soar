@@ -19,10 +19,15 @@
    (bind ?v (find-fact ((?f valoracion)) (eq ?f:evalua-operador ?candidato)))
    (if (= (length$ ?v) 0) then baix else (fact-slot-value (nth$ 1 ?v) ?slot)))
 
-;; Panel observado del sector para la traza, o desconegut sin observacion-panel (§3.2).
+;; Panel vigente del sector para la traza; desconegut sin observacion-panel, o desconegut
+;; (antiga, t=…) si solo hay una lectura anterior al ciclo (§3.2, §5.1).
 (deffunction EXPLICACIO::descripcion-panel (?sector)
-   (bind ?p (find-fact ((?o observacion-panel)) (eq ?o:sector ?sector)))
-   (if (= (length$ ?p) 0) then (return "desconegut"))
+   (bind ?t (instante-actual))
+   (bind ?p (find-fact ((?o observacion-panel)) (and (eq ?o:sector ?sector) (= ?o:instante ?t))))
+   (if (= (length$ ?p) 0) then
+      (bind ?viejo (find-fact ((?o observacion-panel)) (eq ?o:sector ?sector)))
+      (if (= (length$ ?viejo) 0) then (return "desconegut"))
+      (return (str-cat "desconegut (antiga, t=" (fact-slot-value (nth$ 1 ?viejo) instante) ")")))
    (bind ?o (nth$ 1 ?p))
    (str-cat (fact-slot-value ?o angulo-actual) " (" (fact-slot-value ?o estado-mecanico) ", "
             (fact-slot-value ?o ocupacion) ")"))

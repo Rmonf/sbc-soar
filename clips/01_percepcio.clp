@@ -1,7 +1,7 @@
 ;;; 01_percepcio.clp: módulo PERCEPCIO, validación de los datos observados (roadmap §5.1).
 ;;; Por sector y dato-requerido: un dato que falta, con calidad fallada o con instante anterior
 ;;; al ciclo da incertesa-dades con el nivel del dato; una lectura degradat, incertesa baix;
-;;; sin observacion-panel, incertesa critic. Un solo diagnóstico por sector (§2.3.10): una regla
+;;; sin observacion-panel vigente (ausente, o con instante anterior al ciclo), incertesa critic. Un solo diagnóstico por sector (§2.3.10): una regla
 ;;; lo crea en baix, el máximo de un conjunto vacío, y cada causa añade su evidencia y eleva el
 ;;; nivel al máximo. El resultado no depende del orden de disparo.
 
@@ -20,7 +20,7 @@
        (and (dato-requerido (variable ?v))
             (observacion-sensor (sector ?s) (variable ?v) (instante ?i&:(< ?i ?t))))
        (observacion-sensor (sector ?s) (calidad degradat))
-       (not (observacion-panel (sector ?s))))
+       (not (observacion-panel (sector ?s) (instante ?t))))
    (not (diagnostico (sector ?s) (tipo-diagnostico incertesa-dades)))
    =>
    (assert (diagnostico (id (sym-cat ?s "-incertesa-dades")) (sector ?s)
@@ -67,7 +67,7 @@
    =>
    (modify ?d (evidencias ?ev (sym-cat ?v ":degradat"))))
 
-;; Sin observacion-panel, el ángulo y la ocupación son desconocidos: incertesa critic (§5.1).
+;; Sin ninguna observacion-panel, el ángulo y la ocupación son desconocidos: incertesa critic (§5.1).
 (defrule PERCEPCIO::anotar-panel-absent
    (estado-soar (id S0) (fase percepcio))
    (sector (id ?s))
@@ -76,3 +76,15 @@
                       (evidencias $?ev&:(not (member$ observacio-panel:absent ?ev))))
    =>
    (modify ?d (nivel critic) (evidencias ?ev observacio-panel:absent)))
+
+;; observacion-panel antigua (instante anterior al ciclo) y ninguna vigente: el ángulo y la
+;; ocupación son desconocidos, como si faltara: incertesa critic (§5.1).
+(defrule PERCEPCIO::anotar-panel-antiga
+   (estado-soar (id S0) (fase percepcio))
+   (ciclo-temporal (instante ?t))
+   (observacion-panel (sector ?s) (instante ?i&:(< ?i ?t)))
+   (not (observacion-panel (sector ?s) (instante ?t)))
+   ?d <- (diagnostico (sector ?s) (tipo-diagnostico incertesa-dades)
+                      (evidencias $?ev&:(not (member$ observacio-panel:antiga ?ev))))
+   =>
+   (modify ?d (nivel critic) (evidencias ?ev observacio-panel:antiga)))

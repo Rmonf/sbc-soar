@@ -309,10 +309,15 @@
 (deffunction MAIN::nivel-max (?a ?b)
    (if (>= (nivel-num ?a) (nivel-num ?b)) then ?a else ?b))
 
-;; Ángulo observado del panel del sector, o nil si no hay observacion-panel: dato
-;; desconocido (§3.2). Las observaciones no cambian durante el ciclo.
+;; Instante del ciclo en curso (§2.3.8).
+(deffunction MAIN::instante-actual ()
+   (fact-slot-value (nth$ 1 (find-fact ((?c ciclo-temporal)) TRUE)) instante))
+
+;; Ángulo del panel vigente del sector (observacion-panel con el instante del ciclo), o nil si
+;; no hay o es antiguo: dato desconocido (§3.2, §5.1). Las observaciones no cambian en el ciclo.
 (deffunction MAIN::angulo-observado (?sector)
-   (bind ?p (find-fact ((?o observacion-panel)) (eq ?o:sector ?sector)))
+   (bind ?t (instante-actual))
+   (bind ?p (find-fact ((?o observacion-panel)) (and (eq ?o:sector ?sector) (= ?o:instante ?t))))
    (if (= (length$ ?p) 0) then nil else (fact-slot-value (nth$ 1 ?p) angulo-actual)))
 
 ;; ¿Es una acción sin movimiento? (definiciones de §5).

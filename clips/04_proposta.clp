@@ -71,7 +71,8 @@
 ;; Sin incertidumbre ≥ mitja ni fallada del actuador: se propone mantener el ángulo actual (§5.4).
 (defrule PROPOSTA::proponer-mantenir-posicio
    (estado-soar (id S0) (fase proposta))
-   (observacion-panel (sector ?s) (angulo-actual ?a))
+   (ciclo-temporal (instante ?t))
+   (observacion-panel (sector ?s) (angulo-actual ?a) (instante ?t))
    (not (diagnostico (sector ?s) (tipo-diagnostico incertesa-dades)
                      (nivel ?n&:(>= (nivel-num ?n) (nivel-num mitja)))))
    (not (diagnostico (sector ?s) (tipo-diagnostico fallada-actuador)))

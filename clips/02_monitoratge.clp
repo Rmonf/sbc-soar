@@ -1,5 +1,5 @@
 ;;; 02_monitoratge.clp: módulo MONITORATGE, verificación de las órdenes de t−1 (roadmap §5.2).
-;;; Con observacion-panel del sector, la orden con ángulo se verifica: dentro de la tolerancia,
+;;; Con observacion-panel vigente del sector (instante = t), la orden con ángulo se verifica: dentro de la tolerancia,
 ;;; su episodio pasa a ok; fuera, a fallada-actuador, con el diagnóstico fallada-actuador alt.
 ;;; Una orden nil (no mover) o sin observación de panel deja el episodio pendent. En los tres
 ;;; casos la orden se retracta después; las reglas de retirada son mutuamente excluyentes y la
@@ -12,7 +12,7 @@
    (estado-soar (id S0) (fase monitoratge))
    (ciclo-temporal (instante ?t))
    (orden-actuador (sector ?s) (instante ?i&:(< ?i ?t)) (angulo-ordenado ?a&~nil))
-   (observacion-panel (sector ?s) (angulo-actual ?x))
+   (observacion-panel (sector ?s) (angulo-actual ?x) (instante ?t))
    (sector (id ?s) (tiene-seguidor ?sg))
    (seguidor-solar (id ?sg) (tolerancia-angulo ?tol))
    (test (<= (abs (- ?x ?a)) ?tol))
@@ -28,7 +28,7 @@
    (estado-soar (id S0) (fase monitoratge))
    (ciclo-temporal (instante ?t))
    (orden-actuador (sector ?s) (instante ?i&:(< ?i ?t)) (angulo-ordenado ?a&~nil))
-   (observacion-panel (sector ?s) (angulo-actual ?x))
+   (observacion-panel (sector ?s) (angulo-actual ?x) (instante ?t))
    (sector (id ?s) (tiene-seguidor ?sg))
    (seguidor-solar (id ?sg) (tolerancia-angulo ?tol))
    (test (> (abs (- ?x ?a)) ?tol))
@@ -47,7 +47,7 @@
    (estado-soar (id S0) (fase monitoratge))
    (ciclo-temporal (instante ?t))
    ?o <- (orden-actuador (sector ?s) (instante ?i&:(< ?i ?t)) (angulo-ordenado ~nil))
-   (observacion-panel (sector ?s))
+   (observacion-panel (sector ?s) (instante ?t))
    (episodio (sector ?s) (instante ?i) (resultado ~pendent))
    =>
    (retract ?o))
@@ -60,12 +60,12 @@
    =>
    (retract ?o))
 
-;; Orden con ángulo sin observación de panel: no se puede verificar, el episodio queda
+;; Orden con ángulo sin observación de panel vigente: no se puede verificar, el episodio queda
 ;; pendent (§5.2).
 (defrule MONITORATGE::retirar-orden-sin-panel
    (estado-soar (id S0) (fase monitoratge))
    (ciclo-temporal (instante ?t))
    ?o <- (orden-actuador (sector ?s) (instante ?i&:(< ?i ?t)) (angulo-ordenado ~nil))
-   (not (observacion-panel (sector ?s)))
+   (not (observacion-panel (sector ?s) (instante ?t)))
    =>
    (retract ?o))

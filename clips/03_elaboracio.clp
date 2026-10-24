@@ -146,10 +146,12 @@
                                        (if ?sube then (sym-cat sensibilitat ":" ?sens) else (create$))
                                        ?lluvias)))))
 
-;; Ocupación observada distinta de lliure: risc-persones critic (§5.3).
+;; Ocupación observada distinta de lliure en el panel vigente: risc-persones critic (§5.3). Una
+;; ocupación antigua es desconocida.
 (defrule ELABORACIO::diagnosticar-risc-persones
    (estado-soar (id S0) (fase elaboracio))
-   (observacion-panel (sector ?s) (ocupacion ?o&~lliure))
+   (ciclo-temporal (instante ?t))
+   (observacion-panel (sector ?s) (ocupacion ?o&~lliure) (instante ?t))
    =>
    (assert (diagnostico (id (sym-cat ?s "-risc-persones")) (sector ?s)
                         (tipo-diagnostico risc-persones) (nivel critic)
@@ -177,7 +179,8 @@
 ;; Estado mecánico distinto de operatiu: fallada-actuador alt (§5.3).
 (defrule ELABORACIO::diagnosticar-fallada-actuador
    (estado-soar (id S0) (fase elaboracio))
-   (observacion-panel (sector ?s) (estado-mecanico ?e&~operatiu))
+   (ciclo-temporal (instante ?t))
+   (observacion-panel (sector ?s) (estado-mecanico ?e&~operatiu) (instante ?t))
    (not (diagnostico (sector ?s) (tipo-diagnostico fallada-actuador)))
    =>
    (assert (diagnostico (id (sym-cat ?s "-fallada-actuador")) (sector ?s)
@@ -187,7 +190,8 @@
 ;; Si MONITORATGE ya creó fallada-actuador, el estado mecánico solo añade evidencia (§5.3).
 (defrule ELABORACIO::anotar-estado-mecanico
    (estado-soar (id S0) (fase elaboracio))
-   (observacion-panel (sector ?s) (estado-mecanico ?e&~operatiu))
+   (ciclo-temporal (instante ?t))
+   (observacion-panel (sector ?s) (estado-mecanico ?e&~operatiu) (instante ?t))
    ?d <- (diagnostico (sector ?s) (tipo-diagnostico fallada-actuador)
                       (evidencias $?ev&:(not (member$ (sym-cat estat-mecanic ":" ?e) ?ev))))
    =>

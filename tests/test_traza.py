@@ -30,7 +30,7 @@ def _comprobar_bloque(r, sector, expandido):
     l = _lineas(ec.bloque_de(r.traza, sector))
     assert l["Fets d'entrada"].startswith(f"t={e['instante']}, sector={e['sector']}, ")
     if e["angulo-previo"] == "nil":
-        assert l["Fets d'entrada"].endswith("panell=desconegut")
+        assert "panell=desconegut" in l["Fets d'entrada"]
     else:
         assert f"panell={e['angulo-previo']} " in l["Fets d'entrada"]
     for s in expandido["sensores"]:

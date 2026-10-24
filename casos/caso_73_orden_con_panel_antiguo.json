@@ -1,0 +1,47 @@
+{
+  "id": "caso_73_orden_con_panel_antiguo",
+  "descripcion": "Dos pasos: en t=0 viento crítico y defensa desde 30°; en t=5 solo llega la lectura antigua del panel (t=0): la orden no se puede verificar, el episodio de t=0 queda pendent y la orden se retira.",
+  "requisito": "§5.2 sin panel vigente → pendent, y se retracta",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat"
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s2": {
+          "panel": {
+            "angulo-actual": 30,
+            "instante": 0
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "resultado-previo": "pendent",
+          "accion": "diagnosticar",
+          "angulo-ordenado": "nil"
+        }
+      }
+    }
+  ]
+}

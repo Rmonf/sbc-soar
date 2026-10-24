@@ -169,7 +169,7 @@ Persistencia y escritor están en §3.2; aquí van el significado y el dominio (
 | `observacion-sensor` | `valor` (número, unidades de §3.1); `calidad` (`ok`, `degradat`, `fallada`) |
 | `observacion-panel` | `angulo-actual` (°); `estado-mecanico` (`operatiu`, `bloquejat`, `alarma`); `ocupacion` (`lliure`, `persones`, `maquinaria`) |
 | `prediccion` | `sector` (nil si es global); `variable` (`vent-previst`, `pluja-prevista`, `angle-captacio`, `angle-ombra`, `preu-energia`); `instante` al que se refiere |
-| `diagnostico` | `tipo-diagnostico`; `nivel`; `evidencias` (`variable:nivel`; en `incertesa-dades`, `variable:absent`, `variable:fallada`, `variable:antiga`, `variable:degradat` y `observacio-panel:absent`; en `fallada-actuador`, `ordre-incomplerta`, `moviment-no-ordenat` y `estat-mecanic:<estado>`; en `risc-persones`, `ocupacio:<valor>`) |
+| `diagnostico` | `tipo-diagnostico`; `nivel`; `evidencias` (`variable:nivel`; en `incertesa-dades`, `variable:absent`, `variable:fallada`, `variable:antiga`, `variable:degradat`, `observacio-panel:absent` y `observacio-panel:antiga`; en `fallada-actuador`, `ordre-incomplerta`, `moviment-no-ordenat` y `estat-mecanic:<estado>`; en `risc-persones`, `ocupacio:<valor>`) |
 | `estado-soar` | `id` (`S0` o generado); `estado-padre` (solo subestados); `fase`; `subfase` (`pendent`, `feta`); `impasse-asociado` (solo subestados) |
 | `impasse` | `en-estado`; `tipo-impasse`; `operadores-en-conflicto` (ids); `resuelto`; `estrategia-resolucion` (§5.7) |
 | `operador-candidato` | `accion`; `angulo-objetivo` (°; nil en acción sin movimiento sin panel); `estado-candidato` (`candidat`, `descartat`, `seleccionat`, `aplicat`); `motivos` |
@@ -245,6 +245,7 @@ espera ─(Python aserta ciclo-temporal)→ percepcio → monitoratge → elabor
 
 - Por sector y `dato-requerido`: si la variable falta, tiene `calidad fallada` o `instante` menor que el actual, se crea o actualiza el `diagnostico incertesa-dades` con el nivel del dato y la variable en `evidencias`.
 - Sin `observacion-panel`, la incertesa es `critic` (`observacio-panel:absent`).
+- **Panel antiguo = panel ausente.** Solo cuenta el panel **vigente** (`instante` = t). Una `observacion-panel` con `instante` < t da incertesa `critic` (`observacio-panel:antiga`), y todas las reglas que usan el panel (ángulo, ocupación, estado mecánico, R5, valoración, verificación de MONITORATGE y traza) lo tratan como ausente.
 - `calidad degradat` crea una incertesa `baix`, solo informativa.
 
 Son las producciones de monitoratge de datos insuficientes (enunciado 3.7, punto 5), en PERCEPCIO porque el paso 1 del ciclo es "rebre i validar observacions".
@@ -256,7 +257,7 @@ Para cada `orden-actuador` con `observacion-panel` del mismo sector:
 - si \|actual − ordenado\| ≤ tolerancia, el episodio de esa orden pasa a `ok`;
 - si no, pasa a `fallada-actuador`, con diagnóstico `fallada-actuador alt`. La evidencia es `ordre-incomplerta` si la orden movía y `moviment-no-ordenat` si no.
 
-Después se retracta la orden. Sin observación de panel, el resultado queda `pendent`. Como toda decisión genera orden, cualquier movimiento no ordenado aparece como discrepancia ("canvis inesperats", enunciado 3.7).
+Después se retracta la orden. Sin observación de panel vigente (ausente o antigua), el resultado queda `pendent`. Como toda decisión genera orden, cualquier movimiento no ordenado aparece como discrepancia ("canvis inesperats", enunciado 3.7).
 
 ### 5.3 ELABORACIO (abstracción → asociación → refinamiento)
 
@@ -556,7 +557,7 @@ proyecto-sbc-agrovoltaica/
 - `movimientos-recientes`: episodios del sector con movimiento en `[t − ?*ventana-episodica*, t)` (R4);
 - `riesgo-mecanico-reciente`: algún episodio del sector en la ventana con `risc-mecanic` ≥ `alt` (`posicio-preventiva`, §5.7);
 - `criterio-servido`: objetivo de mayor prioridad que sirve una valoración con beneficio ≥ `mitja` (§5.5c.3, §5.7);
-- `angulo-observado`: ángulo del panel del sector, o nil sin observación (§3.2);
+- `instante-actual` y `angulo-observado`: ángulo del panel vigente del sector, o nil sin observación vigente (§3.2, §5.1);
 - `relacio-delta`: `menor`, `similar` o `major`;
 - `activacio`: activación base de un chunk;
 - `chunk-aplicable`: busca con `find-fact` el chunk que encaja con un par.

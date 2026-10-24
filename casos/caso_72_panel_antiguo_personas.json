@@ -1,0 +1,34 @@
+{
+  "id": "caso_72_panel_antiguo_personas",
+  "descripcion": "La única lectura del panel de s2 es antigua y mostraba personas: la ocupación es desconocida, no hay risc-persones (R5 ya impide mover) y se diagnostica.",
+  "requisito": "§5.1 panel antiguo = ausente; §3.2 dato antiguo = desconocido",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 10,
+      "sectores": {
+        "s2": {
+          "panel": {
+            "ocupacion": "persones",
+            "instante": 5
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "situacion": [
+            "incertesa-dades:critic"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "situacion": [
+            "risc-persones:critic"
+          ]
+        }
+      }
+    }
+  ]
+}

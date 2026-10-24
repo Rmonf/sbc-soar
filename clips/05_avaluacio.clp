@@ -71,11 +71,13 @@
                         (operador-referencia ?c) (criterio integritat-mecanica)
                         (origen regla) (restriccion R4))))
 
-;; R5: sin observacion-panel, se rechaza todo candidato que mueva (Δ desconocido) (§5.5a).
+;; R5: sin observacion-panel vigente (ausente o antigua), se rechaza todo candidato que mueva
+;; (Δ desconocido) (§5.5a).
 (defrule AVALUACIO::r5-rechazar-sin-panel
    (estado-soar (id S0) (fase avaluacio))
+   (ciclo-temporal (instante ?t))
    (sector (id ?s))
-   (not (observacion-panel (sector ?s)))
+   (not (observacion-panel (sector ?s) (instante ?t)))
    (operador-candidato (id ?c) (sector ?s) (accion ?a) (angulo-objetivo ?o))
    (test (candidato-mueve ?a ?o ?s))
    =>
@@ -101,7 +103,8 @@
    (estado-soar (id S0) (fase avaluacio))
    (operador-candidato (id ?c) (sector ?s) (accion ?a&:(not (accion-sin-movimiento ?a)))
                        (angulo-objetivo ?obj))
-   (observacion-panel (sector ?s) (angulo-actual ?act))
+   (ciclo-temporal (instante ?t))
+   (observacion-panel (sector ?s) (angulo-actual ?act) (instante ?t))
    (umbral (variable moviment) (nivel ?coste) (limite-inferior ?inf) (limite-superior ?sup))
    (test (dins-interval (abs (- ?obj ?act)) ?inf ?sup))
    =>
