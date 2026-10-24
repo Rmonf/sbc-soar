@@ -1,0 +1,130 @@
+{
+  "id": "caso_47_r4_excepcion_seguretat",
+  "descripcion": "Como el caso 46, pero en t=40 hay además viento alt: R4 rechaza la sombra pero no posicio-seguretat, que se elige.",
+  "requisito": "R4 excepto posicio-seguretat (§5.5a)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 0
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra"
+        }
+      }
+    },
+    {
+      "instante": 10,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-produccio",
+          "resultado-previo": "ok"
+        }
+      }
+    },
+    {
+      "instante": 20,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "resultado-previo": "ok"
+        }
+      }
+    },
+    {
+      "instante": 30,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-produccio",
+          "resultado-previo": "ok"
+        }
+      }
+    },
+    {
+      "instante": 40,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            },
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "posicio-seguretat",
+          "restricciones-activas": [
+            "R4"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    }
+  ]
+}

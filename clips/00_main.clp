@@ -303,6 +303,32 @@
 (deffunction MAIN::accion-sin-movimiento (?accion)
    (if (member$ ?accion (create$ mantenir-posicio diagnosticar)) then TRUE else FALSE))
 
+;; Tolerancia de ángulo del seguidor del sector (§3.1).
+(deffunction MAIN::tolerancia-sector (?sector)
+   (bind ?s (nth$ 1 (find-fact ((?f sector)) (eq ?f:id ?sector))))
+   (fact-slot-value (nth$ 1 (find-fact ((?g seguidor-solar)) (eq ?g:id (fact-slot-value ?s tiene-seguidor))))
+                    tolerancia-angulo))
+
+;; ¿Mueve el candidato? No es acción sin movimiento y Δ > tolerancia, o Δ desconocido porque
+;; no se observa el panel (definiciones de §5).
+(deffunction MAIN::candidato-mueve (?accion ?objetivo ?sector)
+   (if (accion-sin-movimiento ?accion) then (return FALSE))
+   (bind ?actual (angulo-observado ?sector))
+   (if (eq ?actual nil) then (return TRUE))
+   (> (abs (- ?objetivo ?actual)) (tolerancia-sector ?sector)))
+
+;; Episodios del sector en [t − ventana, t) en los que se movió el panel: |angulo-ordenado −
+;; angulo-previo| > tolerancia (R4, §5.5a). Los episodios no cambian en AVALUACIO.
+(deffunction MAIN::movimientos-recientes (?sector ?t)
+   (bind ?tol (tolerancia-sector ?sector))
+   (bind ?n 0)
+   (do-for-all-facts ((?e episodio))
+         (and (eq ?e:sector ?sector) (>= ?e:instante (- ?t ?*ventana-episodica*)) (< ?e:instante ?t)
+              (neq ?e:angulo-ordenado nil) (neq ?e:angulo-previo nil)
+              (> (abs (- ?e:angulo-ordenado ?e:angulo-previo)) ?tol))
+      (bind ?n (+ ?n 1)))
+   ?n)
+
 ;;; ---------------------------------------------------------------------------
 ;;; Reglas de control (§4.2). Localizan S0 por (id S0) y son mutuamente excluyentes.
 ;;; ---------------------------------------------------------------------------

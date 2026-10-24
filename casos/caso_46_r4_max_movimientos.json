@@ -1,0 +1,129 @@
+{
+  "id": "caso_46_r4_max_movimientos",
+  "descripcion": "Cinco pasos en s1 alternando calor y sol: el panel se mueve en t=0, 10, 20 y 30 (4 movimientos en la última hora); en t=40, con calor, R4 rechaza volver a la sombra y se mantiene.",
+  "requisito": "R4 (§5.5a, memoria episódica, enunciado 3.6); negativo §10.2: no más de max-movimientos-hora; §5.2 ok en cada paso",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 0
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra"
+        }
+      }
+    },
+    {
+      "instante": 10,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-produccio",
+          "resultado-previo": "ok"
+        }
+      }
+    },
+    {
+      "instante": 20,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "resultado-previo": "ok"
+        }
+      }
+    },
+    {
+      "instante": 30,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-produccio",
+          "resultado-previo": "ok"
+        }
+      }
+    },
+    {
+      "instante": 40,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": [
+            "R4"
+          ],
+          "descartes": [
+            "orientar-ombra:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    }
+  ]
+}

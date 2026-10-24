@@ -2,7 +2,8 @@
 ;;; Cada valoracion se aserta completa en una sola regla, sin modificaciones posteriores, para
 ;;; que ninguna preferencia vea una valoración a medias. Por el invariante de §5.5b, cada acción
 ;;; solo tiene beneficio en su propio criterio.
-;;; Pendiente en I2: R1, R3, R4, R5 y el reject de R2 a orientar-* llegan en P3.
+;;; Las restricciones no rechazan nunca una acción sin movimiento, así que nunca quedan todos
+;;; los candidatos rechazados (§5.5a).
 
 (defmodule AVALUACIO (import MAIN ?ALL))
 
@@ -38,6 +39,65 @@
    ?mejor)
 
 ;;; --- (a) Restricciones duras (§5.5a) ----------------------------------------
+
+;; R1: con personas o maquinaria debajo, se rechaza todo candidato que mueva (§5.5a).
+(defrule AVALUACIO::r1-rechazar-con-personas
+   (estado-soar (id S0) (fase avaluacio))
+   (diagnostico (sector ?s) (tipo-diagnostico risc-persones))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a) (angulo-objetivo ?o))
+   (test (candidato-mueve ?a ?o ?s))
+   =>
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia reject)
+                        (operador-referencia ?c) (criterio seguretat-persones)
+                        (origen regla) (restriccion R1))))
+
+;; R2: con riesgo mecánico crítico, se rechazan orientar-produccio y orientar-ombra (§5.5a).
+(defrule AVALUACIO::r2-rechazar-orientar
+   (estado-soar (id S0) (fase avaluacio))
+   (diagnostico (sector ?s) (tipo-diagnostico risc-mecanic) (nivel critic))
+   (operador-candidato (id ?c) (sector ?s) (accion orientar-produccio|orientar-ombra))
+   =>
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia reject)
+                        (operador-referencia ?c) (criterio integritat-mecanica)
+                        (origen regla) (restriccion R2))))
+
+;; R3: con fallada del actuador, se rechaza todo candidato que mueva (§5.5a).
+(defrule AVALUACIO::r3-rechazar-con-fallada
+   (estado-soar (id S0) (fase avaluacio))
+   (diagnostico (sector ?s) (tipo-diagnostico fallada-actuador))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a) (angulo-objetivo ?o))
+   (test (candidato-mueve ?a ?o ?s))
+   =>
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia reject)
+                        (operador-referencia ?c) (criterio integritat-mecanica)
+                        (origen regla) (restriccion R3))))
+
+;; R4: con max-movimientos-hora movimientos en la última hora (memoria episódica), se rechaza
+;; todo candidato que mueva excepto posicio-seguretat (§5.5a, enunciado 3.6).
+(defrule AVALUACIO::r4-rechazar-por-desgaste
+   (estado-soar (id S0) (fase avaluacio))
+   (ciclo-temporal (instante ?t))
+   (sector (id ?s) (tiene-seguidor ?sg))
+   (seguidor-solar (id ?sg) (max-movimientos-hora ?max))
+   (test (>= (movimientos-recientes ?s ?t) ?max))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a&~posicio-seguretat) (angulo-objetivo ?o))
+   (test (candidato-mueve ?a ?o ?s))
+   =>
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia reject)
+                        (operador-referencia ?c) (criterio integritat-mecanica)
+                        (origen regla) (restriccion R4))))
+
+;; R5: sin observacion-panel, se rechaza todo candidato que mueva (Δ desconocido) (§5.5a).
+(defrule AVALUACIO::r5-rechazar-sin-panel
+   (estado-soar (id S0) (fase avaluacio))
+   (sector (id ?s))
+   (not (observacion-panel (sector ?s)))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a) (angulo-objetivo ?o))
+   (test (candidato-mueve ?a ?o ?s))
+   =>
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia reject)
+                        (operador-referencia ?c) (criterio seguretat-persones)
+                        (origen regla) (restriccion R5))))
 
 ;; R2: con riesgo mecánico crítico se requiere posicio-seguretat (§5.5a).
 (defrule AVALUACIO::r2-requerir-seguretat

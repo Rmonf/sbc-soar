@@ -1,0 +1,47 @@
+{
+  "id": "caso_44_r2_rechaza_produccio",
+  "descripcion": "Viento crítico en s2 con radiación alta: R2 requiere posicio-seguretat y rechaza orientar-produccio.",
+  "requisito": "R2 (§5.5a); negativo §10.2: nunca orientar-produccio con viento crítico",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -20
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat",
+          "restricciones-activas": [
+            "R2"
+          ],
+          "descartes": [
+            "orientar-produccio:integritat-mecanica",
+            "mantenir-posicio:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "accion": [
+            "orientar-produccio"
+          ]
+        }
+      }
+    }
+  ]
+}

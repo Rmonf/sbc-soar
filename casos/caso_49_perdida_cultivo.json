@@ -1,0 +1,38 @@
+{
+  "id": "caso_49_perdida_cultivo",
+  "descripcion": "Calor critic en s1 y viento alt con el panel a −20°: posicio-seguretat gana a orientar-ombra por el criterio mecánico; el episodio registra la renuncia de cultivo (critic).",
+  "requisito": "§5.9 vistas agronómica y energética (pérdidas); §5.5c.1 criterio mecánico",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            },
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "posicio-seguretat",
+          "perdida-cultivo": "critic",
+          "perdida-energia": "baix",
+          "traza-contiene": [
+            "renuncia cultiu=critic"
+          ]
+        }
+      }
+    }
+  ]
+}

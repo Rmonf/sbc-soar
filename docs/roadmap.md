@@ -550,6 +550,8 @@ proyecto-sbc-agrovoltaica/
 - `nivel-max`: el mayor de dos niveles (§2.3.10);
 - `nivel-desplazado`: nivel ± n posiciones, dentro de `baix`…`critic` (refinamientos, §5.3);
 - `nivel-diagnostico`: nivel del diagnóstico de un tipo en el sector, o `baix` si no existe (§5.5b);
+- `tolerancia-sector` y `candidato-mueve`: definición de "candidato que mueve" de §5 (Δ > tolerancia o Δ desconocido sin panel);
+- `movimientos-recientes`: episodios del sector con movimiento en `[t − ?*ventana-episodica*, t)` (R4);
 - `angulo-observado`: ángulo del panel del sector, o nil sin observación (§3.2);
 - `relacio-delta`: `menor`, `similar` o `major`;
 - `activacio`: activación base de un chunk;

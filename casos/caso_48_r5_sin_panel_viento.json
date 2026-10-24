@@ -1,0 +1,41 @@
+{
+  "id": "caso_48_r5_sin_panel_viento",
+  "descripcion": "Viento alt en s2 sin observación de panel: R5 rechaza posicio-seguretat (Δ desconocido) y se diagnostica sin mover.",
+  "requisito": "R5 (§5.5a); negativo §10.2: nunca mover sin observación de panel",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": null
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "diagnosticar",
+          "angulo-ordenado": "nil",
+          "restricciones-activas": [
+            "R5"
+          ],
+          "descartes": [
+            "posicio-seguretat:seguretat-persones"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "accion": [
+            "posicio-seguretat"
+          ]
+        }
+      }
+    }
+  ]
+}

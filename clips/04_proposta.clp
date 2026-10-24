@@ -2,7 +2,6 @@
 ;;; La condición "se propone si" de la tabla de §5.4 está en una sola función, motiva: la usan
 ;;; la regla que crea cada candidato (uno por acción y sector, con id derivado de ambos) y la
 ;;; que acumula sus motivos (tipo:nivel de cada diagnóstico que lo justifica).
-;;; Pendiente en I2: posicio-seguretat por incertidumbre llega en P3, junto con R5.
 
 (defmodule PROPOSTA (import MAIN ?ALL))
 
@@ -10,7 +9,8 @@
 (deffunction PROPOSTA::motiva (?accion ?tipo ?nivel)
    (switch ?accion
       (case posicio-seguretat then
-         (and (eq ?tipo risc-mecanic) (>= (nivel-num ?nivel) (nivel-num alt))))
+         (or (and (eq ?tipo risc-mecanic) (>= (nivel-num ?nivel) (nivel-num alt)))
+             (and (eq ?tipo incertesa-dades) (>= (nivel-num ?nivel) (nivel-num mitja)))))
       (case diagnosticar then
          (or (and (eq ?tipo incertesa-dades) (>= (nivel-num ?nivel) (nivel-num mitja)))
              (eq ?tipo fallada-actuador)))
@@ -18,7 +18,7 @@
       (case orientar-produccio then (eq ?tipo oportunitat-energetica))
       (default FALSE)))
 
-;; Riesgo mecánico ≥ alt: se propone ir al ángulo de defensa del seguidor (§5.4).
+;; Riesgo mecánico ≥ alt o incertidumbre ≥ mitja: se propone ir al ángulo de defensa (§5.4).
 (defrule PROPOSTA::proponer-posicio-seguretat
    (estado-soar (id S0) (fase proposta))
    (sector (id ?s) (tiene-seguidor ?sg))

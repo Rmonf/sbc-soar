@@ -1,0 +1,42 @@
+{
+  "id": "caso_45_r3_fallada_bloquea",
+  "descripcion": "Calor en s1 con el seguidor en alarma: R3 rechaza ir a la sombra y se propone diagnosticar.",
+  "requisito": "R3 (§5.5a); testimonio ingeniera (comportamiento seguro ante fallos)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "estado-mecanico": "alarma"
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "diagnosticar",
+          "restricciones-activas": [
+            "R3"
+          ],
+          "descartes": [
+            "orientar-ombra:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    }
+  ]
+}

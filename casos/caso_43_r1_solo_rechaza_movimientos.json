@@ -1,0 +1,32 @@
+{
+  "id": "caso_43_r1_solo_rechaza_movimientos",
+  "descripcion": "Viento alt en s2 con maquinaria debajo y el panel a 1° de defensa: posicio-seguretat no mueve (Δ ≤ tolerancia), R1 no la rechaza y la estabilidad prefiere mantener.",
+  "requisito": "R1 solo rechaza candidatos que mueven (definiciones de §5)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 1,
+            "ocupacion": "maquinaria"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": [],
+          "criterio-determinante": "estabilitat"
+        }
+      }
+    }
+  ]
+}
