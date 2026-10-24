@@ -1,0 +1,31 @@
+{
+  "id": "caso_68_limite_tolerancia_2_0",
+  "descripcion": "Valor límite: viento alt con personas debajo y el panel a 2° de defensa: Δ = tolerancia, posicio-seguretat no mueve y R1 no la rechaza.",
+  "requisito": "§10.2 valores límite (tolerancia-angulo); R1 solo rechaza movimientos",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 2.0,
+            "ocupacion": "persones"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": []
+        }
+      }
+    }
+  ]
+}

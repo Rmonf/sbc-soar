@@ -1,0 +1,30 @@
+{
+  "id": "caso_67_limite_coste_5_0",
+  "descripcion": "Valor límite: con el panel a 5° el coste es mitja, el beneficio mecánico alt y se va a defensa.",
+  "requisito": "§10.2 valores límite (moviment baix/mitja); §5.5b",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 5.0
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "posicio-seguretat",
+          "criterio-determinante": "integritat-mecanica"
+        }
+      }
+    }
+  ]
+}

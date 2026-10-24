@@ -1,0 +1,32 @@
+{
+  "id": "caso_65_limite_pluja_2_0",
+  "descripcion": "Valor límite: una lluvia de 2 mm/h es alt y rebaja el estrés hídrico de s1 a alt.",
+  "requisito": "§10.2 valores límite (pluja mitja/alt)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 40,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 2.0,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "situacion": [
+            "estres-hidric:alt"
+          ]
+        }
+      }
+    }
+  ]
+}

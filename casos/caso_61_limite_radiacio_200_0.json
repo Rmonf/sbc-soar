@@ -1,0 +1,29 @@
+{
+  "id": "caso_61_limite_radiacio_200_0",
+  "descripcion": "Valor límite: 200 W/m² en s2 es mitja: oportunidad mitja y producción.",
+  "requisito": "§10.2 valores límite (radiacio baix/mitja)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 200.0,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "orientar-produccio",
+          "situacion": [
+            "oportunitat-energetica:mitja"
+          ]
+        }
+      }
+    }
+  ]
+}

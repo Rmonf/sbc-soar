@@ -1,0 +1,30 @@
+{
+  "id": "caso_66_limite_coste_4_9",
+  "descripcion": "Valor límite: viento alt en s2 con el panel a 4,9° de defensa: el coste es baix, posicio-seguretat no aporta beneficio y la estabilidad prefiere mantener.",
+  "requisito": "§10.2 valores límite (moviment baix/mitja); §5.5b",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 4.9
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "criterio-determinante": "estabilitat"
+        }
+      }
+    }
+  ]
+}

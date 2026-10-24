@@ -1,0 +1,31 @@
+{
+  "id": "caso_62_limite_preu_99_9",
+  "descripcion": "Valor límite: con radiación alta en s2, un precio de 99,9 €/MWh es mitja y no sube la oportunidad (alt).",
+  "requisito": "§10.2 valores límite (preu-energia mitja/alt)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "situacion": [
+            "oportunitat-energetica:alt"
+          ]
+        }
+      },
+      "predicciones-globales": {
+        "preu-energia": 99.9
+      }
+    }
+  ]
+}

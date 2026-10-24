@@ -1,0 +1,40 @@
+{
+  "id": "caso_69_limite_tolerancia_2_1",
+  "descripcion": "Valor límite: con el panel a 2,1°, Δ > tolerancia: posicio-seguretat mueve y R1 la rechaza.",
+  "requisito": "§10.2 valores límite (tolerancia-angulo); R1",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 60,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 2.1,
+            "ocupacion": "persones"
+          }
+        }
+      },
+      "esperado": {
+        "s2": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": [
+            "R1"
+          ]
+        }
+      },
+      "prohibido": {
+        "s2": {
+          "accion": [
+            "posicio-seguretat"
+          ]
+        }
+      }
+    }
+  ]
+}
