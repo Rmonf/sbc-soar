@@ -83,6 +83,15 @@ def test_el_panel_va_al_angulo_ordenado(config):
     assert sim.sectores["s2"]["angulo"] == 0.0               # nil = no mover
 
 
+def test_el_orden_de_las_ordenes_no_importa(config):
+    """El orden en que llegan las órdenes (depende de la estrategia de agenda) no cambia el efecto."""
+    a, b = _a_mediodia(config), _a_mediodia(config)
+    ordenes = [_orden(a, s, -20.0) for s in sm.SECTORES]
+    a.aplicar(ordenes)
+    b.aplicar(list(reversed(ordenes)))
+    assert a.sectores == b.sectores
+
+
 def test_las_observaciones_entran_en_clips(config):
     """El formato de observaciones() es el que espera Pont.paso, y todas tienen calidad."""
     sim = _a_mediodia(config)

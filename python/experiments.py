@@ -9,11 +9,20 @@ cada estrategia sobre las mismas entradas y se compara, ciclo a ciclo, con la pr
   - la traza como multiconjunto de bloques (uno por sector y resultado observado) y el
     número de reglas disparadas.
 a1 compara las siete estrategias de CLIPS con depth (random, con la semilla de simulacio.json);
-a2, la especificidad: complexity frente a simplicity. Sin simulador la ejecución es determinista
-y no hay semillas de escenario: el piloto de §11.2 empieza en I3.
+a2, la especificidad: complexity frente a simplicity.
+
+piloto: el núcleo en bucle cerrado con las semillas de simulacio.json (§11.2): métricas por
+semilla, mediana, IQR y σ; violaciones de decisión con la cota de Clopper–Pearson (deben ser 0);
+exposición real (informativa), y n por métrica para los δ fijados de antemano, con la cota
+σ_d ≤ √2·σ, válida si ρ ≥ 0 (provisional hasta I4, que mide σ_d con C0–C1).
+
+a1-bucle: A1 en bucle cerrado (§11.3): cada semilla con depth y con cada otra estrategia; por
+estrategia, semillas con alguna discrepancia y su cota de Clopper–Pearson.
 
     uv run python python/experiments.py a1 [--estrategias depth breadth ...]
     uv run python python/experiments.py a2
+    uv run python python/experiments.py piloto [--semillas 0 1 ...] [--dias 7]
+    uv run python python/experiments.py a1-bucle [--semillas ...] [--dias 7]
 """
 
 import argparse
@@ -22,8 +31,17 @@ import subprocess
 import sys
 from collections import Counter
 
+import math
+from pathlib import Path
+
+import numpy as np
+from scipy import stats
+
+import bucle
 import executar_casos as ec
+import metricas
 import pont_clips as pc
+import simulador as sm
 from pont_clips import RAIZ, Paso
 
 RESULTATS = RAIZ / "resultats"
@@ -126,6 +144,149 @@ def resumen(res: dict) -> str:
     return "\n".join(lineas)
 
 
+# --- bucle cerrado: piloto y potencia (§11.2) ---------------------------------
+
+# Métricas del piloto, la principal (H1, §11.4) primero.
+METRICAS_PILOTO = ["tie-100", "energia-kwh", "horas-estres-sector-dia", "movimientos-sector-dia",
+                   "reglas-ciclo", "cpu-ms-ciclo"]
+
+
+def clopper_pearson(k: int, n: int) -> tuple[float, float]:
+    """Intervalo de confianza del 95 % de una proporción k/n (exacto)."""
+    bajo = 0.0 if k == 0 else stats.beta.ppf(0.025, k, n - k + 1)
+    alto = 1.0 if k == n else stats.beta.ppf(0.975, k + 1, n - k)
+    return float(bajo), float(alto)
+
+
+def tamano_muestra(sigma_d: float, delta: float, alfa: float = 0.05, potencia: float = 0.8,
+                   minimo: int = 30) -> int:
+    """n = ((z₁₋α/₂ + z₁₋β)·σ_d/δ)², con un mínimo de 30 semillas (§11.2)."""
+    z = stats.norm.ppf(1 - alfa / 2) + stats.norm.ppf(potencia)
+    return max(minimo, math.ceil((z * sigma_d / delta) ** 2)) if delta > 0 else minimo
+
+
+def _config(dias: float | None) -> dict:
+    config = sm.cargar_config()
+    if dias is not None:
+        config["dias"] = dias
+    return config
+
+
+def piloto(semillas: list[int] | None = None, dias: float | None = None,
+           salida: Path | None = None) -> dict:
+    config = _config(dias)
+    semillas = config["semillas"] if semillas is None else semillas
+    por_semilla = {}
+    for semilla in semillas:
+        ej = bucle.ejecutar(semilla, config)
+        m = metricas.calcular(ej)
+        if ej.errores:
+            m["errores"] = ej.errores
+        por_semilla[semilla] = m
+        if salida is not None:
+            bucle.guardar(ej, salida / f"semilla_{semilla}", m)
+    n = len(semillas)
+    resumen_m = {}
+    for nombre in METRICAS_PILOTO:
+        x = np.array([por_semilla[s][nombre] for s in semillas], dtype=float)
+        sigma = float(x.std(ddof=1)) if n > 1 else 0.0
+        mediana = float(np.median(x))
+        d = config["delta"][nombre]
+        delta = d["abs"] if "abs" in d else d["rel"] * mediana
+        sigma_d = math.sqrt(2) * sigma                     # cota válida si ρ ≥ 0
+        resumen_m[nombre] = {"mediana": mediana, "q1": float(np.percentile(x, 25)),
+                             "q3": float(np.percentile(x, 75)), "sigma": sigma, "delta": delta,
+                             "sigma_d_cota": sigma_d, "n": tamano_muestra(sigma_d, delta)}
+    con_violacion = sum(1 for s in semillas if por_semilla[s]["violaciones-decision"]["total"] > 0)
+    expuestas = sum(1 for s in semillas if por_semilla[s]["exposicion-real"]["total"] > 0)
+    return {
+        "experimento": "Piloto del núcleo (roadmap §11.2), iteración I3",
+        "configuracion": {"semillas": semillas, "dias": config["dias"], "dt-min": config["dt-min"],
+                          "estrategia": config["estrategia"], "delta": config["delta"],
+                          "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=RAIZ,
+                                                   capture_output=True, text=True).stdout.strip()},
+        "por_semilla": por_semilla,
+        "metricas": resumen_m,
+        "violaciones": {"semillas_con_violacion": con_violacion, "n": n,
+                        "ic95": clopper_pearson(con_violacion, n),
+                        "total": sum(por_semilla[s]["violaciones-decision"]["total"] for s in semillas)},
+        "exposicion": {"semillas_expuestas": expuestas,
+                       "total": sum(por_semilla[s]["exposicion-real"]["total"] for s in semillas),
+                       "por_causa": {c: sum(por_semilla[s]["exposicion-real"][c] for s in semillas)
+                                     for c in ("personas", "actuador", "viento", "desgaste")}},
+        "errores": {s: m["errores"] for s, m in por_semilla.items() if "errores" in m},
+    }
+
+
+def resumen_piloto(res: dict) -> str:
+    conf, v = res["configuracion"], res["violaciones"]
+    lineas = [f"{res['experimento']}: {len(conf['semillas'])} semillas × {conf['dias']} días, "
+              f"estrategia {conf['estrategia']}.",
+              f"  violaciones de decisión: {v['total']} en total; semillas con alguna "
+              f"{v['semillas_con_violacion']}/{v['n']}, IC 95 % [{v['ic95'][0]:.3f}, {v['ic95'][1]:.3f}]",
+              f"  exposición real (informativa): {res['exposicion']['total']} órdenes "
+              f"({res['exposicion']['por_causa']}), en {res['exposicion']['semillas_expuestas']} semillas",
+              f"  {'métrica':26s} {'mediana':>9s} {'IQR':>19s} {'σ':>8s} {'δ':>8s} {'n':>5s}"]
+    for nombre, m in res["metricas"].items():
+        etiqueta = nombre + (" (principal)" if nombre == "tie-100" else "")
+        lineas.append(f"  {etiqueta:26s} {m['mediana']:9.3f} [{m['q1']:8.3f}, {m['q3']:8.3f}] "
+                      f"{m['sigma']:8.3f} {m['delta']:8.3f} {m['n']:5d}")
+    lineas.append("  n con σ_d ≤ √2·σ (válida si ρ ≥ 0), α = 0,05, potencia 0,8, mínimo 30: "
+                  "provisional hasta I4 (σ_d real de C0–C1).")
+    if res["errores"]:
+        lineas.append(f"  ERRORES de CLIPS en las semillas {sorted(res['errores'])}")
+    return "\n".join(lineas)
+
+
+def a1_bucle(estrategias: list[str] = ESTRATEGIAS_A1, semillas: list[int] | None = None,
+             dias: float | None = None) -> dict:
+    """A1 en bucle cerrado: por semilla y estrategia, ¿cambia algo además del orden de disparo?"""
+    config = _config(dias)
+    semillas = config["semillas"] if semillas is None else semillas
+    referencia, otras = estrategias[0], estrategias[1:]
+    filas = []
+    for semilla in semillas:
+        base = bucle.ejecutar(semilla, config, referencia)
+        for estrategia in otras:
+            otra = bucle.ejecutar(semilla, config, estrategia)
+            multiconjunto = all(Counter(a["reglas"]) == Counter(b["reglas"])
+                                for a, b in zip(base.ciclos, otra.ciclos))
+            secuencia = sum(a["reglas"] == b["reglas"] for a, b in zip(base.ciclos, otra.ciclos))
+            fila = {"semilla": semilla, "estrategia": estrategia, "ciclos": len(base.ciclos),
+                    "multiconjunto_igual": multiconjunto, "ciclos_secuencia_igual": secuencia,
+                    "ordenes_iguales": _contenido(base.ordenes) == _contenido(otra.ordenes),
+                    "episodios_iguales": _contenido(base.episodios) == _contenido(otra.episodios),
+                    "traza_igual": Counter(ec.bloques(base.traza)) == Counter(ec.bloques(otra.traza)),
+                    "disparos": [sum(c["disparos"] for c in base.ciclos),
+                                 sum(c["disparos"] for c in otra.ciclos)]}
+            fila["discrepancia"] = not (fila["multiconjunto_igual"] and fila["ordenes_iguales"]
+                                        and fila["episodios_iguales"] and fila["traza_igual"])
+            filas.append(fila)
+    por_estrategia = {}
+    for estrategia in otras:
+        f = [x for x in filas if x["estrategia"] == estrategia]
+        k = sum(x["discrepancia"] for x in f)
+        por_estrategia[estrategia] = {"semillas": len(f), "discrepancias": k,
+                                      "ic95": clopper_pearson(k, len(f)),
+                                      "ciclos": sum(x["ciclos"] for x in f),
+                                      "ciclos_secuencia_igual": sum(x["ciclos_secuencia_igual"] for x in f)}
+    return {"experimento": "A1 en bucle cerrado (roadmap §11.3), iteración I3",
+            "configuracion": {"estrategias": estrategias, "semillas": semillas, "dias": config["dias"],
+                              "semilla-agenda (random)": config["semilla-agenda"]},
+            "filas": filas, "por_estrategia": por_estrategia}
+
+
+def resumen_a1_bucle(res: dict) -> str:
+    conf = res["configuracion"]
+    lineas = [f"{res['experimento']}: {len(conf['semillas'])} semillas × {conf['dias']} días, "
+              f"referencia {conf['estrategias'][0]}.",
+              f"  {'estrategia':11s} {'discrepancias':>13s} {'IC 95 %':>17s} {'ciclos con secuencia igual':>27s}"]
+    for estrategia, r in res["por_estrategia"].items():
+        lineas.append(f"  {estrategia:11s} {r['discrepancias']:>6d}/{r['semillas']:<6d} "
+                      f"[{r['ic95'][0]:.3f}, {r['ic95'][1]:.3f}] {r['ciclos_secuencia_igual']:>14d}/{r['ciclos']}")
+    return "\n".join(lineas)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="experimento", required=True)
@@ -135,7 +296,34 @@ def main(argv: list[str] | None = None) -> int:
         p = sub.add_parser(nombre, help=ayuda)
         p.add_argument("--estrategias", nargs="+", default=defecto)
         p.add_argument("--salida", default=str(RESULTATS / f"i2_{nombre}"))
+    p = sub.add_parser("piloto", help="piloto del núcleo en bucle cerrado y potencia (§11.2)")
+    p.add_argument("--semillas", nargs="+", type=int, default=None)
+    p.add_argument("--dias", type=float, default=None)
+    p.add_argument("--salida", default=str(RESULTATS / "i3_piloto"))
+    p = sub.add_parser("a1-bucle", help="A1 en bucle cerrado (§11.3)")
+    p.add_argument("--estrategias", nargs="+", default=ESTRATEGIAS_A1)
+    p.add_argument("--semillas", nargs="+", type=int, default=None)
+    p.add_argument("--dias", type=float, default=None)
+    p.add_argument("--salida", default=str(RESULTATS / "i3_a1"))
     args = parser.parse_args(argv)
+
+    if args.experimento in ("piloto", "a1-bucle"):
+        salida = RAIZ / args.salida
+        salida.mkdir(parents=True, exist_ok=True)
+        if args.experimento == "piloto":
+            res = piloto(args.semillas, args.dias, salida)
+            texto = resumen_piloto(res)
+            correcto = res["violaciones"]["total"] == 0 and not res["errores"]
+        else:
+            res = a1_bucle(args.estrategias, args.semillas, args.dias)
+            texto = resumen_a1_bucle(res)
+            correcto = all(r["discrepancias"] == 0 for r in res["por_estrategia"].values())
+        (salida / "resultados.json").write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n",
+                                                encoding="utf-8")
+        (salida / "resumen.txt").write_text(texto + "\n", encoding="utf-8")
+        print(texto)
+        print(f"\nResultados en {salida}")
+        return 0 if correcto else 1
 
     res = {"a1": a1, "a2": a2}[args.experimento](args.estrategias)
     salida = RAIZ / args.salida                     # una ruta absoluta sustituye a RAIZ

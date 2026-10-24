@@ -291,9 +291,11 @@ class Simulador:
     # --- efecto de las órdenes y avance ----------------------------------------
 
     def aplicar(self, ordenes: list[dict]):
-        """Aplica las órdenes del instante actual (nil = no mover), integra el paso y avanza."""
+        """Aplica las órdenes del instante actual (nil = no mover), integra el paso y avanza.
+        Se aplican en orden de sector: el orden en que CLIPS las devuelve depende de la estrategia
+        de agenda y no debe cambiar qué error aleatorio de posición recibe cada panel."""
         p = self.config["panell"]
-        for o in ordenes:
+        for o in sorted(ordenes, key=lambda o: o["sector"]):
             if o["instante"] != self.instante() or o["angulo-ordenado"] == "nil":
                 continue
             e = self.sectores[o["sector"]]
