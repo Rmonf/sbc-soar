@@ -1,0 +1,169 @@
+{
+  "id": "no_visto_05_actuador_encallado",
+  "descripcion": "El actuador del tomate (s1) se queda encallado a 20° de 14:00 a 14:35 (ocho ciclos), aunque informa operatiu, mientras la temperatura del cultivo sube de 31 a 34 °C con sol fuerte. El panel no ejecuta ninguna orden: su ángulo observado es siempre 20°.",
+  "requisito": "§5.2 fallada-actuador (ordre-incomplerta); R3; §5.4 diagnosticar; §5.8 escalado; incidencia de I5 «diagnosticar repetido»",
+  "testimonio": "ingeniera: «Restricciones activas visibles; comportamiento seguro conocido ante fallos»; operador: «what it has already done, and what I should do next»; supervisor: «unclear escalation», «I do not want every decision escalated to me»",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 840,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 845,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 31,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 850,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 855,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 860,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 865,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 870,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 875,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      }
+    }
+  ]
+}

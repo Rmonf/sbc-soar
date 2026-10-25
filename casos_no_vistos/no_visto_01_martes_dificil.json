@@ -1,0 +1,201 @@
+{
+  "id": "no_visto_01_martes_dificil",
+  "descripcion": "Otro «martes difícil», de 10:00 a 10:15: calor sobre el tomate (s1, 33 °C) con temporeros bajo el panel durante los dos primeros ciclos; la lechuga (s2) con el suelo seco (52 %); sol fuerte (650 W/m²) y precio alto (120 €/MWh); a las 10:15 se prevé una ráfaga de 55 km/h en la viña (s3). El panel ejecuta las órdenes.",
+  "requisito": "§5.5a R1 (personas), R4; §5.3 estrés térmico e hídrico, oportunidad y precio; §5.5c criterios ordenados; §5.9 explicación por sector",
+  "testimonio": "agricultor: «Show me what it does on a difficult Tuesday»; «Movements must not happen while someone is underneath»; «If the system wants to move the panels, I want a short reason: heat, wind, irrigation…»",
+  "base": "_base_tranquil",
+  "panel-sigue-orden": true,
+  "predicciones-globales": {
+    "preu-energia": 120
+  },
+  "pasos": [
+    {
+      "instante": 600,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "ocupacion": "persones"
+          }
+        },
+        "s2": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 52,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            },
+            "vent": {
+              "valor": 35,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 605,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "ocupacion": "persones"
+          }
+        },
+        "s2": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 52,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            },
+            "vent": {
+              "valor": 35,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 610,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "ocupacion": "lliure"
+          }
+        },
+        "s2": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 52,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            },
+            "vent": {
+              "valor": 35,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 20
+          }
+        }
+      }
+    },
+    {
+      "instante": 615,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "ocupacion": "lliure"
+          }
+        },
+        "s2": {
+          "sensores": {
+            "humitat-sol": {
+              "valor": 52,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            },
+            "vent": {
+              "valor": 35,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 55
+          }
+        }
+      }
+    }
+  ]
+}

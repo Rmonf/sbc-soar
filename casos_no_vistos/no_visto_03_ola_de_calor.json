@@ -1,0 +1,283 @@
+{
+  "id": "no_visto_03_ola_de_calor",
+  "descripcion": "Ola de calor a mediodía (13:00–13:25), seis ciclos iguales: tomate a 34 °C, lechuga a 29 °C y viña a 33 °C con el suelo a 38 %, sol fuerte (650 W/m²) y precio medio (60 €/MWh). La viña está en la zona gris (estrés mitja frente a oportunidad alt). El panel ejecuta las órdenes.",
+  "requisito": "§5.5c.3 zona gris; §5.6 S6 tie; §5.7 deliberación; §5.10 compilación y uso de un chunk; R4; §5.9 vista agronómica y energética",
+  "testimonio": "agrónoma: «A hot afternoon after adequate irrigation is different from a multi-day heat episode with depleted soil moisture»; propietario: «crop protection during heat may be extremely valuable»; operador: «suspicious of behaviour changing without notice» (aprendizaje)",
+  "base": "_base_tranquil",
+  "panel-sigue-orden": true,
+  "predicciones-globales": {
+    "preu-energia": 60
+  },
+  "pasos": [
+    {
+      "instante": 780,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 29,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "humitat-sol": {
+              "valor": 38,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 785,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 29,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "humitat-sol": {
+              "valor": 38,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 790,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 29,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "humitat-sol": {
+              "valor": 38,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 795,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 29,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "humitat-sol": {
+              "valor": 38,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 800,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 29,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "humitat-sol": {
+              "valor": 38,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 805,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 34,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 29,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            },
+            "humitat-sol": {
+              "valor": 38,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

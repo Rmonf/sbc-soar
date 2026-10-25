@@ -13,6 +13,7 @@ Práctica de Sistemes Basats en Coneixement (GIA, UPC). Es un sistema basado en 
 | `fuentes/enunciado.md` | Enunciado oficial (en catalán). El roadmap lo cita como "enunciado 3.x". |
 | `fuentes/testimonios.md` | Testimonios de los usuarios (en inglés); de ahí salen requisitos (roadmap §1.2). |
 | `fuentes/*.pdf` | Material de clase (ver "Fuentes" al final). |
+| `casos_no_vistos/` | Casos no vistos (§10.2): escenarios de los testimonios sin salida esperada; no entran en la regresión ni en `pytest`. |
 | `clips/variants/` | Variantes del experimento de agenda (§11.3): `a3s.clp` (salience en los refinamientos y en R1–R5) y `b0.clp` (línea base por salience). Es el único sitio con salience. |
 
 Estado tras I4: las 11 fases con los tres sectores, R1–R5, S1–S7 y DELIBERACIO, conectadas en bucle cerrado con el simulador heurístico (`python/simulador.py`, `bucle.py`, `metricas.py`; parámetros, tipos de día, semillas, fallos y δ en `config/simulacio.json`; meteorología sintética de final de primavera, §9). APRENENTATGE compila, refuerza y olvida chunks (§5.10, §6), S5 los aplica, y `experiments.py aprenentatge` compara C0, C1 y C2 (§11.4). Las variantes de configuración (C0 sin aprendizaje, otros umbrales) se generan con `ontologia.generar_variante` o `--set … --salida`, nunca a mano. Cada fichero dice en su cabecera qué hace. `casos/` tiene la batería: cada caso parte de `casos/_base_tranquil.json` (los tres sectores con datos completos que mantienen la posición) e indica solo lo que cambia por sector; `null` quita una observación. Si un cambio aprobado de la especificación altera el resultado esperado de un caso, el caso lleva una clave `cambio` que lo explica. `resultats/` (ignorado por git) se regenera con los experimentos. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
@@ -59,6 +60,7 @@ uv run python python/ontologia.py --verificar   # verificación de la base de co
 uv run python python/ontologia.py --set aprendizaje-activo=FALSE --salida <ruta>   # variante de experimento (§2.2)
 uv run pytest                                   # casos de prueba y regresión (§10.2)
 uv run python python/executar_casos.py          # batería de casos con pass/fail y reglas no disparadas (§10.1, §10.2)
+uv run python python/executar_casos.py --no-vistos   # casos no vistos: decisión y traza por paso en resultats/i5_no_vistos/informe.md (§10.2)
 uv run python python/experiments.py a1          # experimento de agenda A1, 7 estrategias (§11.3), salida en resultats/i2_a1/
 uv run python python/experiments.py a2          # experimento A2, complexity frente a simplicity (§11.3)
 uv run python python/bucle.py --semilla 0 --dias 1   # una ejecución en bucle cerrado con el simulador (§9)

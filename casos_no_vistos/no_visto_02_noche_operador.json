@@ -1,0 +1,139 @@
+{
+  "id": "no_visto_02_noche_operador",
+  "descripcion": "Otra noche del operador, de 00:00 a 00:15: el panel de s1 deja de comunicar dos ciclos y después llega con una lectura antigua (de t=0); en t=5 el sensor de temperatura de la viña (s3) falla y en t=10 vuelve degradado; en t=15 todo está bien. Sin viento ni personas.",
+  "requisito": "§5.1 datos ausentes, antiguos, fallados y degradados; R5; §5.6 S1; §5.8 escalado; §2.3.10 un diagnóstico por sector",
+  "testimonio": "operador: «Do not send me twenty alarms for one failed sensor»; «The interface must identify stale data»; «tell me what happened, whether anyone or anything is in danger, what it has already done»",
+  "base": "_base_tranquil",
+  "panel-sigue-orden": true,
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          },
+          "panel": null
+        },
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          },
+          "panel": null
+        },
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            },
+            "temp-cultiu": {
+              "valor": 18,
+              "calidad": "fallada"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 10,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "instante": 0
+          }
+        },
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            },
+            "temp-cultiu": {
+              "valor": 18,
+              "calidad": "degradat"
+            }
+          }
+        }
+      }
+    },
+    {
+      "instante": 15,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s2": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        },
+        "s3": {
+          "sensores": {
+            "radiacio": {
+              "valor": 0,
+              "calidad": "ok"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,340 @@
+{
+  "id": "no_visto_06_tormenta_maquinaria",
+  "descripcion": "Tormenta de tarde (17:00–17:20): el viento sube a 62 y a 82 km/h (previsto 85) con lluvia fuerte, y baja después. Bajo el panel de la viña (s3), fijo a 30°, trabaja una máquina hasta las 17:15. s1 y s2 ejecutan las órdenes.",
+  "requisito": "§5.5a R1 y R2 (require); §5.6 S2 constraint-failure; §5.8 escalado-humano; §5.3 risc-mecanic con predicción; §5.4 posicio-seguretat",
+  "testimonio": "agricultor: «Panel positions must leave room for machinery and workers»; jurista: «An override button does not prove meaningful human control», «define safe fallback»; distribuidora: «An external signal must not override local mechanical or human safety»",
+  "base": "_base_tranquil",
+  "panel-sigue-orden": true,
+  "pasos": [
+    {
+      "instante": 1020,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "vent": {
+              "valor": 45,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 0,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 60
+          }
+        },
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 45,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 0,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 60
+          }
+        },
+        "s3": {
+          "sensores": {
+            "vent": {
+              "valor": 45,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 0,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 60
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "ocupacion": "maquinaria"
+          }
+        }
+      }
+    },
+    {
+      "instante": 1025,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "vent": {
+              "valor": 62,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 4,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 80
+          }
+        },
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 62,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 4,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 80
+          }
+        },
+        "s3": {
+          "sensores": {
+            "vent": {
+              "valor": 62,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 4,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 80
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "ocupacion": "maquinaria"
+          }
+        }
+      }
+    },
+    {
+      "instante": 1030,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 12,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 85
+          }
+        },
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 12,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 85
+          }
+        },
+        "s3": {
+          "sensores": {
+            "vent": {
+              "valor": 82,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 12,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 85
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "ocupacion": "maquinaria"
+          }
+        }
+      }
+    },
+    {
+      "instante": 1035,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "vent": {
+              "valor": 75,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 6,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 60
+          }
+        },
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 75,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 6,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 60
+          }
+        },
+        "s3": {
+          "sensores": {
+            "vent": {
+              "valor": 75,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 6,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 60
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "ocupacion": "maquinaria"
+          }
+        }
+      }
+    },
+    {
+      "instante": 1040,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "vent": {
+              "valor": 48,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 1,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 35
+          }
+        },
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 48,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 1,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 35
+          }
+        },
+        "s3": {
+          "sensores": {
+            "vent": {
+              "valor": 48,
+              "calidad": "ok"
+            },
+            "pluja": {
+              "valor": 1,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 150,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 35
+          },
+          "panel": {
+            "angulo-actual": 30,
+            "ocupacion": "lliure"
+          }
+        }
+      }
+    }
+  ]
+}

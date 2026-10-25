@@ -9,7 +9,15 @@ esperado admite resultado-previo (resultado del episodio del paso anterior), tra
 (textos que deben aparecer en la traza del paso) y traza-no-contiene (textos que no deben aparecer). Un paso puede indicar además chunks: los ids de
 los chunks vivos tras el paso, como conjunto (§6.2). Al final lista las reglas no disparadas (§10.1).
 
+Con --no-vistos ejecuta en su lugar los casos de casos_no_vistos/ (§10.2, I5): escenarios de los
+testimonios sin salida esperada, que no cuentan en la regresión. Escribe un informe con la
+decisión por sector, la traza completa y los requisitos y testimonios de cada caso, para que el
+equipo lo valore. Si un caso indica panel-sigue-orden, en cada paso el ángulo observado de los
+paneles que el caso no fija es el de la última orden con ángulo de su sector: el arnés hace de
+actuador que cumple, como el simulador (§9), y no decide nada.
+
     uv run python python/executar_casos.py [--estrategia depth]
+    uv run python python/executar_casos.py --no-vistos [--salida resultats/i5_no_vistos]
 """
 
 import argparse
@@ -21,6 +29,7 @@ from pathlib import Path
 from pont_clips import BASE, RAIZ, Paso, Pont
 
 CASOS = RAIZ / "casos"
+NO_VISTOS = RAIZ / "casos_no_vistos"
 
 
 def cargar_casos(directorio: Path = CASOS) -> list[dict]:
@@ -68,6 +77,55 @@ def ejecutar_caso(caso: dict, estrategia: str | None = None, base: Path = BASE,
         e = expandir_paso(caso, p)
         resultados.append(pont.paso(p["instante"], e["sensores"], e["paneles"], e["predicciones"]))
     return resultados
+
+
+def ejecutar_no_visto(caso: dict, estrategia: str | None = None) -> list[Paso]:
+    """Como ejecutar_caso, con las predicciones globales del caso en cada paso y, con
+    panel-sigue-orden, el ángulo del panel de la última orden con ángulo de cada sector."""
+    pont = Pont(estrategia)
+    resultados, ultima = [], {}
+    for p in caso["pasos"]:
+        p = copy.deepcopy(p)
+        p.setdefault("predicciones-globales", caso.get("predicciones-globales", {}))
+        if caso.get("panel-sigue-orden"):
+            for s, angulo in ultima.items():
+                sector = p.setdefault("sectores", {}).setdefault(s, {})
+                if "panel" in sector and sector["panel"] is None:
+                    continue                                   # el caso quita la observación
+                panel = sector.setdefault("panel", {})
+                panel.setdefault("angulo-actual", angulo)
+        e = expandir_paso(caso, p)
+        r = pont.paso(p["instante"], e["sensores"], e["paneles"], e["predicciones"])
+        resultados.append(r)
+        for o in r.ordenes:
+            if o["instante"] == r.instante and o["angulo-ordenado"] != "nil":
+                ultima[o["sector"]] = o["angulo-ordenado"]
+    return resultados
+
+
+def informe_no_vistos(casos: list[dict], estrategia: str | None = None) -> str:
+    """Informe en Markdown: por caso, su descripción, requisitos y testimonios; por paso, la
+    decisión de cada sector y la traza completa (§10.2)."""
+    l = ["# Casos no vistos (I5, roadmap §10.2)", "",
+         "Escenarios sacados de los testimonios, sin salida esperada. Se ejecutaron una vez con el "
+         "sistema congelado; el equipo los valora a posteriori y anota las discrepancias en "
+         "`docs/iteraciones.md`.", ""]
+    for caso in casos:
+        l += [f"## {caso['id']}", "", caso["descripcion"], "",
+              f"- **Requisitos:** {caso['requisito']}", f"- **Testimonios:** {caso['testimonio']}", ""]
+        for r in ejecutar_no_visto(caso, estrategia):
+            l += [f"### t = {r.instante}", "",
+                  "| Sector | Acción | Ángulo | Impasse | Criterio | Restricciones | Escalado |",
+                  "|---|---|---|---|---|---|---|"]
+            for o in sorted((o for o in r.ordenes if o["instante"] == r.instante), key=lambda o: o["sector"]):
+                e = episodio_de(r, o["sector"]) or {}
+                l.append(f"| {o['sector']} | {o['accion']} | {o['angulo-ordenado']} | {e.get('tipo-impasse', '?')} | "
+                         f"{e.get('criterio-determinante', '?')} | {', '.join(e.get('restricciones-activas', [])) or '-'} | "
+                         f"{o['escalado-humano']} |")
+            l += ["", "```text", r.traza.rstrip("\n"), "```", ""]
+            if r.errores:
+                l += [f"**Errores de CLIPS:** {r.errores}", ""]
+    return "\n".join(l) + "\n"
 
 
 def episodio_de(resultado: Paso, sector: str) -> dict | None:
@@ -155,7 +213,17 @@ def comprobar(caso: dict, resultados: list[Paso]) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--estrategia", default=None, help="estrategia de agenda (por defecto, simulacio.json)")
+    parser.add_argument("--no-vistos", action="store_true", help="ejecuta casos_no_vistos/ y escribe el informe")
+    parser.add_argument("--salida", default="resultats/i5_no_vistos")
     args = parser.parse_args(argv)
+
+    if args.no_vistos:
+        casos = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(NO_VISTOS.glob("no_visto_*.json"))]
+        salida = RAIZ / args.salida
+        salida.mkdir(parents=True, exist_ok=True)
+        (salida / "informe.md").write_text(informe_no_vistos(casos, args.estrategia), encoding="utf-8")
+        print(f"{len(casos)} casos no vistos; informe en {salida / 'informe.md'}")
+        return 0
 
     casos = cargar_casos()
     disparadas, todas, fallidos = set(), [], 0

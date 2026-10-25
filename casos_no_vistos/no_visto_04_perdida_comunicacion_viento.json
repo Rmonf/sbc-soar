@@ -1,0 +1,138 @@
+{
+  "id": "no_visto_04_perdida_comunicacion_viento",
+  "descripcion": "Pérdida de comunicación del panel de la lechuga (s2) mientras sube el viento (15:00–15:25): el panel está a 30° con viento mitja; deja de comunicar durante dos ciclos en los que el viento pasa a alt y luego a crítico (72 km/h); vuelve a comunicar a 30° con viento crítico, y el viento baja después. Hay sol fuerte (oportunidad alt). En los dos últimos ciclos el panel ejecuta las órdenes.",
+  "requisito": "§5.1 panel ausente; R5; R2 (viento crítico) y su require; §5.6 S1 dades-insuficients; §5.7 posicio-preventiva; §5.2 verificación",
+  "testimonio": "agricultor: «The system must work when connectivity fails»; operador: «The interface must identify stale data»; ingeniera: «If the optimiser cannot explain the active constraints, it is not ready to command equipment»",
+  "base": "_base_tranquil",
+  "panel-sigue-orden": true,
+  "pasos": [
+    {
+      "instante": 900,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 40,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 45
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      }
+    },
+    {
+      "instante": 905,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 58,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 65
+          },
+          "panel": null
+        }
+      }
+    },
+    {
+      "instante": 910,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 72,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 75
+          },
+          "panel": null
+        }
+      }
+    },
+    {
+      "instante": 915,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 74,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 76
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      }
+    },
+    {
+      "instante": 920,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 66,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 60
+          }
+        }
+      }
+    },
+    {
+      "instante": 925,
+      "sectores": {
+        "s2": {
+          "sensores": {
+            "vent": {
+              "valor": 45,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 650,
+              "calidad": "ok"
+            }
+          },
+          "predicciones": {
+            "vent-previst": 40
+          }
+        }
+      }
+    }
+  ]
+}
