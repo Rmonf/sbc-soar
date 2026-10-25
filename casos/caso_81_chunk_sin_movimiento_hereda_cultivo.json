@@ -1,0 +1,80 @@
+{
+  "id": "caso_81_chunk_sin_movimiento_hereda_cultivo",
+  "descripcion": "Argumento de §6.2 sin el invariante, acción sin movimiento que hereda cultivo. t=0: como el caso 75, el panel ya está en sombra (-30°); mantener hereda cultivo mitja y empata con producción (energía alt, Δ 60). Producción no tiene coste baix (si lo tuviera, la cercanía la dominaría), así que su Δ supera la tolerancia: la relación es menor y minima-intervencio elige mantener. t=5: la sombra se ha movido a -28° (Δ 2, coste baix) y la captación a 20° (Δ 50): mantener sigue heredando cultivo mitja y el chunk decide lo mismo que la deliberación, sin impasse.",
+  "requisito": "§6.2 corrección sin el invariante; §5.5b herencia; §5.6 S5",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "tie",
+          "criterio-determinante": "estabilitat",
+          "traza-contiene": [
+            "Aprenentatge (t=0): compilat chunk-mantenir-posicio-mitja-orientar-produccio-alt-menor: mantenir-posicio (benefici mitja) sobre orientar-produccio (benefici alt), delta menor, criteri estabilitat, apres de minima-intervencio"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-mantenir-posicio-mitja-orientar-produccio-alt-menor"
+      ]
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          },
+          "predicciones": {
+            "angle-captacio": 20,
+            "angle-ombra": -28
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "nil",
+          "chunk-aplicado": "chunk-mantenir-posicio-mitja-orientar-produccio-alt-menor",
+          "criterio-determinante": "estabilitat",
+          "beneficio-cultivo": "mitja",
+          "resultado-previo": "ok"
+        }
+      },
+      "chunks": [
+        "chunk-mantenir-posicio-mitja-orientar-produccio-alt-menor"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "id": "caso_82_chunk_sin_movimiento_hereda_energia",
+  "descripcion": "Argumento de §6.2 sin el invariante, acción sin movimiento que hereda energía. t=0: panel en el ángulo de captación (30°) con oportunidad mitja (radiación 300, precio 40); mantener hereda energía mitja y, frente a sombra (cultivo mitja, Δ 60), el criterio de cultivo queda en zona gris y la acción útil no se aplica porque mantener hereda: empate de dos que minima-intervencio resuelve a favor de mantener (relación menor). t=5: captación a 33° (Δ 3) y sombra a -25° (Δ 55): el chunk decide lo mismo, sin impasse.",
+  "requisito": "§6.2 corrección sin el invariante; §5.5b herencia; §5.6 S5",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 300,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 30.0,
+          "tipo-impasse": "tie",
+          "criterio-determinante": "estabilitat",
+          "traza-contiene": [
+            "Aprenentatge (t=0): compilat chunk-mantenir-posicio-mitja-orientar-ombra-mitja-menor: mantenir-posicio (benefici mitja) sobre orientar-ombra (benefici mitja), delta menor, criteri estabilitat, apres de minima-intervencio"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-mantenir-posicio-mitja-orientar-ombra-mitja-menor"
+      ]
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 300,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 30
+          },
+          "predicciones": {
+            "angle-captacio": 33,
+            "angle-ombra": -25
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "angulo-ordenado": 30.0,
+          "tipo-impasse": "nil",
+          "chunk-aplicado": "chunk-mantenir-posicio-mitja-orientar-ombra-mitja-menor",
+          "criterio-determinante": "estabilitat",
+          "beneficio-energia": "mitja",
+          "resultado-previo": "ok"
+        }
+      },
+      "chunks": [
+        "chunk-mantenir-posicio-mitja-orientar-ombra-mitja-menor"
+      ]
+    }
+  ]
+}
