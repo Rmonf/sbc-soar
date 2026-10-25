@@ -1,6 +1,6 @@
 ;;; 00_main.clp: módulo MAIN con las plantillas, las deffunction y las reglas de control (roadmap §4.3, §8).
 ;;; Plantillas del conocimiento estático (§3.1) y de las cinco familias de hechos dinámicos
-;;; (§3.2); falta chunk (I4). Convenciones de §2.3.
+;;; (§3.2), incluido el chunk (§6.2). Convenciones de §2.3.
 
 (defmodule MAIN (export ?ALL))
 
@@ -251,6 +251,28 @@
    (slot escalado-humano (type SYMBOL) (allowed-symbols TRUE FALSE))
    (slot resultado (type SYMBOL) (allowed-symbols pendent ok fallada-actuador)))
 
+;; Conocimiento de selección aprendido de un tie de dos candidatos: si vuelve a empatar el mismo
+;; par con los mismos beneficios y la misma relación de Δ, la preferida es better (§5.10, §6.2).
+(deftemplate MAIN::chunk
+   (slot id (type SYMBOL))
+   (slot accion-preferida (type SYMBOL)
+      (allowed-symbols orientar-produccio orientar-ombra posicio-seguretat mantenir-posicio
+                       diagnosticar))
+   (slot beneficio-preferida (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot accion-descartada (type SYMBOL)
+      (allowed-symbols orientar-produccio orientar-ombra posicio-seguretat mantenir-posicio
+                       diagnosticar))
+   (slot beneficio-descartada (type SYMBOL) (allowed-symbols baix mitja alt critic))
+   (slot relacion-delta (type SYMBOL) (allowed-symbols menor similar))
+   (slot criterio (type SYMBOL)
+      (allowed-symbols seguretat-persones integritat-mecanica proteccio-cultiu
+                       produccio-energia estabilitat))
+   (slot estrategia-resolucion (type SYMBOL)
+      (allowed-symbols minima-intervencio prioritat-objectius posicio-preventiva demanar-dades
+                       restriccio-prioritaria escalat))
+   (slot instante (type INTEGER))
+   (multislot referencias (type INTEGER)))
+
 ;;; ---------------------------------------------------------------------------
 ;;; Defglobals (§8): constantes de convención del diseño, no umbrales del dominio.
 ;;; ---------------------------------------------------------------------------
@@ -359,6 +381,48 @@
               (> (abs (- ?e:angulo-ordenado ?e:angulo-previo)) ?tol))
       (bind ?n (+ ?n 1)))
    ?n)
+
+;; Mayor de los tres beneficios de una valoración (§5.10, §6.2: condición del chunk).
+(deffunction MAIN::beneficio-maximo (?valoracion)
+   (nivel-max (fact-slot-value ?valoracion beneficio-mecanico)
+              (nivel-max (fact-slot-value ?valoracion beneficio-cultivo)
+                         (fact-slot-value ?valoracion beneficio-energia))))
+
+;; Relación del Δ de la preferida con el de la descartada: menor si está más de una tolerancia
+;; por debajo, major si está más de una tolerancia por encima, similar si no (§5.10).
+(deffunction MAIN::relacio-delta (?delta-preferida ?delta-descartada ?tol)
+   (if (> (- ?delta-descartada ?delta-preferida) ?tol) then menor
+    else (if (> (- ?delta-preferida ?delta-descartada) ?tol) then major else similar)))
+
+;; Activación base de un chunk en t: A = ln Σ Δtⱼ^−d, con Δtⱼ = max(t − tⱼ, 1 min) en horas
+;; (§5.10.3, §6.2).
+(deffunction MAIN::activacio (?referencias ?t ?d)
+   (bind ?suma 0.0)
+   (foreach ?r ?referencias
+      (bind ?suma (+ ?suma (** (/ (max (- ?t ?r) 1) 60.0) (- 0 ?d)))))
+   (log ?suma))
+
+;; Chunk que prefiere el candidato ?a frente a ?b: mismas acciones, mismo beneficio máximo de cada
+;; uno y misma relación de Δ; nil si no hay (§5.6 S5, §6.2). Valoraciones y chunks no cambian
+;; durante SELECCIO.
+(deffunction MAIN::chunk-aplicable (?a ?b ?sector)
+   (bind ?ca (find-fact ((?c operador-candidato)) (eq ?c:id ?a)))
+   (bind ?cb (find-fact ((?c operador-candidato)) (eq ?c:id ?b)))
+   (bind ?va (find-fact ((?v valoracion)) (eq ?v:evalua-operador ?a)))
+   (bind ?vb (find-fact ((?v valoracion)) (eq ?v:evalua-operador ?b)))
+   (if (or (= (length$ ?va) 0) (= (length$ ?vb) 0)) then (return nil))
+   (bind ?acc-a (fact-slot-value (nth$ 1 ?ca) accion))
+   (bind ?acc-b (fact-slot-value (nth$ 1 ?cb) accion))
+   (bind ?ben-a (beneficio-maximo (nth$ 1 ?va)))
+   (bind ?ben-b (beneficio-maximo (nth$ 1 ?vb)))
+   (bind ?rel (relacio-delta (fact-slot-value (nth$ 1 ?va) desplazamiento)
+                             (fact-slot-value (nth$ 1 ?vb) desplazamiento)
+                             (tolerancia-sector ?sector)))
+   (bind ?k (find-fact ((?k chunk))
+               (and (eq ?k:accion-preferida ?acc-a) (eq ?k:beneficio-preferida ?ben-a)
+                    (eq ?k:accion-descartada ?acc-b) (eq ?k:beneficio-descartada ?ben-b)
+                    (eq ?k:relacion-delta ?rel))))
+   (if (= (length$ ?k) 0) then nil else (nth$ 1 ?k)))
 
 ;;; ---------------------------------------------------------------------------
 ;;; Reglas de control (§4.2). Localizan S0 por (id S0) y son mutuamente excluyentes.

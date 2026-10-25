@@ -52,11 +52,11 @@ def test_plantillas(plantillas):
     assert set(plantillas) == {
         "sector", "cultivo", "seguidor-solar", "objetivo-activo", "dato-requerido",
         "definicion-fase", "umbral", "parametros-aprendizaje", "estado-soar",
-        # familias dinámicas; falta chunk (I4)
+        # familias dinámicas
         "impasse", "ciclo-temporal", "observacion-sensor", "observacion-panel", "prediccion",
         "abstraccion",
         "diagnostico", "operador-candidato", "valoracion", "preferencia", "orden-actuador",
-        "episodio",
+        "episodio", "chunk",
     }
     umbral = plantillas["umbral"]
     assert umbral["limite-inferior"].tipos == {"NUMBER", "SYMBOL"}
@@ -141,7 +141,7 @@ def test_set_invalido(asignacion):
 def test_verificacion_limpia(onto, plantillas):
     anomalias, avisos = on.verificar(onto, plantillas)
     assert anomalias == []
-    assert any("pendientes" in a for a in avisos)
+    assert not any("pendientes" in a for a in avisos)   # con chunk (I4) no falta ninguna plantilla
 
 
 def test_verificar_cli():
