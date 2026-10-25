@@ -393,7 +393,14 @@ El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no camb
 
 - La secuencia de reglas cambia en todos los ciclos con A1 y A2, y en 10 411 de 60 480 con A3s (en C0 y en C2, con las mismas cifras por semilla: los refinamientos que reordena A3s no dependen de los chunks). El multiconjunto, las órdenes, los episodios y la traza son iguales en todos los ciclos.
 - **Batería:** A1, A2 y A3s son invariantes con C0 y con C2 en los 115 ciclos. A3s cambia la secuencia en 34 ciclos (AVALUACIO 31, ELABORACIO 4).
-- **CPU por estrategia** (medianas, ms por ciclo; C0): `depth` 10,50, `breadth` 10,29, `lex` 10,42, `mea` 10,46, `complexity` 10,35, `simplicity` 10,39, `random` 10,40. Friedman p = 8·10⁻¹² (C0) y 3·10⁻¹¹ (C2). Las diferencias son de 0,2 ms como mucho (≈ 2 %), muy por debajo del δ de CPU (1,05 ms), y **parte de estas ejecuciones no se hizo sin carga**: las semillas 33–39 de C0 y 10–20 de C2 tienen `loadavg` de 1,5 a 12 (el máximo, 12,2, en la semilla 38 de C0). La conclusión es que la estrategia no cambia la CPU de forma relevante; los p de las comparaciones por pares no se deben leer como un orden entre estrategias.
+- **CPU por estrategia** (medianas, ms por ciclo), todas las ejecuciones sin carga (`loadavg` de 1 min < 1,5 en 12 CPU; las 44 que se habían medido con carga se repitieron, ver incidencias):
+
+  | Base | `depth` | `breadth` | `lex` | `mea` | `complexity` | `simplicity` | `random` | Friedman p |
+  |---|---|---|---|---|---|---|---|---|
+  | C0 | 10,50 | 10,27 | 10,39 | 10,40 | 10,28 | 10,33 | 10,30 | 1·10⁻¹⁶ |
+  | C2 | 10,74 | 10,42 | 10,57 | 10,61 | 10,45 | 10,58 | 10,57 | 1·10⁻¹⁵ |
+
+  Hay diferencias reales, con la misma pauta en C0 y en C2: `breadth` y `complexity` son las más rápidas, y `depth`, la más lenta. Con Holm salen significativas 9 parejas en C0 y 10 en C2 (`resultats/i5/a1/resumen.txt`). Pero son de 0,3 ms como mucho (≈ 3 %), muy por debajo del δ de CPU (1,05 ms): la estrategia no cambia la CPU de forma relevante.
 
 ### Casos no vistos (§10.2)
 Informe completo, con la traza de cada paso: `resultats/i5_no_vistos/informe.md` (se regenera con `executar_casos.py --no-vistos`). Resumen de las decisiones:
@@ -422,7 +429,7 @@ Informe completo, con la traza de cada paso: `resultats/i5_no_vistos/informe.md`
 - **`escalat` sigue siendo inalcanzable** con el conocimiento actual. Es una reserva de terminación probada con una variante de configuración (`tests/test_escalado.py`).
 - **Transferencia estructuralmente 0:** solo s3 puede empatar con el TTL actual. La generalización solo se prueba con una variante (`tests/test_chunk_fidelidad.py`).
 - **Empates de tres inalcanzables:** S6 con tres o más no dominados, en presencia de un chunk, solo se prueba con SELECCIO aislada (`tests/test_seleccio_chunk.py`).
-- **CPU por ciclo:** cerrada para el aprendizaje y B0 (`loadavg` ≤ 1,13 en 12 CPU). En A1 en bucle cerrado, hasta 17 de las 60 ejecuciones por estrategia (30 con C0 y 30 con C2) se midieron con carga (`loadavg` hasta 12,2). Las diferencias entre estrategias son de 0,2 ms como mucho, irrelevantes frente a δ, pero si se quiere un orden fiable entre estrategias hay que repetir esas ejecuciones sin carga (borrar sus directorios del caché y relanzar `experiments.py i5 --etapas a1`).
+- **CPU por ciclo:** cerrada. El aprendizaje y B0 se midieron sin carga (`loadavg` ≤ 1,13 en 12 CPU). En A1, 44 ejecuciones con `loadavg` de 1 min > 1,5 (hasta 12,2) se repitieron sin carga; ahora ninguna de las 450 ejecuciones de estrategia pasa de 1,5. Las discrepancias siguen en 0/30 y el resto de los resultados no cambia.
 - **Zona gris cuantificada (C0, 30 semillas):** 2145 `tie` en los 53 días de calor (≈ 40 por día), 67 en los 116 templados y 0 en los 41 nublados. Es la dispersión que impide confirmar H1.
 - **`diagnosticar` repetido (C0, 30 semillas):** 1141 rachas por sector; la más larga dura 90 min; 171 duran 30 min o más (1950 ciclos), 151 por `incertesa-dades` y 20 por `fallada-actuador`. Solo hay 8 escalados, todos en la semilla 27. El caso no visto 05 muestra la misma pauta con un actuador encallado: `orientar-ombra` y `diagnosticar` alternados sin escalado. Si el equipo quiere un escalado tras k `diagnosticar` seguidos, es un cambio de especificación posterior a la congelación.
 - **Modelos del simulador heurísticos:** la lechuga (umbral de 26 °C, del TTL) tiene unas 4 h de estrés también los días templados, lo que es plausible para lechuga en verano. Los parámetros meteorológicos son sintéticos y no están calibrados con datos reales.
@@ -430,4 +437,4 @@ Informe completo, con la traza de cada paso: `resultats/i5_no_vistos/informe.md`
 ## Siguiente paso: informe y diagramas (§12)
 - El equipo valora los casos no vistos y rellena la tabla de discrepancias de I5.
 - Informe y diagramas (§12) a partir de esta sección y de `resultats/i5/`.
-- Decisiones pendientes del equipo, todas posteriores a la congelación: repetir sin carga las ejecuciones de A1 afectadas; un posible escalado tras k `diagnosticar`.
+- Decisiones pendientes del equipo, todas posteriores a la congelación: un posible escalado tras k `diagnosticar`.
