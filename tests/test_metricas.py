@@ -79,3 +79,25 @@ def test_desgaste(instal):
         ej = _ejecucion(eps + [_ep(40, accion, -30.0, 0.0)],
                         [_obs(10 * i) for i in range(5)], [_real(10 * i) for i in range(5)])
         assert metricas.calcular(ej, instal)["violaciones-decision"]["desgaste"] == esperado
+
+
+def test_metricas_de_chunks():
+    """Un chunk aprendido en s3 en t=0, usado en s3 (t=10, confirmado) y en s1 (t=15, transferido),
+    y otro compilado en t=5 y olvidado antes del final."""
+    ej = bucle.Ejecucion(0, "depth", {"dt-min": 5, "dias": 1})
+    def ep(s, t, accion, impasse="nil", chunk="nil", resultado="ok"):
+        return {"sector": s, "instante": t, "accion": accion, "tipo-impasse": impasse,
+                "chunk-aplicado": chunk, "resultado": resultado,
+                "alternativas": ["orientar-ombra", "orientar-produccio", "mantenir-posicio"]}
+    ej.episodios = [ep("s3", 0, "orientar-ombra", impasse="tie"), ep("s3", 5, "mantenir-posicio", impasse="tie"),
+                    ep("s3", 10, "orientar-ombra", chunk="k1"),
+                    ep("s1", 15, "orientar-ombra", chunk="k1", resultado="pendent")]
+    ej.chunks = [{"id": "k1", "instante": 0, "accion-preferida": "orientar-ombra",
+                  "accion-descartada": "orientar-produccio", "vivo-hasta": 15},
+                 {"id": "k2", "instante": 5, "accion-preferida": "mantenir-posicio",
+                  "accion-descartada": "orientar-produccio", "vivo-hasta": 10}]
+    ej.ciclos = [{"instante": t, "chunks": n} for t, n in ((0, 1), (5, 2), (10, 2), (15, 1))]
+    m = metricas.chunks(ej)
+    assert m == {"chunks-vivos-max": 2, "chunks-vivos-final": 1, "chunks-compilados": 2,
+                 "chunks-olvidados": 1, "usos-chunk": 2, "usos-chunk-confirmados": 1,
+                 "transferencia": 0.5}

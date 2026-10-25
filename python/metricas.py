@@ -10,7 +10,8 @@ ninguna decisión. Las restricciones duras se miden de dos formas:
 
 Una orden mueve si su ángulo no es nil y difiere del ángulo previo en más de la tolerancia
 (definiciones de §5, R4). La métrica principal de H1 (§11.4) son los impasses tie por cada 100
-decisiones; las reglas disparadas por ciclo son secundarias.
+decisiones; las reglas disparadas por ciclo son secundarias. Las métricas de los chunks (§11.4)
+salen de los episodios (chunk-aplicado), de los chunks exportados y de los vivos en cada ciclo.
 """
 
 from statistics import mean
@@ -36,6 +37,44 @@ def _observado(obs: dict, sector: str):
     vientos += [p["valor"] for p in obs["predicciones"]
                 if p.get("sector") == sector and p["variable"] == "vent-previst"]
     return panel, vientos
+
+
+def chunks(ej) -> dict:
+    """Chunks vivos (máximo y final), compilados, olvidados, usos, usos confirmados (los que
+    refuerzan, §6.2) y transferencia: proporción de usos en un sector que no aprendió el chunk,
+    es decir, sin episodio tie con la acción preferida en el instante de creación (§11.4)."""
+    vivos = [c.get("chunks", 0) for c in ej.ciclos]
+    final = ej.ciclos[-1].get("instante") if ej.ciclos else None
+    usos = [e for e in ej.episodios if e.get("chunk-aplicado", "nil") != "nil"]
+    origen = {}
+    for c in ej.chunks:
+        origen[(c["id"], c["instante"])] = {
+            e["sector"] for e in ej.episodios
+            if e["instante"] == c["instante"] and e["tipo-impasse"] == "tie"
+            and e["accion"] == c["accion-preferida"] and c["accion-descartada"] in e.get("alternativas", [])}
+    transferidos = 0
+    for e in usos:
+        versiones = [k for k in origen if k[0] == e["chunk-aplicado"] and k[1] < e["instante"]]
+        if versiones and e["sector"] not in origen[max(versiones, key=lambda k: k[1])]:
+            transferidos += 1
+    return {
+        "chunks-vivos-max": max(vivos, default=0),
+        "chunks-vivos-final": vivos[-1] if vivos else 0,
+        "chunks-compilados": len(ej.chunks),
+        "chunks-olvidados": sum(1 for c in ej.chunks if c["vivo-hasta"] != final),
+        "usos-chunk": len(usos),
+        "usos-chunk-confirmados": sum(1 for e in usos if e["resultado"] == "ok"),
+        "transferencia": transferidos / len(usos) if usos else 0.0,
+    }
+
+
+def fidelidad(a, b) -> bool:
+    """¿Toman dos ejecuciones las mismas decisiones en todos los pasos? Compara las órdenes
+    (acción, ángulo y escalado por sector e instante), sin ids (H2, §11.4)."""
+    def decisiones(ej):
+        return sorted((o["instante"], o["sector"], o["accion"], o["angulo-ordenado"], o["escalado-humano"])
+                      for o in ej.ordenes)
+    return decisiones(a) == decisiones(b)
 
 
 def calcular(ej, instal: dict | None = None) -> dict:
@@ -98,4 +137,5 @@ def calcular(ej, instal: dict | None = None) -> dict:
         "energia-kwh": sum(r["produccion"] for real in ej.estados for r in real["sectores"].values()) * dt / 60,
         "horas-estres-sector-dia": estres * dt / 60 / (sectores * dias),
         "acciones": acciones,
+        **chunks(ej),
     }

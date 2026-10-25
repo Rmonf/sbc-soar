@@ -2,11 +2,13 @@
 
 En cada paso t: el simulador calcula las observaciones; Python las aserta y ejecuta CLIPS
 (Pont.paso); las órdenes del instante t vuelven al simulador, que las aplica y avanza. Python
-solo aserta la familia 1 y lee órdenes y episodios: no decide.
+solo aserta la familia 1 y lee órdenes, episodios y chunks: no decide.
 
 Los episodios se guardan por id en cada paso, sobrescribiendo la versión anterior, y se escriben
 al final: así cada uno queda en su última versión (resultado verificado por MONITORATGE en t+1)
-aunque NETEJA lo retire después de la ventana episódica.
+aunque NETEJA lo retire después de la ventana episódica. Los chunks se guardan igual, por id e
+instante de creación (un chunk olvidado y vuelto a aprender reutiliza el id, §5.10), con el último
+instante en que estaban vivos.
 
     uv run python python/bucle.py --semilla 0 [--dias 1] [--salida resultats/prova]
 """
@@ -21,7 +23,7 @@ from pathlib import Path
 
 import metricas
 import simulador as sm
-from pont_clips import RAIZ, Pont
+from pont_clips import BASE, RAIZ, Pont
 
 
 @dataclass
@@ -30,6 +32,7 @@ class Ejecucion:
     estrategia: str
     config: dict
     episodios: list[dict] = field(default_factory=list)       # última versión, por instante
+    chunks: list[dict] = field(default_factory=list)          # última versión, con vivo-hasta
     ordenes: list[dict] = field(default_factory=list)
     observaciones: list[dict] = field(default_factory=list)   # lo que se asertó en cada paso
     estados: list[dict] = field(default_factory=list)         # estado real en cada paso
@@ -38,12 +41,14 @@ class Ejecucion:
     errores: str = ""
 
 
-def ejecutar(semilla: int, config: dict | None = None, estrategia: str | None = None) -> Ejecucion:
+def ejecutar(semilla: int, config: dict | None = None, estrategia: str | None = None,
+             base: Path = BASE) -> Ejecucion:
+    """Una ejecución; base permite una configuración variante, p. ej. C0 sin aprendizaje (§2.2)."""
     config = config or sm.cargar_config()
     sim = sm.Simulador(semilla, config)
-    pont = Pont(estrategia)                     # un Environment por ejecución (§14)
+    pont = Pont(estrategia, base)               # un Environment por ejecución (§14)
     ej = Ejecucion(semilla, pont.estrategia, config)
-    episodios, trazas, errores = {}, [], []
+    episodios, chunks, trazas, errores = {}, {}, [], []
     for _ in range(sim.pasos):
         t = sim.instante()
         obs = sim.observaciones()
@@ -54,14 +59,18 @@ def ejecutar(semilla: int, config: dict | None = None, estrategia: str | None = 
         cpu = time.process_time() - inicio
         for e in paso.episodios:
             episodios[e["id"]] = e
+        for c in paso.chunks:
+            chunks[(c["id"], c["instante"])] = {**c, "vivo-hasta": t}
         ordenes = [o for o in paso.ordenes if o["instante"] == t]
         ej.ordenes += ordenes
-        ej.ciclos.append({"instante": t, "disparos": paso.disparos, "cpu": cpu, "reglas": paso.reglas})
+        ej.ciclos.append({"instante": t, "disparos": paso.disparos, "cpu": cpu, "reglas": paso.reglas,
+                          "chunks": len(paso.chunks)})
         trazas.append(paso.traza)
         if paso.errores:
             errores.append(f"t={t}: {paso.errores}")
         sim.aplicar(ordenes)
     ej.episodios = sorted(episodios.values(), key=lambda e: (e["instante"], e["sector"]))
+    ej.chunks = sorted(chunks.values(), key=lambda c: (c["instante"], c["id"]))
     ej.traza = "".join(trazas)
     ej.errores = "".join(errores)
     return ej
@@ -75,6 +84,7 @@ def guardar(ej: Ejecucion, directorio: Path, metricas: dict | None = None):
                                          encoding="utf-8")
     jsonl("episodios.jsonl", ej.episodios)
     jsonl("ordenes.jsonl", ej.ordenes)
+    jsonl("chunks.jsonl", ej.chunks)
     jsonl("estado.jsonl", ej.estados)
     jsonl("ciclos.jsonl", [{k: v for k, v in c.items() if k != "reglas"} for c in ej.ciclos])
     (directorio / "traza.txt").write_text(ej.traza, encoding="utf-8")

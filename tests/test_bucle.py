@@ -5,6 +5,8 @@ import re
 import pytest
 
 import bucle
+import metricas
+import ontologia as on
 import pont_clips as pc
 import simulador as sm
 
@@ -61,6 +63,25 @@ def test_python_solo_aserta():
 def test_guardar(un_dia, tmp_path):
     config, ej = un_dia
     bucle.guardar(ej, tmp_path)
-    for nombre in ("episodios.jsonl", "ordenes.jsonl", "estado.jsonl", "ciclos.jsonl", "traza.txt",
-                   "configuracion.json"):
+    for nombre in ("episodios.jsonl", "ordenes.jsonl", "chunks.jsonl", "estado.jsonl", "ciclos.jsonl",
+                   "traza.txt", "configuracion.json"):
         assert (tmp_path / nombre).exists()
+
+
+def test_chunks_exportados(un_dia):
+    """Los chunks vivos de cada ciclo y los exportados son coherentes, y cada uso de un chunk es
+    de un chunk compilado antes (§6.2)."""
+    config, ej = un_dia
+    assert all("chunks" in c for c in ej.ciclos)
+    assert max(c["chunks"] for c in ej.ciclos) <= len(ej.chunks)
+    for e in ej.episodios:
+        if e["chunk-aplicado"] != "nil":
+            assert any(c["id"] == e["chunk-aplicado"] and c["instante"] < e["instante"] for c in ej.chunks)
+
+
+def test_sin_aprendizaje_decide_igual(un_dia, tmp_path):
+    """C0 (aprendizaje-activo FALSE) toma las mismas decisiones que C2 en bucle cerrado (H2)."""
+    config, ej = un_dia
+    c0 = bucle.ejecutar(0, config, base=on.generar_variante(["aprendizaje-activo=FALSE"], tmp_path / "c0.clp"))
+    assert c0.chunks == [] and c0.errores == ""
+    assert metricas.fidelidad(ej, c0)
