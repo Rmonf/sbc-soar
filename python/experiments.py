@@ -41,6 +41,7 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
 
 import math
 from pathlib import Path
@@ -578,7 +579,7 @@ def _diferencias_b0(nucleo: "bucle.Ejecucion", b0: "bucle.Ejecucion") -> dict:
     """Decisiones de B0 distintas de las del núcleo por sector e instante, en total y en los ciclos de
     conflicto (los del núcleo con un tie): por acción y por ángulo ordenado (más allá de la
     tolerancia, o nil frente a un ángulo); y trazabilidad, la proporción de episodios con criterio
-    determinante (§11.3)."""
+    determinante, en todos los ciclos y solo en los de conflicto (§11.3)."""
     instal = sm.instalacion()
     en = {(e["sector"], e["instante"]): e for e in nucleo.episodios}
     eb = {(e["sector"], e["instante"]): e for e in b0.episodios}
@@ -599,7 +600,9 @@ def _diferencias_b0(nucleo: "bucle.Ejecucion", b0: "bucle.Ejecucion") -> dict:
             "distintas-accion": len(accion), "distintas-angulo": len(angulo),
             "distintas-accion-conflicto": len(accion & conflicto),
             "distintas-angulo-conflicto": len(angulo & conflicto),
-            "trazabilidad-nucleo": traz(en), "trazabilidad-b0": traz(eb)}
+            "trazabilidad-nucleo": traz(en), "trazabilidad-b0": traz(eb),
+            "trazabilidad-nucleo-conflicto": traz({k: en[k] for k in conflicto}),
+            "trazabilidad-b0-conflicto": traz({k: eb[k] for k in conflicto if k in eb})}
 
 
 METRICAS_B0 = ["tie-100", "energia-kwh", "horas-estres-sector-dia", "movimientos-sector-dia", "escalados",
@@ -631,6 +634,15 @@ def b0_bucle(cache: Cache, semillas: list[int]) -> dict:
                                              "distintas-angulo-conflicto")},
             "trazabilidad": {c: float(np.median([por_semilla[s][f"trazabilidad-{c}"] for s in semillas]))
                              for c in ("nucleo", "b0")},
+            # solo semillas con algún ciclo de conflicto; y en total, sobre todos esos ciclos
+            "trazabilidad-conflicto": {c: float(np.median([por_semilla[s][f"trazabilidad-{c}-conflicto"]
+                                                           for s in semillas if por_semilla[s]["ciclos-conflicto"]]
+                                                          or [0.0]))
+                                       for c in ("nucleo", "b0")},
+            "trazabilidad-conflicto-total": {
+                c: sum(por_semilla[s][f"trazabilidad-{c}-conflicto"] * por_semilla[s]["ciclos-conflicto"]
+                       for s in semillas) / max(1, sum(por_semilla[s]["ciclos-conflicto"] for s in semillas))
+                for c in ("nucleo", "b0")},
             "violaciones": {c: sum(metr[c][s]["violaciones-decision"]["total"] for s in semillas) for c in metr},
             "errores": {f"{c}/{s}": metr[c][s]["errores"] for c in metr for s in semillas if "errores" in metr[c][s]}}
 
@@ -644,6 +656,10 @@ def resumen_b0(res: dict) -> str:
          f"núcleo): por acción {t['distintas-accion-conflicto']}, por ángulo {t['distintas-angulo-conflicto']}",
          f"  trazabilidad (episodios con criterio determinante, mediana): núcleo {res['trazabilidad']['nucleo']:.3f}, "
          f"B0 {res['trazabilidad']['b0']:.3f}",
+         f"  trazabilidad en los ciclos de conflicto: mediana por semilla núcleo "
+         f"{res['trazabilidad-conflicto']['nucleo']:.3f}, B0 {res['trazabilidad-conflicto']['b0']:.3f}; "
+         f"sobre los {t['ciclos-conflicto']} ciclos, núcleo {res['trazabilidad-conflicto-total']['nucleo']:.3f}, "
+         f"B0 {res['trazabilidad-conflicto-total']['b0']:.3f}",
          f"  {'métrica':26s} {'núcleo':>9s} {'B0':>9s} {'mediana d':>10s} {'IC 95 %':>21s} {'biserial':>8s} {'p Holm':>8s}"]
     for m, c in res["comparaciones"].items():
         l.append(f"  {m:26s} {res['medianas']['nucleo'][m]:9.3f} {res['medianas']['b0'][m]:9.3f} "
@@ -731,18 +747,58 @@ def bateria_i5(cache: Cache, experimentos: list[str]) -> dict:
 
 
 ETAPAS_I5 = ["aprenentatge", "b0", "a3", "a1"]          # el orden de lanzamiento (plan de I5)
+CPU_EN_SERIE = {("depth", b, None) for b in BASES_I5}   # las únicas que se repiten en serie con --procesos
 
 
-def i5(semillas: list[int], dias: float | None, salida: Path, etapas: list[str] = ETAPAS_I5) -> tuple[str, bool]:
-    """Experimentos completos de I5, en serie y reanudables. Cada etapa escribe su resultados.json y
-    su resumen.txt al terminar; resumen.txt reúne todas las etapas ejecutadas."""
+def tareas_i5(etapas: list[str], semillas: list[int]) -> list[tuple]:
+    """Ejecuciones en bucle cerrado que leen las etapas: (semilla, estrategia, base, variante)."""
+    t = []
+    for etapa in etapas:
+        if etapa == "aprenentatge":
+            t += [("depth", c, None) for c in ("C0", "C1", "C2")]
+        elif etapa == "b0":
+            t += [("depth", "C0", None), ("depth", "C0", "b0")]
+        elif etapa == "a3":
+            t += [("depth", b, v) for b in BASES_I5 for v in (None, "a3s")]
+        elif etapa == "a1":
+            t += [(e, b, None) for b in BASES_I5 for e in ESTRATEGIAS_A1]
+    return [(s, *c) for c in dict.fromkeys(t) for s in semillas]
+
+
+def _ejecutar_i5(args: tuple) -> bool:
+    """Una ejecución del caché en un proceso aparte; True si se ejecutó (False si ya estaba)."""
+    directorio, config, bases, semilla, estrategia, base, variante = args
+    cache = Cache(directorio, config)
+    cache.bases = bases                                 # generadas por el padre: ningún proceso las reescribe
+    cache.ejecucion(semilla, estrategia, base, variante)
+    return cache.ejecutadas == 1
+
+
+def i5(semillas: list[int], dias: float | None, salida: Path, etapas: list[str] = ETAPAS_I5,
+       procesos: int = 1) -> tuple[str, bool]:
+    """Experimentos completos de I5, reanudables. Cada etapa escribe su resultados.json y su
+    resumen.txt al terminar; resumen.txt reúne todas las etapas ejecutadas. Con procesos > 1, el
+    caché se llena antes en paralelo, salvo C0 y C2 con depth, que se ejecutan después en serie y
+    sin otras cargas: son las únicas ejecuciones con CPU válida (§11.2); las métricas de decisión
+    no dependen del paralelismo."""
     config = _config(dias)
     config["semillas"] = semillas
     # δ de tie fijado con el piloto de I4, no con la mediana de C0 de estas semillas (§11.2)
     config["delta"]["tie-100"] = {"abs": config["delta"]["tie-100"]["piloto-i4"]}
     cache = Cache(salida / "ejecuciones", config)
     textos, correcto = [], True
+    aviso = (f"AVISO: ejecuciones en paralelo ({procesos} procesos). Solo es válida la CPU de C0 y C2 con "
+             f"depth, ejecutadas en serie; el resto de cifras de CPU no se pueden usar.\n") if procesos > 1 else ""
+    if procesos > 1:
+        tareas = [t for t in tareas_i5(etapas, semillas) if t[1:] not in CPU_EN_SERIE]
+        bases = {b: cache.base(b) for b in dict.fromkeys(t[2] for t in tareas)}
+        with ProcessPoolExecutor(procesos) as ex:
+            for ejecutada in ex.map(_ejecutar_i5, [(cache.dir, config, bases, *t) for t in tareas]):
+                cache.ejecutadas += ejecutada
+                cache.reutilizadas += not ejecutada
     def escribir(nombre, res, texto):
+        texto = aviso + texto
+        res["cpu_valida"] = "todas" if procesos == 1 else "solo depth C0 y C2"
         d = salida / nombre
         d.mkdir(parents=True, exist_ok=True)
         (d / "resultados.json").write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
@@ -808,11 +864,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--dias", type=float, default=None)
     p.add_argument("--etapas", nargs="+", choices=ETAPAS_I5, default=ETAPAS_I5)
     p.add_argument("--salida", default=str(RESULTATS / "i5"))
+    p.add_argument("--procesos", type=int, default=1,
+                   help="llena el caché en paralelo; la CPU solo vale para C0 y C2 con depth (en serie)")
     args = parser.parse_args(argv)
 
     if args.experimento == "i5":
         salida = RAIZ / args.salida
-        texto, correcto = i5(args.semillas, args.dias, salida, args.etapas)
+        texto, correcto = i5(args.semillas, args.dias, salida, args.etapas, args.procesos)
         print(f"\nResultados en {salida}")
         return 0 if correcto else 1
 
