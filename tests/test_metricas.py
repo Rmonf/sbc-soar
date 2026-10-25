@@ -101,3 +101,30 @@ def test_metricas_de_chunks():
     assert m == {"chunks-vivos-max": 2, "chunks-vivos-final": 1, "chunks-compilados": 2,
                  "chunks-olvidados": 1, "usos-chunk": 2, "usos-chunk-confirmados": 1,
                  "transferencia": 0.5}
+
+
+def test_rachas_de_diagnosticar():
+    """Tres ciclos seguidos con fallada (racha de 15 min), un hueco y siete con incertidumbre
+    (35 min, larga); un diagnosticar de otro sector no alarga la racha."""
+    def ep(t, accion, situacion=(), sector="s1"):
+        return {"sector": sector, "instante": t, "accion": accion, "situacion": list(situacion),
+                "tipo-impasse": "nil"}
+    eps = [ep(5 * i, "diagnosticar", ["fallada-actuador:alt"]) for i in range(3)]
+    eps += [ep(15, "mantenir-posicio")]
+    eps += [ep(5 * i, "diagnosticar", ["incertesa-dades:alt"]) for i in range(4, 11)]
+    eps += [ep(55, "diagnosticar", ["incertesa-dades:alt"], sector="s2")]
+    ej = bucle.Ejecucion(0, "depth", {"dt-min": 5, "dias": 1}, episodios=eps)
+    m = metricas.diagnosticar(ej)
+    assert m == {"diagnosticar-rachas": 3, "diagnosticar-racha-max-min": 35,
+                 "diagnosticar-ciclos-rachas-largas": 7,
+                 "diagnosticar-rachas-largas": {"incertesa-dades": 1}}
+
+
+def test_tie_por_tipo_dia():
+    pasos = 24 * 60 // 5
+    estados = [{"instante": 5 * i, "tipus-dia": "calor" if i < pasos else "nuvol"} for i in range(2 * pasos)]
+    eps = [{"sector": "s3", "instante": 10, "tipo-impasse": "tie"},
+           {"sector": "s3", "instante": 5 * pasos + 10, "tipo-impasse": "nil"}]
+    ej = bucle.Ejecucion(0, "depth", {"dt-min": 5, "dias": 2}, episodios=eps, estados=estados)
+    assert metricas.tie_por_tipo_dia(ej) == {"dias-por-tipo": {"calor": 1, "nuvol": 1},
+                                             "tie-por-tipo-dia": {"calor": 1, "nuvol": 0}}

@@ -310,9 +310,52 @@ def _delta(config: dict, nombre: str, mediana_c0: float) -> float:
     return d["abs"] if "abs" in d else d["rel"] * mediana_c0
 
 
+def biserial(d: np.ndarray) -> float:
+    """Correlación biserial de rangos de unas diferencias pareadas (§11.2): (W⁺ − W⁻)/(W⁺ + W⁻),
+    sin las diferencias nulas; 0 si todas lo son."""
+    d = d[d != 0]
+    if len(d) == 0:
+        return 0.0
+    rangos = stats.rankdata(np.abs(d))
+    return float((rangos[d > 0].sum() - rangos[d < 0].sum()) / rangos.sum())
+
+
+def holm(p: dict) -> dict:
+    """p corregidas por Holm–Bonferroni (§11.2), con las mismas claves."""
+    orden = sorted(p, key=lambda k: p[k])
+    corregidas, maximo = {}, 0.0
+    for i, k in enumerate(orden):
+        maximo = max(maximo, min(1.0, (len(orden) - i) * p[k]))
+        corregidas[k] = maximo
+    return {k: corregidas[k] for k in p}
+
+
+def _wilcoxon(d: np.ndarray, **kw) -> float:
+    try:
+        return float(stats.wilcoxon(d, **kw).pvalue)
+    except ValueError:                                  # todas las diferencias nulas
+        return 1.0
+
+
+def friedman(series: dict[str, np.ndarray]) -> dict:
+    """Más de dos configuraciones sobre las mismas semillas (§11.2): Friedman y, si p < 0,05,
+    Wilcoxon bilateral por pares con Holm."""
+    if all(np.array_equal(x, next(iter(series.values()))) for x in series.values()):
+        p = 1.0                                         # todas iguales en cada semilla
+    else:
+        p = float(stats.friedmanchisquare(*series.values()).pvalue)
+    res = {"p_friedman": p, "pares": {}}
+    if p < 0.05:
+        claves = list(series)
+        crudas = {f"{a}-{b}": _wilcoxon(series[a] - series[b])
+                  for i, a in enumerate(claves) for b in claves[i + 1:]}
+        res["pares"] = {k: {"p": crudas[k], "p_holm": v} for k, v in holm(crudas).items()}
+    return res
+
+
 def _comparacion(x0: np.ndarray, x1: np.ndarray, delta: float) -> dict:
-    """Diferencias por semilla d = C0 − Cx: mediana, IC 95 % por bootstrap, σ_d, n y Wilcoxon
-    unilateral de d > δ (reducción de al menos δ, §11.2)."""
+    """Diferencias por semilla d = C0 − Cx: mediana, IC 95 % por bootstrap, σ_d, n, biserial de
+    rangos y Wilcoxon unilateral de d > δ (reducción de al menos δ, §11.2)."""
     d = x0 - x1
     rng = np.random.default_rng(0)
     medianas = np.median(rng.choice(d, size=(10000, len(d)), replace=True), axis=1)
@@ -323,7 +366,8 @@ def _comparacion(x0: np.ndarray, x1: np.ndarray, delta: float) -> dict:
         p = 1.0
     return {"mediana_diferencia": float(np.median(d)),
             "ic95": [float(np.percentile(medianas, 2.5)), float(np.percentile(medianas, 97.5))],
-            "sigma_d": sigma_d, "delta": delta, "n": tamano_muestra(sigma_d, delta), "p_wilcoxon": p}
+            "sigma_d": sigma_d, "delta": delta, "n": tamano_muestra(sigma_d, delta), "p_wilcoxon": p,
+            "biserial": biserial(d)}
 
 
 def _cargar(directorio: Path, semilla: int, config: dict) -> tuple[dict, "bucle.Ejecucion"]:

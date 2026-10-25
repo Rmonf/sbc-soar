@@ -43,3 +43,21 @@ def test_aprenentatge_corto():
     assert res["h2"]["C1"]["semillas_identicas"] == 2 and res["h2"]["C2"]["semillas_identicas"] == 2
     assert res["metricas"]["C0"]["chunks-compilados"]["mediana"] == 0
     assert "H2, fidelidad" in experiments.resumen_aprenentatge(res)
+
+
+def test_biserial_y_holm():
+    import numpy as np
+    assert experiments.biserial(np.array([1.0, 2.0, 0.0])) == 1.0
+    assert experiments.biserial(np.array([-1.0, 1.0])) == 0.0
+    assert experiments.biserial(np.zeros(3)) == 0.0
+    # Holm: la menor por 3, la siguiente por 2 (y nunca por debajo de la anterior), la última por 1
+    assert experiments.holm({"a": 0.01, "b": 0.04, "c": 0.03}) == pytest.approx({"a": 0.03, "b": 0.06, "c": 0.06})
+
+
+def test_friedman():
+    import numpy as np
+    iguales = {k: np.arange(10, dtype=float) for k in "abc"}
+    assert experiments.friedman(iguales)["pares"] == {}
+    distintas = {"a": np.arange(10.0), "b": np.arange(10.0) + 1, "c": np.arange(10.0) + 2}
+    res = experiments.friedman(distintas)
+    assert res["p_friedman"] < 0.05 and set(res["pares"]) == {"a-b", "a-c", "b-c"}

@@ -1,5 +1,6 @@
 """Bucle cerrado simulador ↔ CLIPS (roadmap §9)."""
 
+import json
 import re
 
 import pytest
@@ -85,3 +86,19 @@ def test_sin_aprendizaje_decide_igual(un_dia, tmp_path):
     c0 = bucle.ejecutar(0, config, base=on.generar_variante(["aprendizaje-activo=FALSE"], tmp_path / "c0.clp"))
     assert c0.chunks == [] and c0.errores == ""
     assert metricas.fidelidad(ej, c0)
+
+
+def test_guardar_y_cargar(tmp_path):
+    """Una ejecución guardada se recupera con la misma clave (para reanudar, §11.2) y no con otra."""
+    config = sm.cargar_config()
+    config["dias"] = 0.05
+    ej = bucle.ejecutar(0, config)
+    m = metricas.calcular(ej)
+    bucle.guardar(ej, tmp_path, m, clave={"base": "C2"})
+    m2, ej2 = bucle.cargar(tmp_path, 0, ej.estrategia, config, clave={"base": "C2"})
+    assert m2 == json.loads(json.dumps(m))
+    assert ej2.ordenes == ej.ordenes and ej2.traza == ej.traza
+    assert [c["multiconjunto"] for c in ej2.ciclos] == [c["multiconjunto"] for c in ej.ciclos]
+    assert ej2.entorno["cpus"] == ej.entorno["cpus"] and len(ej2.entorno["loadavg-fin"]) == 3
+    assert bucle.cargar(tmp_path, 0, ej.estrategia, config, clave={"base": "C0"}) is None
+    assert bucle.cargar(tmp_path, 1, ej.estrategia, config, clave={"base": "C2"}) is None
