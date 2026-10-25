@@ -103,7 +103,7 @@ Este documento es la especificación para empezar a escribir los ficheros CLIPS.
    - `limite-inferior` y `limite-superior` (intervalos abiertos).
 
    Un slot numérico opcional se declara `(type NUMBER SYMBOL) (allowed-symbols nil) (default nil)`: CLIPS rechaza `(default nil)` en un slot de tipo `NUMBER`.
-8. **Tiempo:** `instante` en minutos desde el inicio; "la última hora" es `instante ≥ t − 60`. La activación de los chunks mide el tiempo en ciclos de decisión, como el kernel de Soar: la duración de un ciclo (5 min, el Δt del simulador) está en el `defglobal ?*minutos-por-ciclo*` de `00_main.clp` (§6.2). Los 60 min de la ventana episódica (R4, `posicio-preventiva`, NETEJA) son una constante de convención, no un umbral del dominio: están en el `defglobal ?*ventana-episodica*` de `00_main.clp` y las reglas la leen de ahí.
+8. **Tiempo:** `instante` en minutos desde el inicio; "la última hora" es `instante ≥ t − 60`. La activación de los chunks mide el tiempo en ciclos de decisión, como el kernel de Soar: la duración de un ciclo (5 min, el Δt del simulador) está en el `defglobal ?*minutos-por-ciclo*` de `00_main.clp` (§6.2). Los 60 min de la ventana episódica (R3, R4, `posicio-preventiva`, NETEJA) son una constante de convención, no un umbral del dominio: están en el `defglobal ?*ventana-episodica*` de `00_main.clp` y las reglas la leen de ahí.
 9. **Números:** los reales son `xsd:decimal` en OWL (el tipo de un literal `30.0` en Turtle) y `NUMBER` en CLIPS. Los enteros son `xsd:integer` y `INTEGER`.
 10. **Un diagnóstico por sector y tipo:** la regla que lo crea comprueba que no exista; si existe, añade evidencia y eleva el nivel.
 11. **Multislots como conjuntos:** su orden depende del orden de disparo; las comparaciones entre ejecuciones los tratan como conjuntos.
@@ -298,11 +298,13 @@ Siempre se propone exactamente una acción sin movimiento. PROPOSTA no filtra: A
 |---|---|---|---|
 | R1 | `risc-persones` | `reject` a todo candidato que mueva | `seguretat-persones` |
 | R2 | `risc-mecanic critic` | `require posicio-seguretat`; `reject` a `orientar-produccio` y `orientar-ombra` | `integritat-mecanica` |
-| R3 | `fallada-actuador` | `reject` a todo candidato que mueva | `integritat-mecanica` |
+| R3 | diagnóstico `fallada-actuador` del sector, o algún episodio del sector en `[t−60, t)` con `resultado fallada-actuador` | `reject` a todo candidato que mueva | `integritat-mecanica` |
 | R4 | episodios del sector en `[t−60, t)` con movimiento (\|angulo-ordenado − angulo-previo\| > tolerancia) ≥ `max-movimientos-hora` | `reject` a todo candidato que mueva, excepto `posicio-seguretat` | `integritat-mecanica` |
 | R5 | no hay `observacion-panel` | `reject` a todo candidato que mueva | `seguretat-persones` |
 
-Ninguna restricción rechaza una acción sin movimiento, así que nunca quedan todos los candidatos rechazados. R4 es el uso de la memoria episódica en una decisión (enunciado 3.6).
+Ninguna restricción rechaza una acción sin movimiento, así que nunca quedan todos los candidatos rechazados. R3 y R4 son los usos de la memoria episódica en una decisión (enunciado 3.6).
+
+**Por qué R3 consulta los episodios (cambio posterior a la congelación de I5).** El diagnóstico `fallada-actuador` solo existe en el ciclo en que MONITORATGE verifica la orden (§5.2): en el siguiente, la orden fallada ya se ha retirado y no hay nada que verificar. Con R3 limitada al diagnóstico, el caso no visto 05 (actuador encallado a 20°, informando `operatiu`) alternaba `orientar-ombra` y `diagnosticar` cada ciclo: el sistema volvía a ordenar al actuador roto cada dos ciclos. Con el episodio de la orden fallada en la ventana, R3 sigue rechazando los movimientos durante 60 min y el sistema mantiene; cuando el episodio sale de la ventana, vuelve a intentarlo (caso 83).
 
 **(b) Valoración** de cada candidato con Δ calculable:
 - `desplazamiento` = Δ; `coste-movimiento` = nivel de Δ según el umbral `moviment`.
@@ -371,7 +373,7 @@ Todas las reglas exigen que no haya un `seleccionat` en *s* (una selección por 
 | `dades-insuficients` | **`posicio-preventiva`:** si `posicio-seguretat` no está rechazada y, o bien la requiere R2, o bien algún episodio del sector de los últimos 60 min tenía `risc-mecanic` ≥ `alt` (consulta del historial), `require posicio-seguretat` (criterio `integritat-mecanica`). Si moverla fuera peligroso, R1, R3 o R5 ya la han rechazado. **`demanar-dades`:** si no, `require diagnosticar` (criterio `integritat-mecanica`). |
 | `constraint-failure` | **`restriccio-prioritaria`:** prevalecen los `reject`. Se añade `reject` a todo requerido que mueva y `require` a la acción sin movimiento, con el criterio de mayor prioridad entre los `reject` del sector (`integritat-mecanica` si no hay). Siempre se aplica. |
 
-**Por qué no hay histéresis en el empate.** Un resultado que depende de la memoria episódica no se puede compilar de forma correcta: Soar advierte de que lo recuperado de memoria episódica produce chunks demasiado generales (manual, cap. 4). Contra la oscilación ya actúan R4, la regla de estabilidad, la mínima intervención y el propio chunk, que repite la misma decisión cuando la situación se repite. La memoria episódica sigue usándose en R4 y en `posicio-preventiva`.
+**Por qué no hay histéresis en el empate.** Un resultado que depende de la memoria episódica no se puede compilar de forma correcta: Soar advierte de que lo recuperado de memoria episódica produce chunks demasiado generales (manual, cap. 4). Contra la oscilación ya actúan R4, la regla de estabilidad, la mínima intervención y el propio chunk, que repite la misma decisión cuando la situación se repite. La memoria episódica sigue usándose en R3, en R4 y en `posicio-preventiva`.
 
 ### 5.8 APLICACIO
 
@@ -500,7 +502,7 @@ Soar **no aprende** si la decisión dependió de una selección probabilística 
 | Las referencias más allá del historial se aproximan (aproximación de Petrov) | Se descartan: solo cuentan las `max-referencias` más recientes |
 | Varias referencias en un mismo ciclo cuentan por separado | Una referencia por instante: usos simultáneos del mismo chunk en varios sectores cuentan una vez (la condición de refuerzo exige un instante posterior a la última referencia) |
 | Soar-RL, activación de la memoria de trabajo | Fuera de alcance (§13) |
-| Memoria episódica sin olvido | Ventana de 60 minutos (basta para R4 y `posicio-preventiva`) |
+| Memoria episódica sin olvido | Ventana de 60 minutos (basta para R3, R4 y `posicio-preventiva`) |
 
 ---
 
@@ -513,12 +515,12 @@ Soar **no aprende** si la decisión dependió de una selección probabilística 
 | Operador | `operador-candidato`, creado solo en PROPOSTA | Preservado |
 | Preferencias | `reject`, `require`, `better` | Aproximado: subconjunto. El `reject` de las restricciones duras (R1–R5) cumple el papel del `prohibit` de Soar: un candidato con `require` y `reject` produce `constraint-failure` (S2), como un operador requerido y prohibido en Soar |
 | Procedimiento de decisión | SELECCIO S1–S7 | Preservado: una selección por sector y ciclo, o impasse |
-| Impasses | `tie`, `dades-insuficients`, `constraint-failure` | Aproximado. `dades-insuficients` no existe en SOAR. `conflict` es imposible por construcción. El `no-change` de operador se aproxima con MONITORATGE + R3. La falta de candidatos no puede darse (§5.5a). |
+| Impasses | `tie`, `dades-insuficients`, `constraint-failure` | Aproximado. `dades-insuficients` no existe en SOAR. `conflict` es imposible por construcción. El `no-change` de operador se aproxima con MONITORATGE + R3: R3 recuerda la orden fallada durante la ventana episódica, así que el operador fallido no se reintenta en cada ciclo. La falta de candidatos no puede darse (§5.5a). |
 | Subestado | `estado-soar` con `estado-padre` | Aproximado: un nivel; si no resuelve, se escala a una persona |
 | Aplicación | `orden-actuador` + candidato `aplicat` | Preservado |
 | Monitoratge | Datos en PERCEPCIO; efectos y movimientos no ordenados en MONITORATGE | Preservado, repartido en dos fases |
 | Entrada/salida | Python aserta la familia 1; lee órdenes, episodios y chunks | Preservado |
-| Memoria episódica | `episodio` en R4 y `posicio-preventiva` | Aproximado: registro de decisiones con ventana de 60 min |
+| Memoria episódica | `episodio` en R3, R4 y `posicio-preventiva` | Aproximado: registro de decisiones con ventana de 60 min |
 | Chunking | APRENENTATGE + S5 (§6) | Aproximado: hecho + regla genérica; condiciones obtenidas de un análisis fijo en lugar de *backtracing* |
 | Activación base y olvido procedimental | Activación de los chunks y olvido (§6.2) | Aproximado: referencias por uso confirmado |
 | Soar-RL, memoria semántica, SVS, activación de la memoria de trabajo | — | Excluido |
@@ -564,6 +566,7 @@ proyecto-sbc-agrovoltaica/
 - `nivel-diagnostico`: nivel del diagnóstico de un tipo en el sector, o `baix` si no existe (§5.5b);
 - `tolerancia-sector` y `candidato-mueve`: definición de "candidato que mueve" de §5 (Δ > tolerancia o Δ desconocido sin panel);
 - `movimientos-recientes`: episodios del sector con movimiento en `[t − ?*ventana-episodica*, t)` (R4);
+- `fallada-actuador-reciente`: diagnóstico `fallada-actuador` del sector o algún episodio suyo en la ventana con `resultado fallada-actuador` (R3);
 - `riesgo-mecanico-reciente`: algún episodio del sector en la ventana con `risc-mecanic` ≥ `alt` (`posicio-preventiva`, §5.7);
 - `criterio-servido`: objetivo de mayor prioridad que sirve una valoración con beneficio ≥ `mitja` (§5.5c.3, §5.7);
 - `instante-actual` y `angulo-observado`: ángulo del panel vigente del sector, o nil sin observación vigente (§3.2, §5.1);

@@ -66,11 +66,13 @@
                         (operador-referencia ?c) (criterio integritat-mecanica)
                         (origen regla) (restriccion R2))))
 
-;; R3: con fallada del actuador, se rechaza todo candidato que mueva (§5.5a).
+;; R3: con fallada del actuador en este ciclo o en un episodio del sector de la última hora
+;; (memoria episódica, como R4), se rechaza todo candidato que mueva (§5.5a).
 (defrule AVALUACIO::r3-rechazar-con-fallada
    (estado-soar (id S0) (fase avaluacio))
-   (diagnostico (sector ?s) (tipo-diagnostico fallada-actuador))
+   (ciclo-temporal (instante ?t))
    (operador-candidato (id ?c) (sector ?s) (accion ?a) (angulo-objetivo ?o))
+   (test (fallada-actuador-reciente ?s ?t))
    (test (candidato-mueve ?a ?o ?s))
    =>
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia reject)

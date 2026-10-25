@@ -1,0 +1,223 @@
+{
+  "id": "caso_83_r3_actuador_encallado",
+  "descripcion": "El actuador de s1 se queda encallado a 20° (informa operatiu) con calor. En t=0 se ordena la sombra; en t=5 MONITORATGE detecta fallada-actuador y se diagnostica. Mientras el episodio de t=0 con fallada-actuador está en la ventana episódica (hasta t=60), R3 rechaza ir a la sombra y el sistema mantiene, sin alternar con diagnosticar. En t=65 el episodio sale de la ventana y se vuelve a intentar.",
+  "requisito": "R3 con memoria episódica (§5.5a, cambio posterior a la congelación); caso no visto 05; testimonio ingeniera (comportamiento seguro ante fallos)",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "restricciones-activas": []
+        }
+      }
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "diagnosticar",
+          "resultado-previo": "fallada-actuador",
+          "restricciones-activas": [
+            "R3"
+          ],
+          "descartes": [
+            "orientar-ombra:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    },
+    {
+      "instante": 10,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": [
+            "R3"
+          ],
+          "descartes": [
+            "orientar-ombra:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    },
+    {
+      "instante": 15,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": [
+            "R3"
+          ],
+          "descartes": [
+            "orientar-ombra:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    },
+    {
+      "instante": 20,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": [
+            "R3"
+          ],
+          "descartes": [
+            "orientar-ombra:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    },
+    {
+      "instante": 60,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "mantenir-posicio",
+          "restricciones-activas": [
+            "R3"
+          ],
+          "descartes": [
+            "orientar-ombra:integritat-mecanica"
+          ]
+        }
+      },
+      "prohibido": {
+        "s1": {
+          "accion": [
+            "orientar-ombra"
+          ]
+        }
+      }
+    },
+    {
+      "instante": 65,
+      "sectores": {
+        "s1": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 33,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": 20
+          }
+        }
+      },
+      "esperado": {
+        "s1": {
+          "accion": "orientar-ombra",
+          "restricciones-activas": []
+        }
+      }
+    }
+  ]
+}

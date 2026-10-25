@@ -70,8 +70,9 @@
 (defrule AVALUACIO::r3-rechazar-con-fallada
    (declare (salience -20))
    (estado-soar (id S0) (fase avaluacio))
-   (diagnostico (sector ?s) (tipo-diagnostico fallada-actuador))
+   (ciclo-temporal (instante ?t))
    (operador-candidato (id ?c) (sector ?s) (accion ?a) (angulo-objetivo ?o))
+   (test (fallada-actuador-reciente ?s ?t))
    (test (candidato-mueve ?a ?o ?s))
    =>
    (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia reject)
