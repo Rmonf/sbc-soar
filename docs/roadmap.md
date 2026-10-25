@@ -320,7 +320,7 @@ Ninguna restricción rechaza una acción sin movimiento, así que nunca quedan t
 2. **Estabilidad**, entre dos candidatos cualesquiera con los tres beneficios iguales (criterio `estabilitat`):
    - si los Δ difieren más que la tolerancia, `better` el de menor Δ;
    - si los Δ están dentro de la tolerancia y uno de los dos es la acción sin movimiento, esta es `better`;
-   - **cercanía:** la acción sin movimiento es `better` que todo candidato que mueve con `coste-movimiento = baix`, aunque los beneficios difieran: su objetivo ya lo sirve la posición actual (y lo hereda la acción sin movimiento). Así un panel que ya está en el ángulo de otra acción (p. ej., en defensa con viento `alt`, o en sombra con estrés) no abre un `tie` ni se mueve unos pocos grados.
+   - **cercanía:** la acción sin movimiento es `better` que todo candidato que no es acción sin movimiento y tiene `coste-movimiento = baix` (también con Δ dentro de la tolerancia), aunque los beneficios difieran: su objetivo ya lo sirve la posición actual (y lo hereda la acción sin movimiento). Así un panel que ya está en el ángulo de otra acción (p. ej., en defensa con viento `alt`, o en sombra con estrés) no abre un `tie` ni se mueve unos pocos grados.
 3. **Acción útil:** un candidato que no es acción sin movimiento y tiene un beneficio ≥ `mitja` es `better` que la acción sin movimiento **si esta no hereda ningún beneficio** (todos `baix`), con criterio el objetivo de mayor prioridad que sirve. Si hereda alguno, los decide el punto 1.
 
 **Independencia del orden de disparo.** (b) y (c) no consultan los `reject`, y SELECCIO no cuenta los `better` cuyo `operador-referencia` está rechazado. Por tanto, el conjunto de preferencias que cuentan no depende del orden en que se asertaron.
@@ -347,11 +347,11 @@ Todas las reglas exigen que no haya un `seleccionat` en *s* (una selección por 
 | S3 requerido | exactamente un candidato con `require` no rechazado; no B(s), o hay un impasse de *s* resuelto y no `escalat` | `seleccionat` |
 | S4 único no dominado | ningún no rechazado con `require`; exactamente un no dominado; no B(s), o hay un impasse de *s* resuelto y no `escalat` | `seleccionat` |
 | S5 aplicar chunk | E(A, B) y existe un `chunk` aplicable (§6.2) | `better(preferida, descartada)`, `origen chunk`, `chunk-aplicado`; después S4 selecciona |
-| S6 `tie` | dos o más no dominados, ningún no rechazado con `require`, no B(s), sin impasse en *s*, y **no** hay chunk aplicable | impasse con `operadores-en-conflicto` |
+| S6 `tie` | dos o más no dominados, ningún no rechazado con `require`, no B(s), sin impasse en *s*, y **no** se cumple la condición de S5 (E(A, B) con chunk aplicable) | impasse con `operadores-en-conflicto` |
 | S7 escalado | impasse de *s* con estrategia `escalat` | se selecciona la acción sin movimiento |
 
 - Los demás candidatos del sector pasan a `descartat`.
-- S5 y S6 se excluyen por la condición "chunk aplicable". Para comprobarla, la `deffunction chunk-aplicable` consulta los hechos `chunk` con `find-fact`.
+- S5 y S6 se excluyen porque S6 niega exactamente la condición de S5: S6 solo se bloquea si hay **exactamente dos** no dominados y un chunk aplicable a ese par; con tres o más no dominados, S6 abre el `tie` como siempre. Para comprobarla, la `deffunction chunk-aplicable` consulta los hechos `chunk` con `find-fact`.
 - **Siempre queda exactamente un seleccionado:**
   - la acción sin movimiento nunca se rechaza, así que hay al menos un no dominado;
   - un empate de dos con chunk pasa por S5 y luego S4;
@@ -393,11 +393,12 @@ Traza en el router `traza` (formato del anexo B, más las dos vistas del enuncia
 Fets d'entrada: sector=s3, temp-cultiu=37.1, radiacio=720, preu=140
 Diagnosi: estres-termic=mitja, oportunitat-energetica=alt
 Candidats: orientar-ombra, orientar-produccio, mantenir-posicio
-Decisio: orientar-ombra (chunk-4, apres de prioritat-objectius)   Criteri: proteccio-cultiu
+Decisio: orientar-ombra (chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, apres de prioritat-objectius)   Criteri: proteccio-cultiu
 Ordre: sector=s3, angle=-35
 Vista agronomica: estres-termic=mitja; benefici cultiu=mitja; renuncia cultiu=baix
 Vista energetica: benefici energia=baix; renuncia energia=alt; restriccions actives: -
-Resultat observat (t+1): angle=-34.5, ok -> chunk-4 reforcat
+Resultat observat (t+1): angle=-34.5, ok
+Aprenentatge (t+1): reforcat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, referencies=2
 ```
 
 En la implementación, cada sector escribe su bloque (desde `Fets d'entrada`) en una sola regla, cuando el episodio está completo, y el orden entre bloques depende de la estrategia: la traza se compara como multiconjunto de bloques (§2.3.11). El bloque añade una línea `Impasse: <tipo> (<estrategia>)` (o `-`), el escalado en la línea `Ordre` (`escalat a persona: si|no`), los estrés del sector en la vista agronómica y una línea `Evidencies` con las evidencias de cada diagnóstico (anexo B: qué hechos sustentan la inferencia); sin `observacion-panel` dice `panell=desconegut` y el episodio tiene `angulo-previo` nil y beneficios `baix`. La línea `Resultat observat (t=…): sector=…, ordre t=…, angle=…, ok|fallada-actuador` la escribe MONITORATGE en el ciclo siguiente (§5.2). La estrategia de deliberación que se aplica escribe `Deliberacio (t=…): sector=…, <tipo>, <estrategia>: <lo que comparó> -> <resultado>`: los Δ y la tolerancia en `minima-intervencio`, el objetivo y la prioridad de cada empatado en `prioritat-objectius`, el estado de `posicio-seguretat`, el R2 y los episodios con riesgo reciente en `posicio-preventiva` y `demanar-dades`, y los reject con su criterio y prioridad en `restriccio-prioritaria`; `escalar-impasse` escribe la del escalado. Cada una es un bloque propio de la traza.
@@ -411,13 +412,14 @@ Solo actúa si `parametros-aprendizaje (aprendizaje-activo TRUE)`. Tiene tres gr
    - `relacion-delta` es `menor` si la preferida tiene un Δ más de una tolerancia por debajo, y `similar` en otro caso;
    - `criterio` y `estrategia-resolucion` se toman de la deliberación;
    - `instante` = t y `referencias` = (t);
+   - el `id` se deriva de las cinco condiciones, `chunk-<preferida>-<beneficio>-<descartada>-<beneficio>-<relación>`, y no del sector ni de un contador: si dos sectores empatan igual en el mismo ciclo, el chunk (y su traza) no depende de cuál compila. Tras un olvido, el chunk que se vuelve a aprender reutiliza el id;
    - no se crea si ya existe un chunk con las mismas cinco condiciones (detección de duplicados).
 2. **Reforzar.** Por cada `episodio` con `chunk-aplicado ?c` y `resultado ok` cuyo instante sea **posterior a la referencia más reciente** de `?c`, se añade ese instante y se conservan las `max-referencias` más recientes. Los usos son cronológicos, así que esta condición evita volver a añadir referencias ya recortadas y que la regla entre en bucle.
 3. **Olvidar.** Se retracta todo `chunk` cuya activación sea menor que `umbral-olvido`, siempre que no tenga un refuerzo pendiente del grupo 2 (mismo criterio):
    - activación A = ln Σⱼ (Δtⱼ)^−d, con Δtⱼ = max(t − tⱼ, 1 min) en horas;
    - la calcula `deffunction activacio`.
 
-Cada compilación, refuerzo u olvido se imprime en la traza.
+Cada compilación, refuerzo u olvido se imprime en la traza como un bloque propio, `Aprenentatge (t=…): compilat|reforcat|oblidat <id> …`, sin nombrar el sector, para que la traza no dependa del orden de disparo. La línea `Resultat observat` es de MONITORATGE y no menciona el chunk.
 
 ### 5.11 NETEJA
 
@@ -696,12 +698,12 @@ Cada iteración termina con:
 
 | | |
 |---|---|
-| Configuraciones | **C0:** línea base, sin aprendizaje. **C1:** chunking sin olvido (umbral de olvido muy bajo). **C2:** chunking con olvido (valores por defecto). Las tres con las mismas semillas. |
+| Configuraciones | **C0:** línea base, sin aprendizaje. **C1:** chunking sin olvido (`umbral-olvido` = −100: haría falta un chunk sin usar durante e^200 h). **C2:** chunking con olvido (valores por defecto). Las tres con las mismas semillas. |
 | H1, rendimiento | C1 y C2 reducen los impasses `tie` por cada 100 decisiones (**métrica principal**) en al menos el 50 % frente a C0: δ = 0,5 · mediana de C0 (Wilcoxon unilateral; δ relativo fijado tras el piloto de I3 y antes de cualquier dato de C1, ver la nota de §11.2). Las reglas disparadas por ciclo son una métrica secundaria. |
 | H2, competencia | C1 y C2 toman las mismas decisiones que C0 en todos los pasos (fidelidad del 100 %, informada como proporción de ejecuciones idénticas con Clopper–Pearson). Las métricas de dominio no cambian. |
 | H3, olvido | C2 mantiene menos chunks vivos que C1, a cambio de un aumento de impasses (reaprendizaje) menor que δ. |
 | Sensibilidad | Barrido del umbral de olvido (−1, −2, −3) con d = 0,5, para elegir el valor en la iteración I4. |
-| Transferencia | Proporción de usos de chunks en un sector distinto del que los aprendió. |
+| Transferencia | Proporción de usos de chunks en un sector distinto del que los aprendió. Con el TTL actual es 0 por construcción: solo la viña (sensibilidad `mitja`) puede tener estrés `mitja` tras el ajuste por sensibilidad, así que solo s3 empata (§5.5). La generalización entre sectores se prueba con una variante de configuración (s1 con sensibilidad `mitja`), solo en un test. |
 
 ---
 
