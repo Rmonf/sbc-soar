@@ -239,7 +239,7 @@ n = ((z₀,₉₇₅ + z₀,₈) · σ_d / δ)², con la cota σ_d ≤ √2·σ 
   - `bloques()` reconoce `Aprenentatge`.
 
   Caso 77.
-- **K4 (`339b2b4`):** `reforzar-chunk` (uso confirmado, recorte a `max-referencias`) y `olvidar-chunk` (activación base, salvo refuerzo pendiente). `ontologia.generar_variante` genera las variantes de los tests y los experimentos. Casos 78–80 (refuerzo, sin refuerzo tras `fallada-actuador`, olvido a las 250 h y nuevo aprendizaje con el mismo id) y test del recorte con `max-referencias=2`.
+- **K4 (`339b2b4`):** `reforzar-chunk` (uso confirmado, recorte a `max-referencias`) y `olvidar-chunk` (activación base, salvo refuerzo pendiente). `ontologia.generar_variante` genera las variantes de los tests y los experimentos. Casos 78–80 (refuerzo, sin refuerzo tras `fallada-actuador`, olvido y nuevo aprendizaje con el mismo id; el caso 80 prueba desde `a4bb375` el límite de 55 ciclos) y test del recorte con `max-referencias=2`.
 - **K5 (`6db8e1e`):** el primer pendiente de I3, el argumento de §6.2 con casos:
   - casos 81 (la acción sin movimiento hereda cultivo, frente a producción) y 82 (hereda energía, frente a sombra): el chunk se compila con relación `menor` desde `minima-intervencio` y, al reutilizarse, decide lo mismo;
   - `tests/test_chunk_fidelidad.py`: los 82 casos deciden igual paso a paso con y sin aprendizaje; una rejilla de s3 con 48 situaciones en dos pasos usa 24 veces un chunk (12 chunks distintos, 6 con la acción sin movimiento como preferida), y en todas el chunk decide como la deliberación;
@@ -256,25 +256,40 @@ n = ((z₀,₉₇₅ + z₀,₈) · σ_d / δ)², con la cota σ_d ≤ √2·σ 
 | `974e645` | §5.5c.2: la cercanía se aplica a todo candidato que no es una acción sin movimiento y tiene coste `baix`, también con Δ dentro de la tolerancia | Era lo que hacía el código, y lo que necesita el argumento de §6.2. |
 | `974e645` | §11.4: C1 usa `umbral-olvido` = −100; la transferencia es 0 por construcción y la generalización se prueba con una variante | Solo la viña (sensibilidad `mitja`) puede tener estrés `mitja` tras el ajuste, así que solo s3 empata. |
 | cierre | §11.2: nota del δ y del n con la σ_d real de C0 − C1 | Segundo pendiente de I3. |
+| `a4bb375` | §2.3.8, §5.10, §6.2, §8 y §11.4: la activación base mide el tiempo en ciclos de decisión (Δt = 5 min, `?*minutos-por-ciclo*`, mínimo 1 ciclo), y no en horas; §6.3: dos diferencias más con Soar (aproximación de Petrov y referencias simultáneas); §7: el `reject` de R1–R5 cumple el papel del `prohibit` | Contraste con el manual (cap. 2) y el kernel de Soar: `time_forward` avanza una vez por ciclo de decisión. El caso 80 pasa a probar el límite de 55 ciclos (t=270 conserva el chunk y t=275 lo olvida). |
 
 ### Experimento: piloto del aprendizaje, 10 semillas × 7 días (§11.4)
-Las mismas semillas para las cinco configuraciones (diseño pareado). Hay 0 violaciones de decisión en todas.
+Las mismas semillas para las cinco configuraciones (diseño pareado). Hay 0 violaciones de decisión en todas. La activación mide el tiempo en ciclos de decisión de 5 min (`a4bb375`). C0 y C1 no dependen de la activación y no se repitieron (`--reutilizar C0 C1`); C2 y el barrido sí. La primera ejecución, con el tiempo en horas, está al final de esta sección.
 
 | Configuración | `tie` por cada 100 decisiones: mediana (IQR) | Chunks vivos: máx. / final (medianas) | Compilados / olvidados (medianas) | Fidelidad frente a C0 |
 |---|---|---|---|---|
 | C0 (sin aprendizaje) | 1,596 (1,339–1,881) | — | — | — |
 | C1 (umbral −100) | 0,174 (0,153–0,182) | 10,5 / 10,5 | 10,5 / 0 | 10/10 (IC 95 % [0,692; 1]) |
-| C2 (umbral −2) | 0,182 (0,165–0,211) | 10 / 9 | 11 / 1 | 10/10 |
-| umbral −1 | 0,215 (0,198–0,227) | 9 / 6 | 13 / 6,5 | 10/10 |
-| umbral −3 | 0,174 (0,153–0,182) | 10,5 / 10,5 | 10,5 / 0 | 10/10 |
+| C2 (umbral −2) | 0,223 (0,215–0,281) | 8 / 6 | 13,5 / 7 | 10/10 |
+| umbral −1 | 0,306 (0,285–0,393) | 6,5 / 2 | 18,5 / 17,5 | 10/10 |
+| umbral −3 | 0,198 (0,169–0,215) | 10 / 7,5 | 12 / 3,5 | 10/10 |
 
-- **H1:** C0 − C1 tiene una mediana de diferencias de 1,414 (IC 95 % por bootstrap [1,108; 1,935]) y C0 − C2, de 1,372 ([1,091; 1,910]). Las dos superan δ = 0,798, y el Wilcoxon unilateral (d > δ) da p = 0,0137 en ambos casos. Es un piloto: el contraste con n semillas es de I5.
-- **Contabilidad exacta:** en las 10 semillas, `tie`(C0) = `tie`(Cx) + usos de chunk(Cx). En C1, los `tie` que quedan son exactamente las compilaciones: uno por chunk nuevo. Todos los usos se confirmaron `ok` y reforzaron su chunk (unos 85 por semilla).
-- **H2:** las órdenes son idénticas a las de C0 en las 10 semillas y en las cuatro configuraciones con aprendizaje. Por tanto, energía, horas de estrés y movimientos coinciden.
-- **H3 (hallazgo):** en 7 días, C1 y C2 apenas difieren. C2 olvida una mediana de 1 chunk y el aumento de `tie` frente a C1 es de 0,008 por cada 100 decisiones (IC [0; 0,033]), muy por debajo de δ. Con el umbral −2, un chunk sin usar se olvida a las ~55 h; los empates se dan en s3 los días de calor (0,3 de probabilidad), así que en una semana pocos chunks pasan tanto tiempo sin usarse. Siguiendo el plan, no se cambian ni la duración ni el escenario.
-- **Barrido del umbral:** −3 se comporta como C1 en 7 días; −1 olvida 6,5 chunks y los vuelve a aprender (unos 2 `tie` más por semilla). **Se mantiene −2**, el valor por defecto de Soar, que olvida algo sin coste apreciable. Elegirlo con un efecto tan pequeño no estaría justificado por los datos.
+- **H1:** C0 − C1 tiene una mediana de diferencias de 1,414 (IC 95 % por bootstrap [1,108; 1,935]; Wilcoxon unilateral, d > δ, p = 0,0137). C0 − C2 tiene 1,331 ([1,042; 1,794]; p = 0,0186). Las dos superan δ = 0,798. Es un piloto: el contraste con n semillas es de I5.
+- **Contabilidad exacta:** en las 10 semillas y en todas las configuraciones con aprendizaje, `tie`(C0) = `tie`(Cx) + usos de chunk(Cx), y los `tie` que quedan son exactamente las compilaciones: uno por chunk nuevo o vuelto a aprender. Todos los usos se confirmaron `ok`.
+- **H2:** las órdenes son idénticas a las de C0 en las 10 semillas y en las cuatro configuraciones con aprendizaje. Por tanto, energía, estrés y movimientos coinciden.
+- **H3:** se cumple en el piloto.
+  - Con el umbral −2, un chunk con una sola referencia se olvida tras 55 ciclos sin uso (unas 4,6 h), así que los chunks de un día de calor suelen olvidarse durante la noche.
+  - C2 mantiene menos chunks vivos que C1 (máximo 8 frente a 10,5 y final 6 frente a 10,5) y olvida una mediana de 7.
+  - A cambio, el reaprendizaje aumenta los `tie` en 0,058 por cada 100 decisiones (C2 − C1, IC 95 % [0,033; 0,116]; unos 3,5 por semilla), muy por debajo de δ = 0,798.
+- **Barrido del umbral:**
+  - −1 olvida casi todo (17,5 de 18,5) y casi duplica las compilaciones;
+  - −3 olvida 3,5 y queda cerca de C1;
+  - **se mantiene −2**, el valor por defecto de Soar: está entre los dos y su coste en `tie` es pequeño.
 - **Transferencia:** 0, como se esperaba (§11.4).
-- **Coste:** las reglas por ciclo prácticamente no cambian (C0 181,04; C1 180,81: la deliberación y la compilación se sustituyen por S5 y el refuerzo). La CPU por ciclo sube (C0 10,9 ms; C1 11,9; C2 12,5; los umbrales −1 y −3, 11,4–11,5), pero esta medida es ruidosa: el experimento se ejecutó a la vez que A1 en bucle cerrado, y −3 y C1, que se comportan igual, difieren en 0,4 ms.
+- **Coste:** las reglas por ciclo prácticamente no cambian (C0 181,04; C1 180,81; C2 180,84). La CPU por ciclo no permite comparar: C0 y C1 se midieron a la vez que A1 en bucle cerrado (10,9 y 11,9 ms) y C2 y el barrido, en solitario (10,7–10,9 ms).
+
+**Primera ejecución, con el tiempo en horas** (antes de `a4bb375`; resultados en `resultats/i4_aprenentatge_horas/`): un chunk se olvidaba a las ~55 h.
+- C2 dio un `tie` de 0,182 y olvidó una mediana de 1 chunk.
+- El aumento frente a C1 fue de 0,008 (IC [0; 0,033]).
+- El barrido dio −1 → 0,215 y −3 → igual que C1.
+- H3 apenas se distinguía en 7 días.
+
+El cambio a ciclos de decisión, tras contrastarlo con el kernel de Soar, es lo que hace visible el olvido. La duración y el escenario no se cambiaron.
 
 ### Análisis de potencia con la σ_d real (segundo pendiente de I3)
 | Métrica | σ_d (C0 − C1) | δ | n |
@@ -286,7 +301,7 @@ Las mismas semillas para las cinco configuraciones (diseño pareado). Hay 0 viol
 | Reglas por ciclo | 0,130 | 9,05 | 30 |
 | CPU por ciclo (ms) | 0,685 | 1,09 | 30 |
 
-Con la fidelidad del 100 %, las métricas de dominio de C0 y C1 son idénticas y su σ_d es 0. El n = 70 de la energía venía de la cota √2·σ y desaparece. Para H3, σ_d(C1 − C2) de `tie` es 0,027. **n = 30 para todo en I5.**
+Con la fidelidad del 100 %, las métricas de dominio de C0 y C1 son idénticas y su σ_d es 0. El n = 70 de la energía venía de la cota √2·σ y desaparece. Para H3, σ_d(C2 − C1) de `tie` es 0,051. **n = 30 para todo en I5.**
 
 ### A1 y A2 con el aprendizaje activo (§11.3)
 | Experimento | Unidad | Estrategias frente a la referencia | Resultado |
@@ -301,17 +316,16 @@ APRENENTATGE no depende del orden de disparo: la invariancia se mantiene con el 
 - 0 anomalías en la verificación, 343 tests y 82/82 casos en verde.
 - Las únicas reglas no disparadas son las de la reserva de escalado.
 - A1 y A2 son invariantes con el aprendizaje activo.
-- H2 se cumple en las 10 semillas; H1 supera δ en el piloto; H3 apenas se distingue en 7 días.
+- En el piloto, H1 supera δ, H2 se cumple en las 10 semillas y H3 se cumple: C2 mantiene menos chunks que C1 con un aumento de `tie` de 0,058, menor que δ.
 
 ---
 
 ## Incidencias abiertas
 - **Fuga `ENVRNMNT8` (§13):** CLIPS deja unos 128 bytes por cada hecho con multislot que Python leyó y una regla retractó después. Son unos 0,8 MB por ejecución de 7 días. Aparece al final de la salida, no afecta a ningún resultado y, por decisión del equipo, no se filtra.
 - **`escalat` sigue siendo inalcanzable** con el conocimiento actual. Es una reserva de terminación probada con una variante de configuración (`tests/test_escalado.py`).
-- **Olvido poco ejercitado en 7 días (H3):** C1 y C2 casi no difieren. Queda documentado como hallazgo; I5 informará de lo mismo con n = 30, sin cambiar la duración ni el escenario.
 - **Transferencia estructuralmente 0:** solo s3 puede empatar con el TTL actual. La generalización solo se prueba con una variante (`tests/test_chunk_fidelidad.py`).
 - **Empates de tres inalcanzables:** S6 con tres o más no dominados, en presencia de un chunk, solo se prueba con SELECCIO aislada (`tests/test_seleccio_chunk.py`).
-- **CPU por ciclo ruidosa:** el piloto de I4 compartió la máquina con A1 en bucle cerrado. En I5, los experimentos de CPU deben ejecutarse sin otras cargas.
+- **CPU por ciclo ruidosa:** parte del piloto de I4 compartió la máquina con A1 en bucle cerrado. En I5, los experimentos de CPU deben ejecutarse sin otras cargas.
 - **Modelos del simulador heurísticos:** la lechuga (umbral de 26 °C, del TTL) tiene unas 4 h de estrés también los días templados, lo que es plausible para lechuga en verano. Los parámetros meteorológicos son sintéticos y no están calibrados con datos reales.
 
 ## Siguiente paso: I5 (congelación)

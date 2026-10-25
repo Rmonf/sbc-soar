@@ -24,12 +24,14 @@ aprenentatge: piloto del aprendizaje (§11.4) con las mismas semillas para C0 (s
 C1 (sin olvido, umbral -100), C2 (umbral -2, por defecto) y el barrido del umbral (-1, -3): H1
 (tie por cada 100 decisiones, δ = 0,5 · mediana de C0), H2 (fidelidad de las órdenes), H3
 (chunks vivos y reaprendizaje), y la σ_d real de las diferencias por semilla con su n (§11.2).
+Con --reutilizar C0 C1, esas configuraciones no se vuelven a ejecutar: se leen las métricas y las
+órdenes guardadas en la carpeta de salida (solo es válido si el cambio no les afecta).
 
     uv run python python/experiments.py a1 [--estrategias depth breadth ...]
     uv run python python/experiments.py a2
     uv run python python/experiments.py piloto [--semillas 0 1 ...] [--dias 7]
     uv run python python/experiments.py a1-bucle [--semillas ...] [--dias 7]
-    uv run python python/experiments.py aprenentatge [--semillas ...] [--dias 7]
+    uv run python python/experiments.py aprenentatge [--semillas ...] [--dias 7] [--reutilizar C0 C1]
 """
 
 import argparse
@@ -324,8 +326,17 @@ def _comparacion(x0: np.ndarray, x1: np.ndarray, delta: float) -> dict:
             "sigma_d": sigma_d, "delta": delta, "n": tamano_muestra(sigma_d, delta), "p_wilcoxon": p}
 
 
+def _cargar(directorio: Path, semilla: int, config: dict) -> tuple[dict, "bucle.Ejecucion"]:
+    """Métricas y órdenes de una ejecución guardada por bucle.guardar."""
+    d = directorio / f"semilla_{semilla}"
+    ej = bucle.Ejecucion(semilla, config["estrategia"], config)
+    ej.ordenes = [json.loads(l) for l in (d / "ordenes.jsonl").read_text(encoding="utf-8").splitlines()]
+    return json.loads((d / "metricas.json").read_text(encoding="utf-8")), ej
+
+
 def aprenentatge(semillas: list[int] | None = None, dias: float | None = None,
-                 salida: Path | None = None, configuraciones: dict | None = None) -> dict:
+                 salida: Path | None = None, configuraciones: dict | None = None,
+                 reutilizar: list[str] = ()) -> dict:
     config = _config(dias)
     semillas = config["semillas"] if semillas is None else semillas
     configuraciones = CONFIGURACIONES if configuraciones is None else configuraciones
@@ -335,6 +346,9 @@ def aprenentatge(semillas: list[int] | None = None, dias: float | None = None,
         base = on.generar_variante(sobrescrituras, bases / f"{nombre}.clp")
         metr[nombre] = {}
         for semilla in semillas:
+            if nombre in reutilizar:
+                metr[nombre][semilla], ejecuciones[(nombre, semilla)] = _cargar(salida / nombre, semilla, config)
+                continue
             ej = bucle.ejecutar(semilla, config, base=base)
             m = metricas.calcular(ej)
             if ej.errores:
@@ -372,7 +386,8 @@ def aprenentatge(semillas: list[int] | None = None, dias: float | None = None,
     return {
         "experimento": "Piloto del aprendizaje (roadmap §11.4), iteración I4",
         "configuracion": {"semillas": semillas, "dias": config["dias"], "estrategia": config["estrategia"],
-                          "configuraciones": configuraciones, "delta": config["delta"],
+                          "configuraciones": configuraciones, "reutilizadas": list(reutilizar),
+                          "delta": config["delta"],
                           "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=RAIZ,
                                                    capture_output=True, text=True).stdout.strip()},
         "por_semilla": metr, "metricas": resumen_m, "h1": h1, "h2": h2, "h3": h3,
@@ -403,8 +418,8 @@ def resumen_aprenentatge(res: dict) -> str:
                  f"IC 95 % [{h['ic95'][0]:.3f}, {h['ic95'][1]:.3f}]")
     h3 = res["h3"]
     l.append(f"  H3, olvido: chunks vivos máx. {h3['chunks-vivos-max']}, final {h3['chunks-vivos-final']}; "
-             f"aumento de tie-100 de C2 frente a C1: mediana {-h3['aumento-tie-100']['mediana_diferencia']:.3f} "
-             f"(δ = {h3['delta']:.3f})")
+             f"aumento de tie-100 de C2 frente a C1 (C2 − C1): mediana {h3['aumento-tie-100']['mediana_diferencia']:.3f}, "
+             f"IC 95 % [{h3['aumento-tie-100']['ic95'][0]:.3f}, {h3['aumento-tie-100']['ic95'][1]:.3f}] (δ = {h3['delta']:.3f})")
     l.append("  Barrido del umbral de olvido (medianas):")
     for c, b in res["barrido"].items():
         l.append(f"    {c:12s} " + ", ".join(f"{k} {v:.3f}" for k, v in b.items()))
@@ -440,6 +455,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--semillas", nargs="+", type=int, default=None)
     p.add_argument("--dias", type=float, default=None)
     p.add_argument("--salida", default=str(RESULTATS / "i4_aprenentatge"))
+    p.add_argument("--reutilizar", nargs="+", default=[], choices=list(CONFIGURACIONES),
+                   help="configuraciones que se leen de la salida en lugar de ejecutarse")
     args = parser.parse_args(argv)
 
     if args.experimento in ("piloto", "a1-bucle", "aprenentatge"):
@@ -450,7 +467,7 @@ def main(argv: list[str] | None = None) -> int:
             texto = resumen_piloto(res)
             correcto = res["violaciones"]["total"] == 0 and not res["errores"]
         elif args.experimento == "aprenentatge":
-            res = aprenentatge(args.semillas, args.dias, salida)
+            res = aprenentatge(args.semillas, args.dias, salida, reutilizar=args.reutilizar)
             texto = resumen_aprenentatge(res)
             correcto = not any(res["violaciones"].values()) and not res["errores"]
         else:

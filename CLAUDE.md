@@ -63,7 +63,7 @@ uv run python python/experiments.py a2          # experimento A2, complexity fre
 uv run python python/bucle.py --semilla 0 --dias 1   # una ejecución en bucle cerrado con el simulador (§9)
 uv run python python/experiments.py piloto      # piloto de 10 semillas × 7 días y potencia (§11.2), resultats/i3_piloto/
 uv run python python/experiments.py a1-bucle    # A1 en bucle cerrado sobre las semillas (§11.3), resultats/i3_a1/ (--salida para otra carpeta)
-uv run python python/experiments.py aprenentatge   # piloto del aprendizaje C0/C1/C2 y barrido del umbral (§11.4), resultats/i4_aprenentatge/
+uv run python python/experiments.py aprenentatge   # piloto del aprendizaje C0/C1/C2 y barrido del umbral (§11.4), resultats/i4_aprenentatge/; --reutilizar C0 C1 lee esas ejecuciones guardadas
 ```
 
 Al final de la salida de estos comandos puede aparecer `[ENVRNMNT8] Environment data not fully deallocated`. Es una fuga conocida de CLIPS, documentada en roadmap §13, y no indica ningún error: no se filtra.
