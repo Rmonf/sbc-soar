@@ -17,18 +17,26 @@ exposición real (informativa), y n por métrica para los δ fijados de antemano
 σ_d ≤ √2·σ, válida si ρ ≥ 0 (provisional hasta I4, que mide σ_d con C0–C1).
 
 a1-bucle: A1 en bucle cerrado (§11.3): cada semilla con depth y con cada otra estrategia; por
-estrategia, semillas con alguna discrepancia y su cota de Clopper–Pearson.
+estrategia, semillas con alguna discrepancia y su cota de Clopper–Pearson. Usa la configuración
+por defecto, con el aprendizaje activo desde I4 (§11.3: la hipótesis vale con él y sin él).
+
+aprenentatge: piloto del aprendizaje (§11.4) con las mismas semillas para C0 (sin aprendizaje),
+C1 (sin olvido, umbral -100), C2 (umbral -2, por defecto) y el barrido del umbral (-1, -3): H1
+(tie por cada 100 decisiones, δ = 0,5 · mediana de C0), H2 (fidelidad de las órdenes), H3
+(chunks vivos y reaprendizaje), y la σ_d real de las diferencias por semilla con su n (§11.2).
 
     uv run python python/experiments.py a1 [--estrategias depth breadth ...]
     uv run python python/experiments.py a2
     uv run python python/experiments.py piloto [--semillas 0 1 ...] [--dias 7]
     uv run python python/experiments.py a1-bucle [--semillas ...] [--dias 7]
+    uv run python python/experiments.py aprenentatge [--semillas ...] [--dias 7]
 """
 
 import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from collections import Counter
 
 import math
@@ -40,6 +48,7 @@ from scipy import stats
 import bucle
 import executar_casos as ec
 import metricas
+import ontologia as on
 import pont_clips as pc
 import simulador as sm
 from pont_clips import RAIZ, Paso
@@ -200,7 +209,7 @@ def piloto(semillas: list[int] | None = None, dias: float | None = None,
     con_violacion = sum(1 for s in semillas if por_semilla[s]["violaciones-decision"]["total"] > 0)
     expuestas = sum(1 for s in semillas if por_semilla[s]["exposicion-real"]["total"] > 0)
     return {
-        "experimento": "Piloto del núcleo (roadmap §11.2), iteración I3",
+        "experimento": "Piloto del núcleo (roadmap §11.2)",
         "configuracion": {"semillas": semillas, "dias": config["dias"], "dt-min": config["dt-min"],
                           "estrategia": config["estrategia"], "delta": config["delta"],
                           "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=RAIZ,
@@ -270,7 +279,7 @@ def a1_bucle(estrategias: list[str] = ESTRATEGIAS_A1, semillas: list[int] | None
                                       "ic95": clopper_pearson(k, len(f)),
                                       "ciclos": sum(x["ciclos"] for x in f),
                                       "ciclos_secuencia_igual": sum(x["ciclos_secuencia_igual"] for x in f)}
-    return {"experimento": "A1 en bucle cerrado (roadmap §11.3), iteración I3",
+    return {"experimento": "A1 en bucle cerrado (roadmap §11.3)",
             "configuracion": {"estrategias": estrategias, "semillas": semillas, "dias": config["dias"],
                               "semilla-agenda (random)": config["semilla-agenda"]},
             "filas": filas, "por_estrategia": por_estrategia}
@@ -285,6 +294,128 @@ def resumen_a1_bucle(res: dict) -> str:
         lineas.append(f"  {estrategia:11s} {r['discrepancias']:>6d}/{r['semillas']:<6d} "
                       f"[{r['ic95'][0]:.3f}, {r['ic95'][1]:.3f}] {r['ciclos_secuencia_igual']:>14d}/{r['ciclos']}")
     return "\n".join(lineas)
+
+
+# Configuraciones del experimento de aprendizaje (§11.4): sobrescrituras de --set (§2.2).
+CONFIGURACIONES = {"C0": ["aprendizaje-activo=FALSE"], "C1": ["umbral-olvido=-100"], "C2": [],
+                   "C2-umbral-1": ["umbral-olvido=-1"], "C2-umbral-3": ["umbral-olvido=-3"]}
+METRICAS_CHUNKS = ["chunks-vivos-max", "chunks-vivos-final", "chunks-compilados", "chunks-olvidados",
+                   "usos-chunk", "usos-chunk-confirmados", "transferencia"]
+
+
+def _delta(config: dict, nombre: str, mediana_c0: float) -> float:
+    d = config["delta"][nombre]
+    return d["abs"] if "abs" in d else d["rel"] * mediana_c0
+
+
+def _comparacion(x0: np.ndarray, x1: np.ndarray, delta: float) -> dict:
+    """Diferencias por semilla d = C0 − Cx: mediana, IC 95 % por bootstrap, σ_d, n y Wilcoxon
+    unilateral de d > δ (reducción de al menos δ, §11.2)."""
+    d = x0 - x1
+    rng = np.random.default_rng(0)
+    medianas = np.median(rng.choice(d, size=(10000, len(d)), replace=True), axis=1)
+    sigma_d = float(d.std(ddof=1)) if len(d) > 1 else 0.0
+    try:
+        p = float(stats.wilcoxon(d - delta, alternative="greater").pvalue)
+    except ValueError:                                  # todas las diferencias iguales a δ
+        p = 1.0
+    return {"mediana_diferencia": float(np.median(d)),
+            "ic95": [float(np.percentile(medianas, 2.5)), float(np.percentile(medianas, 97.5))],
+            "sigma_d": sigma_d, "delta": delta, "n": tamano_muestra(sigma_d, delta), "p_wilcoxon": p}
+
+
+def aprenentatge(semillas: list[int] | None = None, dias: float | None = None,
+                 salida: Path | None = None, configuraciones: dict | None = None) -> dict:
+    config = _config(dias)
+    semillas = config["semillas"] if semillas is None else semillas
+    configuraciones = CONFIGURACIONES if configuraciones is None else configuraciones
+    bases = salida / "bases" if salida is not None else Path(tempfile.mkdtemp())
+    metr, ejecuciones = {}, {}
+    for nombre, sobrescrituras in configuraciones.items():
+        base = on.generar_variante(sobrescrituras, bases / f"{nombre}.clp")
+        metr[nombre] = {}
+        for semilla in semillas:
+            ej = bucle.ejecutar(semilla, config, base=base)
+            m = metricas.calcular(ej)
+            if ej.errores:
+                m["errores"] = ej.errores
+            metr[nombre][semilla] = m
+            ejecuciones[(nombre, semilla)] = ej
+            if salida is not None:
+                bucle.guardar(ej, salida / nombre / f"semilla_{semilla}", m)
+    def serie(nombre, metrica):
+        return np.array([metr[nombre][s][metrica] for s in semillas], dtype=float)
+    resumen_m = {nombre: {metrica: {"mediana": float(np.median(serie(nombre, metrica))),
+                                    "q1": float(np.percentile(serie(nombre, metrica), 25)),
+                                    "q3": float(np.percentile(serie(nombre, metrica), 75))}
+                          for metrica in METRICAS_PILOTO + METRICAS_CHUNKS}
+                 for nombre in configuraciones}
+    mediana_c0 = {m: resumen_m["C0"][m]["mediana"] for m in METRICAS_PILOTO}
+    potencia = {m: _comparacion(serie("C0", m), serie("C1", m), _delta(config, m, mediana_c0[m]))
+                for m in METRICAS_PILOTO}
+    h1 = {c: _comparacion(serie("C0", "tie-100"), serie(c, "tie-100"), _delta(config, "tie-100", mediana_c0["tie-100"]))
+          for c in ("C1", "C2")}
+    h2 = {}
+    for c in configuraciones:
+        if c == "C0":
+            continue
+        k = sum(metricas.fidelidad(ejecuciones[("C0", s)], ejecuciones[(c, s)]) for s in semillas)
+        h2[c] = {"semillas_identicas": k, "n": len(semillas), "ic95": clopper_pearson(k, len(semillas))}
+    delta_tie = _delta(config, "tie-100", mediana_c0["tie-100"])
+    h3 = {"chunks-vivos-max": {c: resumen_m[c]["chunks-vivos-max"]["mediana"] for c in ("C1", "C2")},
+          "chunks-vivos-final": {c: resumen_m[c]["chunks-vivos-final"]["mediana"] for c in ("C1", "C2")},
+          "aumento-tie-100": _comparacion(serie("C2", "tie-100"), serie("C1", "tie-100"), delta_tie),
+          "delta": delta_tie}
+    barrido = {c: {m: resumen_m[c][m]["mediana"] for m in ("tie-100", "chunks-vivos-max", "chunks-vivos-final",
+                                                           "chunks-compilados", "chunks-olvidados")}
+               for c in configuraciones if c.startswith("C2")}
+    return {
+        "experimento": "Piloto del aprendizaje (roadmap §11.4), iteración I4",
+        "configuracion": {"semillas": semillas, "dias": config["dias"], "estrategia": config["estrategia"],
+                          "configuraciones": configuraciones, "delta": config["delta"],
+                          "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=RAIZ,
+                                                   capture_output=True, text=True).stdout.strip()},
+        "por_semilla": metr, "metricas": resumen_m, "h1": h1, "h2": h2, "h3": h3,
+        "potencia_c0_c1": potencia, "barrido": barrido,
+        "violaciones": {c: sum(metr[c][s]["violaciones-decision"]["total"] for s in semillas)
+                        for c in configuraciones},
+        "errores": {f"{c}/{s}": metr[c][s]["errores"] for c in configuraciones for s in semillas
+                    if "errores" in metr[c][s]},
+    }
+
+
+def resumen_aprenentatge(res: dict) -> str:
+    conf = res["configuracion"]
+    l = [f"{res['experimento']}: {len(conf['semillas'])} semillas × {conf['dias']} días, "
+         f"estrategia {conf['estrategia']}, configuraciones {', '.join(conf['configuraciones'])}.",
+         f"  violaciones de decisión: {res['violaciones']}",
+         "  H1, tie por cada 100 decisiones (principal):"]
+    for c in res["metricas"]:
+        m = res["metricas"][c]["tie-100"]
+        l.append(f"    {c:12s} mediana {m['mediana']:7.3f}  IQR [{m['q1']:.3f}, {m['q3']:.3f}]")
+    for c, h in res["h1"].items():
+        l.append(f"    C0 − {c}: mediana de la diferencia {h['mediana_diferencia']:.3f}, IC 95 % "
+                 f"[{h['ic95'][0]:.3f}, {h['ic95'][1]:.3f}], δ = {h['delta']:.3f}, "
+                 f"Wilcoxon unilateral (d > δ) p = {h['p_wilcoxon']:.4f}")
+    l.append("  H2, fidelidad de las órdenes frente a C0:")
+    for c, h in res["h2"].items():
+        l.append(f"    {c:12s} {h['semillas_identicas']}/{h['n']} semillas idénticas, "
+                 f"IC 95 % [{h['ic95'][0]:.3f}, {h['ic95'][1]:.3f}]")
+    h3 = res["h3"]
+    l.append(f"  H3, olvido: chunks vivos máx. {h3['chunks-vivos-max']}, final {h3['chunks-vivos-final']}; "
+             f"aumento de tie-100 de C2 frente a C1: mediana {-h3['aumento-tie-100']['mediana_diferencia']:.3f} "
+             f"(δ = {h3['delta']:.3f})")
+    l.append("  Barrido del umbral de olvido (medianas):")
+    for c, b in res["barrido"].items():
+        l.append(f"    {c:12s} " + ", ".join(f"{k} {v:.3f}" for k, v in b.items()))
+    l.append(f"  Transferencia (mediana, C2): {res['metricas']['C2']['transferencia']['mediana']:.3f}")
+    l.append(f"  σ_d real de C0 − C1 y n (α = 0,05, potencia 0,8, mínimo 30):")
+    l.append(f"    {'métrica':26s} {'σ_d':>8s} {'δ':>8s} {'n':>5s}")
+    for m, p in res["potencia_c0_c1"].items():
+        l.append(f"    {m:26s} {p['sigma_d']:8.3f} {p['delta']:8.3f} {p['n']:5d}")
+    if res["errores"]:
+        l.append(f"  ERRORES de CLIPS en {sorted(res['errores'])}")
+    return "\n".join(l)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -305,15 +436,23 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--semillas", nargs="+", type=int, default=None)
     p.add_argument("--dias", type=float, default=None)
     p.add_argument("--salida", default=str(RESULTATS / "i3_a1"))
+    p = sub.add_parser("aprenentatge", help="piloto del aprendizaje: C0, C1, C2 y barrido (§11.4)")
+    p.add_argument("--semillas", nargs="+", type=int, default=None)
+    p.add_argument("--dias", type=float, default=None)
+    p.add_argument("--salida", default=str(RESULTATS / "i4_aprenentatge"))
     args = parser.parse_args(argv)
 
-    if args.experimento in ("piloto", "a1-bucle"):
+    if args.experimento in ("piloto", "a1-bucle", "aprenentatge"):
         salida = RAIZ / args.salida
         salida.mkdir(parents=True, exist_ok=True)
         if args.experimento == "piloto":
             res = piloto(args.semillas, args.dias, salida)
             texto = resumen_piloto(res)
             correcto = res["violaciones"]["total"] == 0 and not res["errores"]
+        elif args.experimento == "aprenentatge":
+            res = aprenentatge(args.semillas, args.dias, salida)
+            texto = resumen_aprenentatge(res)
+            correcto = not any(res["violaciones"].values()) and not res["errores"]
         else:
             res = a1_bucle(args.estrategias, args.semillas, args.dias)
             texto = resumen_a1_bucle(res)

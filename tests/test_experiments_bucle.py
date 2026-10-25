@@ -33,3 +33,13 @@ def test_a1_bucle_corto():
     res = experiments.a1_bucle(["depth", "breadth"], [0], dias=0.2)
     assert res["por_estrategia"]["breadth"]["discrepancias"] == 0
     assert res["por_estrategia"]["breadth"]["ciclos_secuencia_igual"] < res["por_estrategia"]["breadth"]["ciclos"]
+
+
+def test_aprenentatge_corto():
+    """C0, C1 y C2 en dos semillas cortas: sin violaciones, decisiones idénticas y C0 sin chunks."""
+    res = experiments.aprenentatge([0, 1], dias=0.2, configuraciones={
+        "C0": ["aprendizaje-activo=FALSE"], "C1": ["umbral-olvido=-100"], "C2": []})
+    assert not res["errores"] and not any(res["violaciones"].values())
+    assert res["h2"]["C1"]["semillas_identicas"] == 2 and res["h2"]["C2"]["semillas_identicas"] == 2
+    assert res["metricas"]["C0"]["chunks-compilados"]["mediana"] == 0
+    assert "H2, fidelidad" in experiments.resumen_aprenentatge(res)
