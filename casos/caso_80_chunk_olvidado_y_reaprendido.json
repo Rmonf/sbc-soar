@@ -1,7 +1,7 @@
 {
   "id": "caso_80_chunk_olvidado_y_reaprendido",
-  "descripcion": "Olvido y reaprendizaje. t=0: empate como en el caso 55 y se compila el chunk (referencias (0)). t=15000 (250 h después): situación tranquila con el panel en -30°, donde se ordenó; la activación ln((250 h)^-0,5) = -2,76 está por debajo del umbral -2 y el chunk se olvida. t=15005: el mismo par con Δ similares (captación 0°, sombra -60°) vuelve a abrir el impasse, porque ya no hay chunk, y se compila de nuevo con el mismo id (§5.10).",
-  "requisito": "§5.10 olvidar; §6.2 olvido por activación base",
+  "descripcion": "Olvido y reaprendizaje, en el límite del umbral. La activación mide el tiempo en ciclos de decisión de 5 min, como el kernel de Soar (§5.10). t=0: empate como en el caso 55 y se compila el chunk (referencias (0)). t=270: situación tranquila con el panel en -30°, donde se ordenó; tras 54 ciclos sin uso, la activación ln(54^-0,5) = -1,994 sigue por encima del umbral -2 y el chunk se conserva. t=275: tras 55 ciclos, ln(55^-0,5) = -2,004 < -2 y el chunk se olvida. t=280: el mismo par con Δ similares (captación 0°, sombra -60°) vuelve a abrir el impasse, porque ya no hay chunk, y se compila de nuevo con el mismo id.",
+  "requisito": "§5.10 olvidar; §6.2 olvido por activación base (en ciclos de decisión); valor límite del umbral",
   "base": "_base_tranquil",
   "pasos": [
     {
@@ -34,12 +34,33 @@
       ]
     },
     {
-      "instante": 15000,
+      "instante": 270,
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "traza-no-contiene": [
+            "oblidat"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ],
+      "sectores": {
+        "s3": {
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      }
+    },
+    {
+      "instante": 275,
       "esperado": {
         "s3": {
           "accion": "mantenir-posicio",
           "traza-contiene": [
-            "Aprenentatge (t=15000): oblidat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, activacio=-2.761 < -2.0"
+            "Aprenentatge (t=275): oblidat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, activacio=-2.004 < -2.0"
           ]
         }
       },
@@ -53,7 +74,7 @@
       }
     },
     {
-      "instante": 15005,
+      "instante": 280,
       "sectores": {
         "s3": {
           "sensores": {
@@ -81,7 +102,7 @@
           "tipo-impasse": "tie",
           "chunk-aplicado": "nil",
           "traza-contiene": [
-            "Aprenentatge (t=15005): compilat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+            "Aprenentatge (t=280): compilat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
           ],
           "angulo-ordenado": -60.0
         }

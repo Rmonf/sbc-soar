@@ -103,7 +103,7 @@ Este documento es la especificación para empezar a escribir los ficheros CLIPS.
    - `limite-inferior` y `limite-superior` (intervalos abiertos).
 
    Un slot numérico opcional se declara `(type NUMBER SYMBOL) (allowed-symbols nil) (default nil)`: CLIPS rechaza `(default nil)` en un slot de tipo `NUMBER`.
-8. **Tiempo:** `instante` en minutos desde el inicio; "la última hora" es `instante ≥ t − 60`. La activación de los chunks usa horas (§6.2). Los 60 min de la ventana episódica (R4, `posicio-preventiva`, NETEJA) son una constante de convención, no un umbral del dominio: están en el `defglobal ?*ventana-episodica*` de `00_main.clp` y las reglas la leen de ahí.
+8. **Tiempo:** `instante` en minutos desde el inicio; "la última hora" es `instante ≥ t − 60`. La activación de los chunks mide el tiempo en ciclos de decisión, como el kernel de Soar: la duración de un ciclo (5 min, el Δt del simulador) está en el `defglobal ?*minutos-por-ciclo*` de `00_main.clp` (§6.2). Los 60 min de la ventana episódica (R4, `posicio-preventiva`, NETEJA) son una constante de convención, no un umbral del dominio: están en el `defglobal ?*ventana-episodica*` de `00_main.clp` y las reglas la leen de ahí.
 9. **Números:** los reales son `xsd:decimal` en OWL (el tipo de un literal `30.0` en Turtle) y `NUMBER` en CLIPS. Los enteros son `xsd:integer` y `INTEGER`.
 10. **Un diagnóstico por sector y tipo:** la regla que lo crea comprueba que no exista; si existe, añade evidencia y eleva el nivel.
 11. **Multislots como conjuntos:** su orden depende del orden de disparo; las comparaciones entre ejecuciones los tratan como conjuntos.
@@ -416,7 +416,7 @@ Solo actúa si `parametros-aprendizaje (aprendizaje-activo TRUE)`. Tiene tres gr
    - no se crea si ya existe un chunk con las mismas cinco condiciones (detección de duplicados).
 2. **Reforzar.** Por cada `episodio` con `chunk-aplicado ?c` y `resultado ok` cuyo instante sea **posterior a la referencia más reciente** de `?c`, se añade ese instante y se conservan las `max-referencias` más recientes. Los usos son cronológicos, así que esta condición evita volver a añadir referencias ya recortadas y que la regla entre en bucle.
 3. **Olvidar.** Se retracta todo `chunk` cuya activación sea menor que `umbral-olvido`, siempre que no tenga un refuerzo pendiente del grupo 2 (mismo criterio):
-   - activación A = ln Σⱼ (Δtⱼ)^−d, con Δtⱼ = max(t − tⱼ, 1 min) en horas;
+   - activación A = ln Σⱼ (Δtⱼ)^−d, con Δtⱼ = max((t − tⱼ) / `?*minutos-por-ciclo*`, 1) en ciclos de decisión: el kernel de Soar avanza el tiempo de la activación una vez por ciclo de decisión (`time_forward`), y aquí un ciclo son 5 min;
    - la calcula `deffunction activacio`.
 
 Cada compilación, refuerzo u olvido se imprime en la traza como un bloque propio, `Aprenentatge (t=…): compilat|reforcat|oblidat <id> …`, sin nombrar el sector, para que la traza no dependa del orden de disparo. La línea `Resultat observat` es de MONITORATGE y no menciona el chunk.
@@ -474,7 +474,7 @@ Soar **no aprende** si la decisión dependió de una selección probabilística 
 | Dónde se guarda | Como hecho `chunk` persistente, aplicado por una regla genérica de SELECCIO (S5). Soar lo guardaría como una producción nueva. Se elige un hecho por KISS: la red Rete indexa el hecho igual que las condiciones de una regla; olvidar es un `retract`; inspeccionar y exportar es trivial; y S6 puede comprobar si hay un chunk aplicable (§5.6). No se usa `build`. |
 | Cuándo | Se compila en el mismo ciclo del impasse (APRENENTATGE); está disponible desde el ciclo siguiente. |
 | Refuerzo | Se añade una referencia al chunk en cada uso **confirmado** (el episodio decidido por el chunk se verifica `ok` en t+1). Es un refuerzo "quasi RL" condicionado al éxito, en lugar de la referencia por disparo de Soar. No hay valores numéricos: el RL de Soar cambiaría las decisiones y necesitaría una recompensa multiobjetivo (§13). |
-| Olvido | Activación base con los parámetros de Soar (d = 0,5, umbral −2, 10 referencias) y el tiempo en horas: un chunk usado una sola vez se olvida a las e⁴ ≈ 55 h. Preserva la competencia porque el chunk se puede volver a aprender. |
+| Olvido | Activación base con los parámetros de Soar (d = 0,5, umbral −2, 10 referencias) y el tiempo en ciclos de decisión, como en el kernel (un ciclo = 5 min, mínimo 1 ciclo): un chunk con una sola referencia se olvida tras 55 ciclos sin uso (e⁴ ≈ 54,6), unas 4,6 h. Preserva la competencia porque el chunk se puede volver a aprender. |
 | Persistencia | Durante la ejecución, como en Soar. No se guarda entre ejecuciones; Python exporta los chunks a `resultats/` para el análisis. |
 | Línea base | `aprendizaje-activo FALSE`: el mismo sistema, sin APRENENTATGE efectivo. |
 
@@ -496,6 +496,9 @@ Soar **no aprende** si la decisión dependió de una selección probabilística 
 | Producción en Rete | Hecho `chunk` + regla genérica S5 |
 | Apoptosis por activación base | Olvido por activación base, con los mismos parámetros por defecto |
 | Referencia por disparo | Referencia por uso confirmado |
+| Tiempo de la activación en ciclos de decisión (`time_forward` una vez por ciclo) | Igual: Δt en ciclos de decisión de 5 min, con un mínimo de 1 ciclo |
+| Las referencias más allá del historial se aproximan (aproximación de Petrov) | Se descartan: solo cuentan las `max-referencias` más recientes |
+| Varias referencias en un mismo ciclo cuentan por separado | Una referencia por instante: usos simultáneos del mismo chunk en varios sectores cuentan una vez (la condición de refuerzo exige un instante posterior a la última referencia) |
 | Soar-RL, activación de la memoria de trabajo | Fuera de alcance (§13) |
 | Memoria episódica sin olvido | Ventana de 60 minutos (basta para R4 y `posicio-preventiva`) |
 
@@ -508,7 +511,7 @@ Soar **no aprende** si la decisión dependió de una selección probabilística 
 | Memoria de trabajo | 22 plantillas: 5 familias + conocimiento estático + chunks | Aproximado: hechos planos con ids, no un grafo |
 | Elaboración hasta quiescencia | ELABORACIO; la agenda vacía devuelve el foco | Preservado en su función; ejecución secuencial |
 | Operador | `operador-candidato`, creado solo en PROPOSTA | Preservado |
-| Preferencias | `reject`, `require`, `better` | Aproximado: subconjunto |
+| Preferencias | `reject`, `require`, `better` | Aproximado: subconjunto. El `reject` de las restricciones duras (R1–R5) cumple el papel del `prohibit` de Soar: un candidato con `require` y `reject` produce `constraint-failure` (S2), como un operador requerido y prohibido en Soar |
 | Procedimiento de decisión | SELECCIO S1–S7 | Preservado: una selección por sector y ciclo, o impasse |
 | Impasses | `tie`, `dades-insuficients`, `constraint-failure` | Aproximado. `dades-insuficients` no existe en SOAR. `conflict` es imposible por construcción. El `no-change` de operador se aproxima con MONITORATGE + R3. La falta de candidatos no puede darse (§5.5a). |
 | Subestado | `estado-soar` con `estado-padre` | Aproximado: un nivel; si no resuelve, se escala a una persona |
@@ -549,7 +552,7 @@ proyecto-sbc-agrovoltaica/
 └── README.md                           # instalación y ejecución desde entorno limpio
 ```
 
-**Defglobals de MAIN:** `?*ventana-episodica*` = 60 min (§2.3.8).
+**Defglobals de MAIN:** `?*ventana-episodica*` = 60 min y `?*minutos-por-ciclo*` = 5 min, la duración de un ciclo de decisión para la activación de los chunks (§2.3.8, §5.10).
 
 **Deffunctions de MAIN:**
 - `nivel-num` y `recortar-angulo`;
@@ -564,7 +567,7 @@ proyecto-sbc-agrovoltaica/
 - `criterio-servido`: objetivo de mayor prioridad que sirve una valoración con beneficio ≥ `mitja` (§5.5c.3, §5.7);
 - `instante-actual` y `angulo-observado`: ángulo del panel vigente del sector, o nil sin observación vigente (§3.2, §5.1);
 - `relacio-delta`: `menor`, `similar` o `major`;
-- `activacio`: activación base de un chunk;
+- `activacio`: activación base de un chunk, con el tiempo en ciclos de decisión (§5.10);
 - `chunk-aplicable`: busca con `find-fact` el chunk que encaja con un par.
 
 Orden de carga: `00_main` → `config/base_coneixement.clp` → `01…11`.
@@ -698,7 +701,7 @@ Cada iteración termina con:
 
 | | |
 |---|---|
-| Configuraciones | **C0:** línea base, sin aprendizaje. **C1:** chunking sin olvido (`umbral-olvido` = −100: haría falta un chunk sin usar durante e^200 h). **C2:** chunking con olvido (valores por defecto). Las tres con las mismas semillas. |
+| Configuraciones | **C0:** línea base, sin aprendizaje. **C1:** chunking sin olvido (`umbral-olvido` = −100: haría falta un chunk sin usar durante e^200 ciclos de decisión). **C2:** chunking con olvido (valores por defecto). Las tres con las mismas semillas. |
 | H1, rendimiento | C1 y C2 reducen los impasses `tie` por cada 100 decisiones (**métrica principal**) en al menos el 50 % frente a C0: δ = 0,5 · mediana de C0 (Wilcoxon unilateral; δ relativo fijado tras el piloto de I3 y antes de cualquier dato de C1, ver la nota de §11.2). Las reglas disparadas por ciclo son una métrica secundaria. |
 | H2, competencia | C1 y C2 toman las mismas decisiones que C0 en todos los pasos (fidelidad del 100 %, informada como proporción de ejecuciones idénticas con Clopper–Pearson). Las métricas de dominio no cambian. |
 | H3, olvido | C2 mantiene menos chunks vivos que C1, a cambio de un aumento de impasses (reaprendizaje) menor que δ. |

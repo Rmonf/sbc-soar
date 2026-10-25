@@ -1018,7 +1018,7 @@
                            owl:FunctionalProperty ;
                   rdfs:domain :ParametrosAprendizaje ;
                   rdfs:range xsd:decimal ;
-                  rdfs:comment "d de la activación base A = ln(sum_j (t - t_j)^-d), con el tiempo en horas." .
+                  rdfs:comment "d de la activación base A = ln(sum_j (t - t_j)^-d), con el tiempo en ciclos de decisión (un ciclo = 5 min, como el time_forward del kernel de Soar)." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/tipo-diagnostico

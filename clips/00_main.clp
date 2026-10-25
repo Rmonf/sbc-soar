@@ -280,6 +280,11 @@
 ;; Ventana de la memoria episódica en minutos: "la última hora" es instante ≥ t − 60 (§2.3.8).
 (defglobal MAIN ?*ventana-episodica* = 60)
 
+;; Duración de un ciclo de decisión en minutos (el Δt del simulador, dt-min de simulacio.json): la
+;; activación base de los chunks mide el tiempo en ciclos de decisión, como el kernel de Soar
+;; (§2.3.8, §5.10).
+(defglobal MAIN ?*minutos-por-ciclo* = 5)
+
 ;;; ---------------------------------------------------------------------------
 ;;; Deffunctions (§8).
 ;;; ---------------------------------------------------------------------------
@@ -394,12 +399,12 @@
    (if (> (- ?delta-descartada ?delta-preferida) ?tol) then menor
     else (if (> (- ?delta-preferida ?delta-descartada) ?tol) then major else similar)))
 
-;; Activación base de un chunk en t: A = ln Σ Δtⱼ^−d, con Δtⱼ = max(t − tⱼ, 1 min) en horas
-;; (§5.10.3, §6.2).
+;; Activación base de un chunk en t: A = ln Σ Δtⱼ^−d, con Δtⱼ = max((t − tⱼ) / minutos-por-ciclo, 1)
+;; en ciclos de decisión (§5.10.3, §6.2).
 (deffunction MAIN::activacio (?referencias ?t ?d)
    (bind ?suma 0.0)
    (foreach ?r ?referencias
-      (bind ?suma (+ ?suma (** (/ (max (- ?t ?r) 1) 60.0) (- 0 ?d)))))
+      (bind ?suma (+ ?suma (** (max (/ (- ?t ?r) ?*minutos-por-ciclo*) 1) (- 0 ?d)))))
    (log ?suma))
 
 ;; Chunk que prefiere el candidato ?a frente a ?b: mismas acciones, mismo beneficio máximo de cada
