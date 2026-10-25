@@ -5,7 +5,8 @@
 ;;; Así la traza sale completa y una sola vez, sea cual sea la estrategia de agenda.
 ;;; El episodio y la traza no necesitan observacion-panel ni valoracion: sin panel (R5), el
 ;;; ángulo previo es nil, los beneficios baix y la traza dice panell=desconegut.
-;;; Pendiente: chunks (I4).
+;;; Si un chunk decidió (S5), el episodio lo anota en chunk-aplicado y la traza lo nombra en la
+;;; línea Decisio, con la estrategia de la que se aprendió (§5.9).
 
 (defmodule EXPLICACIO (import MAIN ?ALL))
 
@@ -46,6 +47,13 @@
    (if (= (length$ ?i) 0) then (return "-"))
    (str-cat (fact-slot-value (nth$ 1 ?i) tipo-impasse) " ("
             (fact-slot-value (nth$ 1 ?i) estrategia-resolucion) ")"))
+
+;; Chunk que decidió, para la línea Decisio: " (<id>, apres de <estrategia>)", o "" si no hubo.
+;; El chunk sigue vivo: solo APRENENTATGE lo olvida, después de EXPLICACIO (§5.9, §5.10).
+(deffunction EXPLICACIO::descripcion-chunk (?chunk)
+   (if (eq ?chunk nil) then (return ""))
+   (bind ?k (find-fact ((?f chunk)) (eq ?f:id ?chunk)))
+   (str-cat " (" ?chunk ", apres de " (fact-slot-value (nth$ 1 ?k) estrategia-resolucion) ")"))
 
 ;; Multislot ordenado y separado por comas, o "-" si está vacío.
 (deffunction EXPLICACIO::lista (?valores)
@@ -147,6 +155,17 @@
    =>
    (modify ?e (tipo-impasse ?ti)))
 
+;; Chunk que decidió la acción aplicada: el de su better de origen chunk (§5.6 S5, §5.9).
+(defrule EXPLICACIO::anotar-chunk-aplicado
+   (estado-soar (id S0) (fase explicacio))
+   ?e <- (episodio (sector ?s) (instante ?t) (chunk-aplicado nil))
+   (ciclo-temporal (instante ?t))
+   (operador-candidato (id ?c) (sector ?s) (estado-candidato aplicat))
+   (preferencia (tipo-preferencia better) (operador-referencia ?c) (origen chunk)
+                (chunk-aplicado ?k))
+   =>
+   (modify ?e (chunk-aplicado ?k)))
+
 ;; Criterio determinante (§5.9), en este orden: escalat si el impasse del sector se cerró así;
 ;; si no, el require de la acción aplicada; si no, su better de deliberación (o chunk); si no,
 ;; su better de regla; con varios, el del objetivo más prioritario. Sin nada de eso, nil.
@@ -235,7 +254,7 @@
    (ciclo-temporal (instante ?t))
    (episodio (sector ?s) (instante ?t) (situacion $?sit) (alternativas $?alt) (descartes $?des)
              (restricciones-activas $?ra) (criterio-determinante ?cd) (accion ?a)
-             (angulo-ordenado ?ang) (tipo-impasse ?ti) (escalado-humano ?esc)
+             (angulo-ordenado ?ang) (tipo-impasse ?ti) (escalado-humano ?esc) (chunk-aplicado ?ch)
              (beneficio-cultivo ?bc) (beneficio-energia ?be)
              (perdida-cultivo ?pc) (perdida-energia ?pe))
    ;; anotar-situacion
@@ -266,6 +285,10 @@
    (not (preferencia (sector ?s) (restriccion ?r&~nil&:(not (member$ ?r ?ra)))))
    ;; anotar-impasse
    (not (and (test (eq ?ti nil)) (impasse (sector ?s))))
+   ;; anotar-chunk-aplicado
+   (not (and (test (eq ?ch nil))
+             (operador-candidato (id ?c6) (sector ?s) (estado-candidato aplicat))
+             (preferencia (tipo-preferencia better) (operador-referencia ?c6) (origen chunk))))
    ;; anotar-criterio-escalat, -require, -deliberacion y -better
    (not (and (test (eq ?cd nil)) (impasse (sector ?s) (estrategia-resolucion escalat))))
    (not (and (test (eq ?cd nil))
@@ -291,7 +314,7 @@
    (printout traza "Candidats: " (lista ?alt) crlf)
    (printout traza "Descartats: " (lista ?des) crlf)
    (printout traza "Impasse: " (descripcion-impasse ?s) crlf)
-   (printout traza "Decisio: " ?a "   Criteri: " (if (eq ?cd nil) then "-" else ?cd) crlf)
+   (printout traza "Decisio: " ?a (descripcion-chunk ?ch) "   Criteri: " (if (eq ?cd nil) then "-" else ?cd) crlf)
    (printout traza "Ordre: sector=" ?s ", angle=" ?ang
                    ", escalat a persona: " (if (eq ?esc TRUE) then "si" else "no") crlf)
    (bind ?estres (create$))

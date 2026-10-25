@@ -42,7 +42,12 @@ def _comprobar_bloque(r, sector, expandido):
     assert _conjunto(l["Candidats"]) == set(e["alternativas"])
     assert _conjunto(l["Descartats"]) == set(e["descartes"])
     criterio = "-" if e["criterio-determinante"] == "nil" else e["criterio-determinante"]
-    assert l["Decisio"] == f"{e['accion']}   Criteri: {criterio}"
+    chunk = "" if e["chunk-aplicado"] == "nil" else f" ({e['chunk-aplicado']}, apres de "
+    if chunk:
+        assert e["tipo-impasse"] == "nil"                  # el chunk evita el impasse (§5.6 S5)
+        assert l["Decisio"].startswith(f"{e['accion']}{chunk}") and l["Decisio"].endswith(f")   Criteri: {criterio}")
+    else:
+        assert l["Decisio"] == f"{e['accion']}   Criteri: {criterio}"
     escalado = "si" if e["escalado-humano"] == "TRUE" else "no"
     assert l["Ordre"] == f"sector={e['sector']}, angle={e['angulo-ordenado']}, escalat a persona: {escalado}"
     estres = {x for x in e["situacion"] if x.startswith("estres")}

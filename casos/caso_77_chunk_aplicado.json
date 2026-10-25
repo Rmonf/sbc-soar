@@ -1,0 +1,83 @@
+{
+  "id": "caso_77_chunk_aplicado",
+  "descripcion": "Chunk aprendido y aplicado. t=0: empate en s3 (sombra mitja frente a producción alt, los dos a 30°), prioritat-objectius elige la sombra y APRENENTATGE compila el chunk. t=5: el panel está en -30° (orden cumplida) y los ángulos se han desplazado (captación 0°, sombra -60°): el mismo par con los mismos beneficios y Δ similares. S5 aplica el chunk, no hay impasse y la decisión es la misma que habría tomado la deliberación.",
+  "requisito": "§5.6 S5; §5.9 chunk-aplicado; §6.2",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "tie",
+          "chunk-aplicado": "nil",
+          "criterio-determinante": "proteccio-cultiu"
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          },
+          "predicciones": {
+            "angle-captacio": 0,
+            "angle-ombra": -60
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -60.0,
+          "tipo-impasse": "nil",
+          "chunk-aplicado": "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar",
+          "criterio-determinante": "proteccio-cultiu",
+          "resultado-previo": "ok",
+          "traza-contiene": [
+            "Impasse: -",
+            "Decisio: orientar-ombra (chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, apres de prioritat-objectius)   Criteri: proteccio-cultiu"
+          ],
+          "descartes": [
+            "orientar-produccio:proteccio-cultiu",
+            "mantenir-posicio:proteccio-cultiu",
+            "mantenir-posicio:produccio-energia"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    }
+  ]
+}

@@ -2,7 +2,8 @@
 ;;; Rechazado = tiene un reject; dominado = hay un better sobre él emitido por un candidato no
 ;;; rechazado; no dominado = ni una cosa ni otra. B(s) = incertesa-dades critic, o un candidato
 ;;; con require y reject, o dos candidatos con require. Todas las reglas exigen que no haya un
-;;; seleccionado en el sector (una selección por ciclo). S5 (chunk) llega en I4.
+;;; seleccionado en el sector (una selección por ciclo). S5 aplica un chunk a un empate de dos y
+;;; S6 niega exactamente su condición: con tres o más no dominados, S6 abre el tie como siempre.
 
 (defmodule SELECCIO (import MAIN ?ALL))
 
@@ -23,6 +24,15 @@
             then (bind ?dominado TRUE)))
       (if (and (not ?rechazado) (not ?dominado)) then (bind ?r (create$ ?r ?c:id))))
    ?r)
+
+;; Chunk aplicable al empate de dos del sector, en cualquiera de los dos sentidos; nil si no hay
+;; exactamente dos no dominados o ningún chunk encaja (condición de S5, §5.6). Las preferencias
+;; de AVALUACIO y los chunks no cambian durante SELECCIO.
+(deffunction SELECCIO::chunk-del-empate (?sector)
+   (bind ?nd (no-dominados ?sector))
+   (if (neq (length$ ?nd) 2) then (return nil))
+   (bind ?k (chunk-aplicable (nth$ 1 ?nd) (nth$ 2 ?nd) ?sector))
+   (if (neq ?k nil) then ?k else (chunk-aplicable (nth$ 2 ?nd) (nth$ 1 ?nd) ?sector)))
 
 ;; S1: incertesa-dades critic en el sector y sin impasse: impasse dades-insuficients (§5.6).
 (defrule SELECCIO::s1-dades-insuficients
@@ -102,8 +112,40 @@
    =>
    (modify ?f (estado-candidato seleccionat)))
 
-;; S6: dos o más no dominados, ningún requerido no rechazado, sin B(s) ni impasse: impasse
-;; tie con los no dominados en conflicto (§5.6).
+;; S5: empate de dos E(A, B) (los únicos no dominados, sin requeridos no rechazados, sin B(s) ni
+;; impasse) con un chunk que prefiere A frente a B: better(A, B) con origen chunk; después S4
+;; selecciona A (§5.6, §6.2).
+(defrule SELECCIO::s5-aplicar-chunk
+   (estado-soar (id S0) (fase seleccio))
+   (operador-candidato (id ?a) (sector ?s))
+   (operador-candidato (id ?b&~?a) (sector ?s))
+   (not (preferencia (tipo-preferencia reject) (operador-referencia ?a)))
+   (not (preferencia (tipo-preferencia reject) (operador-referencia ?b)))
+   (not (and (preferencia (tipo-preferencia better) (operador-comparado ?a) (operador-referencia ?da))
+             (not (preferencia (tipo-preferencia reject) (operador-referencia ?da)))))
+   (not (and (preferencia (tipo-preferencia better) (operador-comparado ?b) (operador-referencia ?db))
+             (not (preferencia (tipo-preferencia reject) (operador-referencia ?db)))))
+   (not (and (preferencia (sector ?s) (tipo-preferencia require) (operador-referencia ?r))
+             (not (preferencia (tipo-preferencia reject) (operador-referencia ?r)))))
+   (not (diagnostico (sector ?s) (tipo-diagnostico incertesa-dades) (nivel critic)))
+   (not (and (preferencia (sector ?s) (tipo-preferencia require) (operador-referencia ?x))
+             (preferencia (tipo-preferencia reject) (operador-referencia ?x))))
+   (not (and (preferencia (sector ?s) (tipo-preferencia require) (operador-referencia ?y))
+             (preferencia (sector ?s) (tipo-preferencia require) (operador-referencia ~?y))))
+   (not (impasse (sector ?s)))
+   (not (operador-candidato (sector ?s) (estado-candidato seleccionat)))
+   (test (= (length$ (no-dominados ?s)) 2))
+   (test (neq (chunk-aplicable ?a ?b ?s) nil))
+   =>
+   (bind ?k (chunk-aplicable ?a ?b ?s))
+   (assert (preferencia (en-estado S0) (sector ?s) (tipo-preferencia better)
+                        (operador-referencia ?a) (operador-comparado ?b)
+                        (criterio (fact-slot-value ?k criterio)) (origen chunk)
+                        (chunk-aplicado (fact-slot-value ?k id)))))
+
+;; S6: dos o más no dominados, ningún requerido no rechazado, sin B(s) ni impasse, y no es un
+;; empate de dos con chunk aplicable (eso es S5): impasse tie con los no dominados en conflicto
+;; (§5.6).
 (defrule SELECCIO::s6-tie
    (estado-soar (id S0) (fase seleccio))
    (operador-candidato (id ?a) (sector ?s))
@@ -123,6 +165,7 @@
              (preferencia (sector ?s) (tipo-preferencia require) (operador-referencia ~?y))))
    (not (impasse (sector ?s)))
    (not (operador-candidato (sector ?s) (estado-candidato seleccionat)))
+   (test (eq (chunk-del-empate ?s) nil))
    =>
    (assert (impasse (id (sym-cat ?s "-impasse")) (en-estado S0) (sector ?s)
                     (tipo-impasse tie) (resuelto FALSE)
