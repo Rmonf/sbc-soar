@@ -320,17 +320,114 @@ APRENENTATGE no depende del orden de disparo: la invariancia se mantiene con el 
 
 ---
 
+## I5. Congelación: experimentos completos y casos no vistos
+
+El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no cambia en I5.
+
+### Qué se implementó (pasos L0–L6)
+- **L0 (`0326cd7`):** especificación de I5 (tabla siguiente).
+- **L1 (`44ff6a4`):**
+  - `metricas` añade las rachas de `diagnosticar` (número, la más larga y las de 30 min o más por causa) y los empates por tipo de día;
+  - `bucle` guarda el `loadavg` y el número de CPU de cada ejecución, guarda las reglas de cada ciclo como huellas del multiconjunto y de la secuencia, y `cargar` lee una ejecución guardada;
+  - `experiments` añade la correlación biserial de rangos, Holm y Friedman con Wilcoxon por pares.
+- **L2 (`9d564be`):** variante A3s (`clips/variants/a3s.clp`) y carga de variantes en `pont_clips` (`VARIANTES`), `bucle` y `executar_casos`. `tests/test_variantes.py` comprueba que cada regla copiada es textualmente igual a la de producción salvo el `declare`, y que el código de producción no tiene salience.
+- **L3 (`4de6ca8`):** línea base B0 (`clips/variants/b0.clp`), con tests: copias de R1–R5 y de `descartar-resto`, salience = 6 − la prioridad del TTL, viento `alt` no crítico (caso 05: `posicio-seguretat`, igual que el núcleo), R1 (caso 42), empate del caso 54 decidido por salience sin impasse ni criterio, y la batería entera sin errores.
+- **L4 (`c7e7a7b`):** `experiments.py i5`, en serie y reanudable, con las etapas aprendizaje → B0 → A3 → A1/A2. Un caché compartido (`resultats/i5/ejecuciones/<estrategia>-<base>-<variante>/semilla_n`) guarda cada ejecución con una clave que incluye la huella del código que la produce; C0 y C2 con `depth` sirven a todas las etapas.
+- **L5 (`37b98dc`):** seis casos no vistos en `casos_no_vistos/` y `executar_casos.py --no-vistos`.
+- **L6:** cierre: verificación (0 anomalías), 364 tests y 82/82 casos; las únicas reglas no disparadas son las de la reserva de escalado.
+
+### Decisiones que cambiaron el roadmap
+| Commit | Cambio | Motivo |
+|---|---|---|
+| `0326cd7` | §10.2 y §13: la validación con expertos pasa a trabajo futuro; en su lugar, casos no vistos de los testimonios sin salida esperada, que el equipo valora a posteriori | Decisión del equipo al planificar I5. |
+| `0326cd7` | §11.2: semillas confirmatorias 10–39 en I5; CPU en serie, sin otras cargas y con el `loadavg` registrado | Que el contraste no reutilice los datos que fijaron δ y σ_d; incidencia de la CPU ruidosa de I4. |
+| `0326cd7` | §11.3: definición de A3s y de B0. B0 tiene las mismas condiciones de §5.4 y las mismas restricciones R1–R5; solo cambia la resolución del conflicto (salience = 6 − prioridad, la primera regla gana) | §11.3 no decía qué sustituye B0. Que la comparación mida conflictos, empates y trazabilidad, no seguridad. |
+| `9d564be` | §11.3: salience de A3s negativa (−10 los refinamientos, −20 las restricciones) | Con valores positivos, la secuencia solo cambiaba en 3 de los 115 ciclos de la batería con `depth`; con negativos, en 34. |
+| `c7e7a7b` | §11.2: en I5, el δ de `tie` es el del piloto de I4 (0,798, `simulacio.json`), sin recalcularlo con las semillas nuevas | Fijado antes de ver los resultados completos (§11.2). |
+
+### Experimento: aprendizaje completo, semillas 10–39 × 7 días (§11.4)
+`resultats/i5/aprenentatge/`. Violaciones de decisión: 0 en C0, C1 y C2.
+
+| Medida | C0 | C1 | C2 |
+|---|---|---|---|
+| `tie` por 100 decisiones, mediana [IQR] | 1,091 [0,562, 1,699] | 0,132 [0,116, 0,165] | 0,190 [0,120, 0,231] |
+| Chunks vivos, máximo / final (mediana) | – | 8 / 8 | 7 / 4 |
+
+| Hipótesis | Resultado | p (Holm) | ¿Se cumple? |
+|---|---|---|---|
+| H1, C0 − C1 > δ = 0,798 | mediana 0,951, IC 95 % [0,587, 1,314] | 0,120 | **No** al 5 % |
+| H1, C0 − C2 > δ | mediana 0,926, IC 95 % [0,579, 1,265] | 0,120 | **No** al 5 % |
+| H2, órdenes idénticas a C0 | C1 y C2: 30/30, IC 95 % [0,884, 1,000] | – | Sí |
+| H3, C2 − C1 < δ | mediana 0,033, IC 95 % [0,017, 0,066] | 2,4·10⁻⁶ | Sí |
+
+- **H1 no se confirma con las semillas confirmatorias.** La mediana de la reducción (0,95) supera δ, pero el IC llega por debajo y el contraste unilateral frente a δ da p = 0,06 y 0,10 (0,12 con Holm). La reducción es claramente positiva (el IC excluye 0), pero no se puede afirmar que supere δ. σ_d = 0,80 ≈ δ, así que n = 30 era el mínimo justo; la dispersión entre semillas de `tie` en C0 (IQR 0,56–1,70) es la que manda. Se informa tal cual; no se cambia δ a posteriori.
+- **Contabilidad** `tie`(C0) = `tie`(Cx) + usos(Cx): 30/30 en C1 y en C2.
+- **Transferencia** (mediana, C2): 0, como se esperaba (incidencia abierta).
+- **CPU por ciclo** (`loadavg` máximo 1,13 en 12 CPU, limpio): C1 gasta 0,29 ms más por ciclo que C0 (IC [0,10, 0,41], biserial 0,88) y C2 0,15 ms más (IC [0,005, 0,46]). Es el coste de emparejar los chunks, muy por debajo del δ de CPU (1,05 ms).
+
+### Experimento: B0 frente al núcleo, 30 semillas × 7 días, base C0 (§11.3)
+`resultats/i5/b0/`. Violaciones de decisión: 0 en los dos.
+
+| Métrica (mediana) | Núcleo | B0 | d = núcleo − B0, IC 95 % | p (Holm) |
+|---|---|---|---|---|
+| `tie` por 100 decisiones | 1,091 | 0 | 1,091 [0,711, 1,496] | < 10⁻⁴ |
+| Energía (kWh, 7 días) | 22 539 | 22 766 | −234 [−275, −166] | < 10⁻⁴ |
+| Horas de estrés por sector y día | 3,00 | 3,02 | −0,002 [−0,008, 0,004] | 0,42 |
+| Movimientos por sector y día | 20,2 | 34,9 | −14,9 [−15,1, −14,6] | < 10⁻⁴ |
+| Escalados | 0 | 0 | 0 | 0,42 |
+| Reglas por ciclo | 178,4 | 156,5 | 22,0 [20,4, 23,4] | < 10⁻⁴ |
+| CPU por ciclo (ms) | 10,50 | 9,60 | 0,90 [0,84, 0,96] | < 10⁻⁴ |
+
+- **Decisiones distintas:** 68 895 de 181 440 por acción (38 %) y 81 429 por ángulo (45 %). En los 2212 ciclos de conflicto (con `tie` en el núcleo), 1807 por acción y 1344 por ángulo.
+- **Trazabilidad:** el núcleo registra un criterio determinante en el 48,5 % de los episodios (mediana); B0, en ninguno.
+- **Lectura.** Con las mismas condiciones de §5.4 y las mismas restricciones, B0 no tiene ni un empate ni una violación, pero no sabe explicar por qué elige y mueve los paneles casi el doble: la regla de `produccio-energia` gana a la de `estabilitat` en cada ciclo en que hay oportunidad, porque B0 no tiene la valoración de coste del movimiento (§5.5b) ni la preferencia de mínima intervención. Así gana un 1 % de energía sin cambiar el estrés del cultivo. En la batería coincidía con el núcleo en 325/345 decisiones porque los casos son de uno o pocos pasos.
+
+### Experimento: A1, A2 y A3s, 30 semillas × 7 días, sin (C0) y con (C2) aprendizaje (§11.3)
+`resultats/i5/a1/` y `resultats/i5/a3/`.
+
+| Comparación | Discrepancias (C0 y C2) | IC 95 % |
+|---|---|---|
+| A1: `breadth`, `lex`, `mea`, `complexity`, `simplicity`, `random` frente a `depth` | 0/30 cada una | [0, 0,116] |
+| A2: `simplicity` frente a `complexity` | 0/30 | [0, 0,116] |
+| A3s frente a `depth` | 0/30 | [0, 0,116] |
+
+- La secuencia de reglas cambia en todos los ciclos con A1 y A2, y en 10 411 de 60 480 con A3s (en C0 y en C2, con las mismas cifras por semilla: los refinamientos que reordena A3s no dependen de los chunks). El multiconjunto, las órdenes, los episodios y la traza son iguales en todos los ciclos.
+- **Batería:** A1, A2 y A3s son invariantes con C0 y con C2 en los 115 ciclos. A3s cambia la secuencia en 34 ciclos (AVALUACIO 31, ELABORACIO 4).
+- **CPU por estrategia** (medianas, ms por ciclo; C0): `depth` 10,50, `breadth` 10,29, `lex` 10,42, `mea` 10,46, `complexity` 10,35, `simplicity` 10,39, `random` 10,40. Friedman p = 8·10⁻¹² (C0) y 3·10⁻¹¹ (C2). Las diferencias son de 0,2 ms como mucho (≈ 2 %), muy por debajo del δ de CPU (1,05 ms), y **parte de estas ejecuciones no se hizo sin carga**: las semillas 33–39 de C0 y 10–20 de C2 tienen `loadavg` de 1,5 a 12 (el máximo, 12,2, en la semilla 38 de C0). La conclusión es que la estrategia no cambia la CPU de forma relevante; los p de las comparaciones por pares no se deben leer como un orden entre estrategias.
+
+### Casos no vistos (§10.2)
+Informe completo, con la traza de cada paso: `resultats/i5_no_vistos/informe.md` (se regenera con `executar_casos.py --no-vistos`). Resumen de las decisiones:
+
+| Caso | Qué pasa | Decisiones del sistema |
+|---|---|---|
+| 01, martes difícil | Calor en s1 con temporeros debajo; s2 con el suelo seco; precio alto; a las 10:15 se prevé una ráfaga de 55 km/h en s3 | s1 mantiene por R1 mientras hay personas y pasa a sombra cuando se van; s2 sombra; s3 producción y, con la ráfaga, `posicio-seguretat` |
+| 02, noche del operador | Datos ausentes, antiguos y fallados en s1 y s3 | s1 `diagnosticar` con impasse `dades-insuficients` (R5) durante tres ciclos; s3 un `diagnosticar` aislado; luego todo mantiene |
+| 03, ola de calor | s3 en zona gris durante 30 min | Dos `tie` en s3 (prioridad de objetivos y mínima intervención); después mantiene sin impasse |
+| 04, pérdida de comunicación con viento | El panel de s2 deja de informar mientras sube el viento | Dos `diagnosticar` con `dades-insuficients` (R5; el segundo con R2), `posicio-seguretat` con R2, y vuelta a producción cuando se recupera |
+| 05, actuador encallado | El actuador de s1 se queda a 20° durante 40 min | s1 alterna `orientar-ombra` y `diagnosticar` (R3) cada ciclo, sin escalado |
+| 06, tormenta con maquinaria | Viento crítico con maquinaria en s3 | s1 y s2 `posicio-seguretat` (R2); s3 `constraint-failure` (R1 frente al `require` de R2) y escalado a una persona durante tres ciclos |
+
+**Valoración del equipo (pendiente):**
+
+| Caso | Paso | Discrepancia observada | Requisito o testimonio | Qué se haría |
+|---|---|---|---|---|
+| | | | | |
+
+### Estado al cierre
+- 0 anomalías en la verificación, 364 tests y 82/82 casos. Las únicas reglas no disparadas son las de la reserva de escalado.
+- El núcleo no cambió en I5. Las variantes A3s y B0 están en `clips/variants/`, el único sitio con salience.
+
 ## Incidencias abiertas
 - **Fuga `ENVRNMNT8` (§13):** CLIPS deja unos 128 bytes por cada hecho con multislot que Python leyó y una regla retractó después. Son unos 0,8 MB por ejecución de 7 días. Aparece al final de la salida, no afecta a ningún resultado y, por decisión del equipo, no se filtra.
 - **`escalat` sigue siendo inalcanzable** con el conocimiento actual. Es una reserva de terminación probada con una variante de configuración (`tests/test_escalado.py`).
 - **Transferencia estructuralmente 0:** solo s3 puede empatar con el TTL actual. La generalización solo se prueba con una variante (`tests/test_chunk_fidelidad.py`).
 - **Empates de tres inalcanzables:** S6 con tres o más no dominados, en presencia de un chunk, solo se prueba con SELECCIO aislada (`tests/test_seleccio_chunk.py`).
-- **CPU por ciclo ruidosa:** parte del piloto de I4 compartió la máquina con A1 en bucle cerrado. En I5, los experimentos de CPU deben ejecutarse sin otras cargas.
+- **CPU por ciclo:** cerrada para el aprendizaje y B0 (`loadavg` ≤ 1,13 en 12 CPU). En A1 en bucle cerrado, hasta 17 de las 60 ejecuciones por estrategia (30 con C0 y 30 con C2) se midieron con carga (`loadavg` hasta 12,2). Las diferencias entre estrategias son de 0,2 ms como mucho, irrelevantes frente a δ, pero si se quiere un orden fiable entre estrategias hay que repetir esas ejecuciones sin carga (borrar sus directorios del caché y relanzar `experiments.py i5 --etapas a1`).
+- **Zona gris cuantificada (C0, 30 semillas):** 2145 `tie` en los 53 días de calor (≈ 40 por día), 67 en los 116 templados y 0 en los 41 nublados. Es la dispersión que impide confirmar H1.
+- **`diagnosticar` repetido (C0, 30 semillas):** 1141 rachas por sector; la más larga dura 90 min; 171 duran 30 min o más (1950 ciclos), 151 por `incertesa-dades` y 20 por `fallada-actuador`. Solo hay 8 escalados, todos en la semilla 27. El caso no visto 05 muestra la misma pauta con un actuador encallado: `orientar-ombra` y `diagnosticar` alternados sin escalado. Si el equipo quiere un escalado tras k `diagnosticar` seguidos, es un cambio de especificación posterior a la congelación.
 - **Modelos del simulador heurísticos:** la lechuga (umbral de 26 °C, del TTL) tiene unas 4 h de estrés también los días templados, lo que es plausible para lechuga en verano. Los parámetros meteorológicos son sintéticos y no están calibrados con datos reales.
 
-## Siguiente paso: I5 (congelación)
-Experimentos completos (§11.1, §11.3, §11.4) con n = 30 semillas:
-- A1–A3 (incluidos A3s y B0, que todavía no existen), con el aprendizaje desactivado y activado;
-- C0, C1 y C2 con los contrastes de §11.2;
-- casos no vistos validados por los "expertos" del equipo (§10.2);
-- informe y diagramas (§12).
+## Siguiente paso: informe y diagramas (§12)
+- El equipo valora los casos no vistos y rellena la tabla de discrepancias de I5.
+- Informe y diagramas (§12) a partir de esta sección y de `resultats/i5/`.
+- Decisiones pendientes del equipo, todas posteriores a la congelación: repetir sin carga las ejecuciones de A1 afectadas; un posible escalado tras k `diagnosticar`.
