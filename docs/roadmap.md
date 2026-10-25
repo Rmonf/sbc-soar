@@ -538,7 +538,7 @@ proyecto-sbc-agrovoltaica/
 │   ├── 01_percepcio.clp  02_monitoratge.clp  03_elaboracio.clp  04_proposta.clp
 │   ├── 05_avaluacio.clp  06_seleccio.clp     07_deliberacio.clp 08_aplicacio.clp
 │   ├── 09_explicacio.clp 10_aprenentatge.clp 11_neteja.clp
-│   └── variants/                       # salience del experimento de agenda (A3s, B0)
+│   └── variants/                       # salience del experimento de agenda: a3s.clp, b0.clp (§11.3)
 ├── python/
 │   ├── ontologia.py                    # genera la configuración y verifica la base de conocimiento (§10.1)
 │   ├── simulador.py                    # sectores, meteorología, geometría heurística, humedad, fallos inyectables
@@ -546,6 +546,7 @@ proyecto-sbc-agrovoltaica/
 │   ├── executar_casos.py               # casos de prueba (§10.2)
 │   └── experiments.py                  # experimentos y análisis estadístico (§11)
 ├── casos/caso_XX.json                  # entradas por paso, salida esperada, requisito que cubre
+├── casos_no_vistos/                    # escenarios de los testimonios sin salida esperada (§10.2)
 ├── tests/                              # pytest: generador, verificador (mutación) y casos (§10)
 ├── resultats/                          # trazas, episodios, chunks, métricas, configuración usada
 ├── pyproject.toml + uv                 # versiones fijadas y requirements (clipspy, rdflib, numpy, scipy)
@@ -630,7 +631,7 @@ El propio verificador se prueba **por mutación** (Vermesan y Hogberg, citado en
   - compilación, uso, refuerzo y olvido de un chunk;
   - un caso temporal de varios pasos.
 - **Conjunto razonable de casos** (ReST, Abel y Gonzalez): de los criterios del dominio (primero la seguridad), de los usuarios (contextos de los testimonios: el "martes difícil" del agricultor, la noche del operador) y del experto. Mínimo ocho casos (enunciado 3.10).
-- **Validación por un experto, al estilo del test de Turing:** al menos dos casos no usados durante el desarrollo. Dos miembros del equipo, que hacen de agrónomo y de ingeniero energético, escriben de antemano la acción esperada y su justificación desde su vista. Se mide el acuerdo entre sistema y "experto" por vista (medida de acuerdo, SHIVA) y se analizan las discrepancias.
+- **Casos no vistos** (I5, en `casos_no_vistos/`): unos seis escenarios sacados de situaciones de los testimonios (el "martes difícil", la noche del operador, una ola de calor, la pérdida de comunicación, el actuador encallado, una tormenta con personas…), que no se usan durante el desarrollo y no llevan salida esperada. Cada uno indica los requisitos y testimonios que aplican. Se ejecutan y se presenta, por caso y paso, la decisión por sector y la traza completa; el equipo los valora a posteriori y anota las discrepancias en `docs/iteraciones.md`. No forman parte de la regresión ni del recuento de reglas no disparadas. La validación con expertos queda como trabajo futuro (§13).
 - **Regresión:** toda la batería se ejecuta tras cada cambio (`executar_casos.py`, salida pass/fail).
 
 ---
@@ -663,6 +664,8 @@ Cada iteración termina con:
   - un piloto de 10 semillas estima la desviación típica de las diferencias, σ_d. En I3 solo existe el núcleo, así que el piloto estima σ por métrica y usa la cota σ_d ≤ √2·σ, **válida si ρ ≥ 0** (las dos configuraciones no están correlacionadas negativamente sobre las mismas semillas). El n resultante era **provisional hasta I4**, que mide σ_d con las diferencias reales C0–C1 (ver la nota);
   - n = ((z₁₋α/₂ + z₁₋β) · σ_d / δ)², con α = 0,05, potencia 0,8 y δ el efecto mínimo relevante (fijado de antemano para cada métrica);
   - mínimo 30 semillas.
+- **Semillas:** los pilotos usan las de `simulacio.json` (0–9); los experimentos completos de I5 usan las semillas **10–39**, confirmatorias: no contienen los datos con los que se fijaron δ y σ_d.
+- **Tiempo de CPU:** las ejecuciones que miden CPU se hacen en serie y sin otras cargas en la máquina; cada ejecución guarda en su configuración el `loadavg` al empezar y al terminar y el número de CPU, para poder comprobarlo. Una ejecución reanudada (ya guardada) conserva la medida con la que se hizo.
 - **δ fijados antes del piloto** (`simulacio.json`), por semilla: impasses `tie` 50 % de la mediana de C0 (ver la nota); energía 2 % de la mediana del piloto; horas de estrés 1 por sector y día; movimientos 2 por sector y día; reglas disparadas por ciclo 5 % y tiempo de CPU por ciclo 10 % de la mediana.
 - **Nota sobre el δ de `tie` (cambio tras el piloto de I3 y antes de cualquier dato de C1):** el δ inicial era absoluto, 1 por cada 100 decisiones. El piloto dio una mediana de 0,198 (IQR 0,149–0,273), así que ni eliminar todos los empates alcanzaba ese δ y H1 no se podía confirmar. Se cambia a un δ relativo: una reducción de al menos el 50 % frente a C0, δ = 0,5 · mediana(`tie` por cada 100 decisiones en C0). El cambio solo usa el piloto del núcleo, es decir, datos de C0, y se hizo antes de que existiera C1, por lo que no depende del efecto observado. Con aquel piloto, δ = 0,099 y σ_d ≤ √2 · 0,075 = 0,106, de donde n = 9, que se eleva al mínimo de 30. Tras las correcciones de §5.5b y del simulador (tipos de día), el piloto repetido da una mediana de 1,596 (IQR 1,339–1,881; los empates se concentran en s3 los días de calor): δ = 0,798, σ = 0,690 y n = 30 (provisional hasta I4, que usará la mediana de C0 y la σ_d reales). **Con las diferencias reales (piloto de I4, 10 semillas × 7 días):** la mediana de C0 vuelve a ser 1,596, así que δ = 0,798; σ_d(C0 − C1) = 0,642 para `tie`, 0 para la energía, las horas de estrés y los movimientos (C1 decide igual que C0 en las 10 semillas, H2), 0,130 para las reglas por ciclo y 0,685 ms para la CPU. Con todas ellas n = 30, el mínimo: el n = 70 de la energía venía de la cota √2·σ y desaparece con el diseño pareado.
 - **Pruebas:**
@@ -688,14 +691,19 @@ Cada iteración termina con:
 - **A1, estrategias:** `depth`, `breadth`, `lex`, `mea`, `complexity`, `simplicity` y `random` (con semilla).
 - **A2, especificidad:** `complexity` frente a `simplicity`.
 - **A3, salience (obligatorio):**
-  - **A3s:** salience en los refinamientos y en R1–R5;
-  - **B0:** al estilo de `auto.clp`, decisión directa por objetivo con salience igual a la prioridad.
+  - **A3s:** salience en los refinamientos y en R1–R5. `clips/variants/a3s.clp` se carga después de los módulos y redefine, con el mismo nombre y módulo, los refinamientos que son reglas propias (`reforzar-risc-mecanic`, `refinar-oportunitat-preu`, `anotar-estado-mecanico`; salience 10) y las restricciones (`r1-…` a `r5-…` y `r2-requerir-seguretat`; salience 20). Los valores son arbitrarios a propósito: la hipótesis es que no importan. Un test comprueba que cada regla redefinida, sin su `declare`, es textualmente igual a la de producción.
+  - **B0:** al estilo de `auto.clp`, decisión directa por objetivo con salience igual a la prioridad. B0 conserva **exactamente** las condiciones de aplicabilidad de §5.4 (`04_proposta.clp` sin cambios) y las prohibiciones R1–R5 con el `require` de R2; **solo cambia la resolución del conflicto**. `clips/variants/b0.clp` sustituye `05_avaluacio`–`07_deliberacio`:
+    - en la fase `avaluacio`, R1–R5 (objetivos de prioridad 1 y 2, `seguretat-persones` e `integritat-mecanica`) son copias textuales de las de producción con la salience más alta (10), comprobadas por un test como en A3s;
+    - en la misma fase, una regla de elección por objetivo, con salience = 6 − prioridad, selecciona el candidato del sector que sirve a ese objetivo si no está rechazado y el sector aún no tiene seleccionado (la primera que dispara gana): `posicio-seguretat` para `integritat-mecanica` (4, propuesta por `risc-mecanic` ≥ `alt` o `incertesa-dades` ≥ `mitja`; con el `require` de R2 se elige por la misma regla), `orientar-ombra` para `proteccio-cultiu` (3), `orientar-produccio` para `produccio-energia` (2) y la acción sin movimiento propuesta (`mantenir-posicio` o `diagnosticar`, excluyentes por §5.4) para `estabilitat` (1). Un test comprueba que cada salience es 6 − la prioridad del TTL;
+    - en `seleccio`, solo la copia de `descartar-resto`; DELIBERACIO queda vacía (no hay impasses);
+    - no hay valoraciones, preferencias `better`, impasses ni aprendizaje (B0 usa la base con `aprendizaje-activo` = FALSE). PERCEPCIO, MONITORATGE, ELABORACIO, PROPOSTA, APLICACIO, EXPLICACIO y NETEJA son las de producción, y la tabla de fases no cambia.
 - **Hipótesis:**
   - A1, A2 y A3s cambian el orden de disparo pero no las órdenes ni los episodios, comparados como conjuntos y sin ids (§2.3.11), con el aprendizaje desactivado y activado;
-  - B0 pierde la detección de empates y la trazabilidad, y cambia decisiones en los conflictos.
+  - B0 pierde la detección de empates y la trazabilidad, y cambia decisiones en los conflictos. No se compara la seguridad: B0 tiene las mismas restricciones duras y sus violaciones de decisión deben ser 0.
 - **Análisis:**
   - la invariancia se comprueba exactamente en las N semillas, informando del número de discrepancias y de la cota de Clopper–Pearson;
-  - B0 frente al núcleo se compara con Wilcoxon pareado en las métricas de §11.2.
+  - B0 frente al núcleo (C0, sin aprendizaje) se compara con Wilcoxon pareado en las métricas de §11.2, más tres propias: decisiones distintas del núcleo, en total y en los ciclos de conflicto (los ciclos en que el núcleo tiene un `tie`); empates detectados (0 por construcción); y trazabilidad, la proporción de episodios con criterio determinante.
+  - Con varias métricas, corrección de Holm; con las siete estrategias, Friedman sobre la CPU por ciclo (la única métrica que puede variar entre ellas si se cumple la invariancia).
 
 ### 11.4 Experimento de la extensión: aprendizaje
 
@@ -747,6 +755,7 @@ Cada iteración termina con:
 - **Sin modo manual:** `escalado-humano` marca la derivación, pero la respuesta de la persona no se modela.
 - **Objetivos siempre activos;** fase fenológica constante; subestados de un nivel.
 - **Datos:** umbrales provisionales; datos sintéticos etiquetados como tales (capítulo 8).
+- **Validación con expertos** (trabajo futuro): casos no vistos con la acción esperada y su justificación escritas de antemano por expertos de cada vista (agronómica y energética), y una medida de acuerdo por vista entre sistema y experto (SHIVA), al estilo del test de Turing. En I5 los casos no vistos se ejecutan sin salida esperada y el equipo los valora a posteriori (§10.2).
 - **Fuga de memoria de CLIPS 6.4 (clipspy 1.0.6).** Cuando Python ha obtenido un envoltorio `Fact` de un hecho con multislot (aunque ya lo haya liberado) y después una regla lo retracta, al destruir el `Environment` quedan unos 128 bytes por hecho sin liberar. CLIPS lo avisa con `[ENVRNMNT8] Environment data not fully deallocated`. Ocurre con los episodios que NETEJA retira de la ventana episódica (§5.11) después de que Python los haya leído. clipspy equilibra `RetainFact` y `ReleaseFact`, así que el fallo está en CLIPS. No cambia ningún resultado: son unos 3 MB en una ejecución de 30 días con 3 sectores. El aviso **no se filtra**: CLIPS lo escribe directamente en la salida estándar al destruir el `Environment` (normalmente al terminar el proceso), sin pasar por los routers. Filtrarlo complicaría el código y no funcionaría en Windows. Por eso aparece al final de `executar_casos.py`, de `experiments.py` y de pytest, y no indica ningún error del sistema. Se volverá a comprobar si se actualiza clipspy o CLIPS.
 
 ---
