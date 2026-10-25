@@ -14,7 +14,7 @@ Práctica de Sistemes Basats en Coneixement (GIA, UPC). Es un sistema basado en 
 | `fuentes/testimonios.md` | Testimonios de los usuarios (en inglés); de ahí salen requisitos (roadmap §1.2). |
 | `fuentes/*.pdf` | Material de clase (ver "Fuentes" al final). |
 
-Estado tras I3: las 11 fases con los tres sectores, R1–R5, S1–S7 (salvo S5, el chunk) y DELIBERACIO, conectadas en bucle cerrado con el simulador heurístico (`python/simulador.py`, `bucle.py`, `metricas.py`; parámetros, tipos de día, semillas, fallos y δ en `config/simulacio.json`; meteorología sintética de final de primavera, §9). Solo `10_aprenentatge` es un stub (I4), y falta la plantilla `chunk`. Cada fichero dice en su cabecera qué falta. `casos/` tiene la batería: cada caso parte de `casos/_base_tranquil.json` (los tres sectores con datos completos que mantienen la posición) e indica solo lo que cambia por sector; `null` quita una observación. Si un cambio aprobado de la especificación altera el resultado esperado de un caso, el caso lleva una clave `cambio` que lo explica. `resultats/` (ignorado por git) se regenera con los experimentos. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
+Estado tras I4: las 11 fases con los tres sectores, R1–R5, S1–S7 y DELIBERACIO, conectadas en bucle cerrado con el simulador heurístico (`python/simulador.py`, `bucle.py`, `metricas.py`; parámetros, tipos de día, semillas, fallos y δ en `config/simulacio.json`; meteorología sintética de final de primavera, §9). APRENENTATGE compila, refuerza y olvida chunks (§5.10, §6), S5 los aplica, y `experiments.py aprenentatge` compara C0, C1 y C2 (§11.4). Las variantes de configuración (C0 sin aprendizaje, otros umbrales) se generan con `ontologia.generar_variante` o `--set … --salida`, nunca a mano. Cada fichero dice en su cabecera qué hace. `casos/` tiene la batería: cada caso parte de `casos/_base_tranquil.json` (los tres sectores con datos completos que mantienen la posición) e indica solo lo que cambia por sector; `null` quita una observación. Si un cambio aprobado de la especificación altera el resultado esperado de un caso, el caso lleva una clave `cambio` que lo explica. `resultats/` (ignorado por git) se regenera con los experimentos. Una excepción a §8: las dependencias van en `pyproject.toml` y `uv.lock`, no en `requirements.txt`.
 
 ## Jerarquía de fuentes
 
@@ -62,7 +62,8 @@ uv run python python/experiments.py a1          # experimento de agenda A1, 7 es
 uv run python python/experiments.py a2          # experimento A2, complexity frente a simplicity (§11.3)
 uv run python python/bucle.py --semilla 0 --dias 1   # una ejecución en bucle cerrado con el simulador (§9)
 uv run python python/experiments.py piloto      # piloto de 10 semillas × 7 días y potencia (§11.2), resultats/i3_piloto/
-uv run python python/experiments.py a1-bucle    # A1 en bucle cerrado sobre las semillas (§11.3), resultats/i3_a1/
+uv run python python/experiments.py a1-bucle    # A1 en bucle cerrado sobre las semillas (§11.3), resultats/i3_a1/ (--salida para otra carpeta)
+uv run python python/experiments.py aprenentatge   # piloto del aprendizaje C0/C1/C2 y barrido del umbral (§11.4), resultats/i4_aprenentatge/
 ```
 
 Al final de la salida de estos comandos puede aparecer `[ENVRNMNT8] Environment data not fully deallocated`. Es una fuga conocida de CLIPS, documentada en roadmap §13, y no indica ningún error: no se filtra.

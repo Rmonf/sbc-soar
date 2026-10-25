@@ -227,14 +227,96 @@ n = ((z₀,₉₇₅ + z₀,₈) · σ_d / δ)², con la cota σ_d ≤ √2·σ 
 
 ---
 
+## I4. APRENENTATGE: chunking con refuerzo y olvido
+
+### Qué se implementó (pasos K0–K8)
+- **K0 (`974e645`):** cambios de especificación aprobados con el plan (tabla siguiente).
+- **K1 (`a9b612f`):** plantilla `chunk` (§3.2) y deffunctions de MAIN `beneficio-maximo`, `relacio-delta`, `activacio` y `chunk-aplicable` (§8). `--verificar` ya no avisa de plantillas pendientes.
+- **K2 (`1fe5c1d`):** `compilar-chunk`, a partir de un `tie` de dos resuelto por `minima-intervencio` o `prioritat-objectius`, con la detección de duplicados en el LHS (un `not` sobre las cinco condiciones, que Rete reevalúa; un `test` no se reevaluaría, §14). `pont_clips` lee `chunk` y los casos admiten la clave `chunks` (chunks vivos tras el paso).
+- **K3 (`19877f0`):**
+  - S5 aplica el chunk a un empate de dos, y S6 niega exactamente su condición: con tres o más no dominados, S6 abre el `tie` (`tests/test_seleccio_chunk.py`, con SELECCIO sola y los hechos construidos a mano, porque con el conocimiento actual no hay empates de tres);
+  - EXPLICACIO anota `chunk-aplicado` y la línea `Decisio` nombra el chunk y su estrategia;
+  - `bloques()` reconoce `Aprenentatge`.
+
+  Caso 77.
+- **K4 (`339b2b4`):** `reforzar-chunk` (uso confirmado, recorte a `max-referencias`) y `olvidar-chunk` (activación base, salvo refuerzo pendiente). `ontologia.generar_variante` genera las variantes de los tests y los experimentos. Casos 78–80 (refuerzo, sin refuerzo tras `fallada-actuador`, olvido a las 250 h y nuevo aprendizaje con el mismo id) y test del recorte con `max-referencias=2`.
+- **K5 (`6db8e1e`):** el primer pendiente de I3, el argumento de §6.2 con casos:
+  - casos 81 (la acción sin movimiento hereda cultivo, frente a producción) y 82 (hereda energía, frente a sombra): el chunk se compila con relación `menor` desde `minima-intervencio` y, al reutilizarse, decide lo mismo;
+  - `tests/test_chunk_fidelidad.py`: los 82 casos deciden igual paso a paso con y sin aprendizaje; una rejilla de s3 con 48 situaciones en dos pasos usa 24 veces un chunk (12 chunks distintos, 6 con la acción sin movimiento como preferida), y en todas el chunk decide como la deliberación;
+  - con la variante de s1 con sensibilidad `mitja`, un chunk aprendido en s3 se aplica en s1, y dos sectores con el mismo empate en un ciclo compilan un solo chunk, con la misma traza en `depth` y `breadth`.
+- **K6 (`8acfe4d`):** `bucle` exporta `chunks.jsonl` (última versión por id e instante de creación, con `vivo-hasta`) y los chunks vivos por ciclo, y admite una base variante. `metricas` añade los chunks vivos, compilados, olvidados, usos, usos confirmados, transferencia y `fidelidad`.
+- **K7 (`04fa295`):** `experiments.py aprenentatge`.
+
+### Decisiones que cambiaron el roadmap
+| Commit | Cambio | Motivo |
+|---|---|---|
+| `974e645` | §5.10, §5.9: el id del chunk se deriva de sus cinco condiciones; un chunk olvidado y vuelto a aprender reutiliza el id | `gensym*` no se reinicia (I1), y el chunk no debe depender de qué sector lo compiló cuando dos empatan igual en el mismo ciclo. |
+| `974e645` | §5.9, §5.10: bloques `Aprenentatge (t=…)` propios en la traza, sin sector; `Resultat observat` ya no menciona el chunk | Que la traza no dependa del orden de disparo y que cada fase escriba lo suyo. |
+| `974e645` | §5.6: S6 niega exactamente la condición de S5 (dos no dominados y chunk aplicable) | Con tres o más no dominados, S6 abre el `tie` como siempre. |
+| `974e645` | §5.5c.2: la cercanía se aplica a todo candidato que no es una acción sin movimiento y tiene coste `baix`, también con Δ dentro de la tolerancia | Era lo que hacía el código, y lo que necesita el argumento de §6.2. |
+| `974e645` | §11.4: C1 usa `umbral-olvido` = −100; la transferencia es 0 por construcción y la generalización se prueba con una variante | Solo la viña (sensibilidad `mitja`) puede tener estrés `mitja` tras el ajuste, así que solo s3 empata. |
+| cierre | §11.2: nota del δ y del n con la σ_d real de C0 − C1 | Segundo pendiente de I3. |
+
+### Experimento: piloto del aprendizaje, 10 semillas × 7 días (§11.4)
+Las mismas semillas para las cinco configuraciones (diseño pareado). Hay 0 violaciones de decisión en todas.
+
+| Configuración | `tie` por cada 100 decisiones: mediana (IQR) | Chunks vivos: máx. / final (medianas) | Compilados / olvidados (medianas) | Fidelidad frente a C0 |
+|---|---|---|---|---|
+| C0 (sin aprendizaje) | 1,596 (1,339–1,881) | — | — | — |
+| C1 (umbral −100) | 0,174 (0,153–0,182) | 10,5 / 10,5 | 10,5 / 0 | 10/10 (IC 95 % [0,692; 1]) |
+| C2 (umbral −2) | 0,182 (0,165–0,211) | 10 / 9 | 11 / 1 | 10/10 |
+| umbral −1 | 0,215 (0,198–0,227) | 9 / 6 | 13 / 6,5 | 10/10 |
+| umbral −3 | 0,174 (0,153–0,182) | 10,5 / 10,5 | 10,5 / 0 | 10/10 |
+
+- **H1:** C0 − C1 tiene una mediana de diferencias de 1,414 (IC 95 % por bootstrap [1,108; 1,935]) y C0 − C2, de 1,372 ([1,091; 1,910]). Las dos superan δ = 0,798, y el Wilcoxon unilateral (d > δ) da p = 0,0137 en ambos casos. Es un piloto: el contraste con n semillas es de I5.
+- **Contabilidad exacta:** en las 10 semillas, `tie`(C0) = `tie`(Cx) + usos de chunk(Cx). En C1, los `tie` que quedan son exactamente las compilaciones: uno por chunk nuevo. Todos los usos se confirmaron `ok` y reforzaron su chunk (unos 85 por semilla).
+- **H2:** las órdenes son idénticas a las de C0 en las 10 semillas y en las cuatro configuraciones con aprendizaje. Por tanto, energía, horas de estrés y movimientos coinciden.
+- **H3 (hallazgo):** en 7 días, C1 y C2 apenas difieren. C2 olvida una mediana de 1 chunk y el aumento de `tie` frente a C1 es de 0,008 por cada 100 decisiones (IC [0; 0,033]), muy por debajo de δ. Con el umbral −2, un chunk sin usar se olvida a las ~55 h; los empates se dan en s3 los días de calor (0,3 de probabilidad), así que en una semana pocos chunks pasan tanto tiempo sin usarse. Siguiendo el plan, no se cambian ni la duración ni el escenario.
+- **Barrido del umbral:** −3 se comporta como C1 en 7 días; −1 olvida 6,5 chunks y los vuelve a aprender (unos 2 `tie` más por semilla). **Se mantiene −2**, el valor por defecto de Soar, que olvida algo sin coste apreciable. Elegirlo con un efecto tan pequeño no estaría justificado por los datos.
+- **Transferencia:** 0, como se esperaba (§11.4).
+- **Coste:** las reglas por ciclo prácticamente no cambian (C0 181,04; C1 180,81: la deliberación y la compilación se sustituyen por S5 y el refuerzo). La CPU por ciclo sube (C0 10,9 ms; C1 11,9; C2 12,5; los umbrales −1 y −3, 11,4–11,5), pero esta medida es ruidosa: el experimento se ejecutó a la vez que A1 en bucle cerrado, y −3 y C1, que se comportan igual, difieren en 0,4 ms.
+
+### Análisis de potencia con la σ_d real (segundo pendiente de I3)
+| Métrica | σ_d (C0 − C1) | δ | n |
+|---|---|---|---|
+| `tie` por cada 100 decisiones | 0,642 | 0,798 | 30 |
+| Energía (kWh) | 0 | 457,9 | 30 |
+| Horas de estrés por sector y día | 0 | 1,0 | 30 |
+| Movimientos por sector y día | 0 | 2,0 | 30 |
+| Reglas por ciclo | 0,130 | 9,05 | 30 |
+| CPU por ciclo (ms) | 0,685 | 1,09 | 30 |
+
+Con la fidelidad del 100 %, las métricas de dominio de C0 y C1 son idénticas y su σ_d es 0. El n = 70 de la energía venía de la cota √2·σ y desaparece. Para H3, σ_d(C1 − C2) de `tie` es 0,027. **n = 30 para todo en I5.**
+
+### A1 y A2 con el aprendizaje activo (§11.3)
+| Experimento | Unidad | Estrategias frente a la referencia | Resultado |
+|---|---|---|---|
+| A1 sobre la batería (ref. `depth`) | 82 casos, 114 ciclos | 6 | 114/114 multiconjunto, órdenes, episodios y traza iguales en cada una; 0/114 secuencias iguales; 15 145 disparos |
+| A2 sobre la batería (`complexity` frente a `simplicity`) | 82 casos, 114 ciclos | 1 | 114/114 |
+| A1 en bucle cerrado (ref. `depth`) | 10 semillas × 7 días | 6 | 0/10 discrepancias en cada una (IC 95 % [0; 0,308]); 0/20 160 ciclos con la secuencia igual |
+
+APRENENTATGE no depende del orden de disparo: la invariancia se mantiene con el aprendizaje activo, en la batería y en bucle cerrado.
+
+### Estado al cierre
+- 0 anomalías en la verificación, 343 tests y 82/82 casos en verde.
+- Las únicas reglas no disparadas son las de la reserva de escalado.
+- A1 y A2 son invariantes con el aprendizaje activo.
+- H2 se cumple en las 10 semillas; H1 supera δ en el piloto; H3 apenas se distingue en 7 días.
+
+---
+
 ## Incidencias abiertas
 - **Fuga `ENVRNMNT8` (§13):** CLIPS deja unos 128 bytes por cada hecho con multislot que Python leyó y una regla retractó después. Son unos 0,8 MB por ejecución de 7 días. Aparece al final de la salida, no afecta a ningún resultado y, por decisión del equipo, no se filtra.
 - **`escalat` sigue siendo inalcanzable** con el conocimiento actual. Es una reserva de terminación probada con una variante de configuración (`tests/test_escalado.py`).
-- **Los n son provisionales:** usan la cota √2·σ, válida solo si ρ ≥ 0. El de la energía (70) es el que más depende de ella.
+- **Olvido poco ejercitado en 7 días (H3):** C1 y C2 casi no difieren. Queda documentado como hallazgo; I5 informará de lo mismo con n = 30, sin cambiar la duración ni el escenario.
+- **Transferencia estructuralmente 0:** solo s3 puede empatar con el TTL actual. La generalización solo se prueba con una variante (`tests/test_chunk_fidelidad.py`).
+- **Empates de tres inalcanzables:** S6 con tres o más no dominados, en presencia de un chunk, solo se prueba con SELECCIO aislada (`tests/test_seleccio_chunk.py`).
+- **CPU por ciclo ruidosa:** el piloto de I4 compartió la máquina con A1 en bucle cerrado. En I5, los experimentos de CPU deben ejecutarse sin otras cargas.
 - **Modelos del simulador heurísticos:** la lechuga (umbral de 26 °C, del TTL) tiene unas 4 h de estrés también los días templados, lo que es plausible para lechuga en verano. Los parámetros meteorológicos son sintéticos y no están calibrados con datos reales.
 
-## Siguiente paso: I4 (APRENENTATGE)
-Chunking con refuerzo y olvido (§5.10, §6), regla S5, plantilla `chunk` y configuraciones C0, C1 y C2 (§11.4). Dos pendientes de I3:
-
-1. **Comprobar con casos el argumento de §6.2:** el chunk sigue siendo correcto sin el invariante para la acción sin movimiento. Si `mantenir` está en un empate de dos, el otro candidato está a 5° o más (la cercanía lo dominaría si no), así que la relación es siempre `menor` y decide `minima-intervencio`. La condición estática (tolerancia < límite `baix`/`mitja` de `moviment`) ya la comprueba `--verificar`; faltan los casos que lo ejerciten con chunks.
-2. **Recalcular n con la σ_d real** de las diferencias por semilla entre C0 y C1. Con la mediana de C0, δ de `tie` = 0,5 · esa mediana.
+## Siguiente paso: I5 (congelación)
+Experimentos completos (§11.1, §11.3, §11.4) con n = 30 semillas:
+- A1–A3 (incluidos A3s y B0, que todavía no existen), con el aprendizaje desactivado y activado;
+- C0, C1 y C2 con los contrastes de §11.2;
+- casos no vistos validados por los "expertos" del equipo (§10.2);
+- informe y diagramas (§12).
