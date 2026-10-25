@@ -35,6 +35,7 @@ Con --reutilizar C0 C1, esas configuraciones no se vuelven a ejecutar: se leen l
 """
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -260,6 +261,31 @@ def resumen_piloto(res: dict) -> str:
     return "\n".join(lineas)
 
 
+def comparar_ejecuciones(a: "bucle.Ejecucion", b: "bucle.Ejecucion") -> dict:
+    """¿Cambia algo además del orden de disparo entre dos ejecuciones de la misma semilla? (§11.3)
+    Las reglas de cada ciclo se comparan por sus huellas (multiconjunto y secuencia), que también
+    tienen las ejecuciones guardadas; órdenes y episodios por contenido, y la traza por bloques."""
+    fila = {"ciclos": len(a.ciclos),
+            "multiconjunto_igual": len(a.ciclos) == len(b.ciclos) and all(
+                x["multiconjunto"] == y["multiconjunto"] for x, y in zip(a.ciclos, b.ciclos)),
+            "ciclos_secuencia_igual": sum(x["secuencia"] == y["secuencia"] for x, y in zip(a.ciclos, b.ciclos)),
+            "ordenes_iguales": _contenido(a.ordenes) == _contenido(b.ordenes),
+            "episodios_iguales": _contenido(a.episodios) == _contenido(b.episodios),
+            "traza_igual": Counter(ec.bloques(a.traza)) == Counter(ec.bloques(b.traza)),
+            "disparos": [sum(c["disparos"] for c in a.ciclos), sum(c["disparos"] for c in b.ciclos)]}
+    fila["discrepancia"] = not (fila["multiconjunto_igual"] and fila["ordenes_iguales"]
+                                and fila["episodios_iguales"] and fila["traza_igual"])
+    return fila
+
+
+def _discrepancias(filas: list[dict]) -> dict:
+    """Semillas con alguna discrepancia y su cota de Clopper–Pearson (§11.3)."""
+    k = sum(x["discrepancia"] for x in filas)
+    return {"semillas": len(filas), "discrepancias": k, "ic95": clopper_pearson(k, len(filas)),
+            "ciclos": sum(x["ciclos"] for x in filas),
+            "ciclos_secuencia_igual": sum(x["ciclos_secuencia_igual"] for x in filas)}
+
+
 def a1_bucle(estrategias: list[str] = ESTRATEGIAS_A1, semillas: list[int] | None = None,
              dias: float | None = None) -> dict:
     """A1 en bucle cerrado: por semilla y estrategia, ¿cambia algo además del orden de disparo?"""
@@ -271,27 +297,8 @@ def a1_bucle(estrategias: list[str] = ESTRATEGIAS_A1, semillas: list[int] | None
         base = bucle.ejecutar(semilla, config, referencia)
         for estrategia in otras:
             otra = bucle.ejecutar(semilla, config, estrategia)
-            multiconjunto = all(Counter(a["reglas"]) == Counter(b["reglas"])
-                                for a, b in zip(base.ciclos, otra.ciclos))
-            secuencia = sum(a["reglas"] == b["reglas"] for a, b in zip(base.ciclos, otra.ciclos))
-            fila = {"semilla": semilla, "estrategia": estrategia, "ciclos": len(base.ciclos),
-                    "multiconjunto_igual": multiconjunto, "ciclos_secuencia_igual": secuencia,
-                    "ordenes_iguales": _contenido(base.ordenes) == _contenido(otra.ordenes),
-                    "episodios_iguales": _contenido(base.episodios) == _contenido(otra.episodios),
-                    "traza_igual": Counter(ec.bloques(base.traza)) == Counter(ec.bloques(otra.traza)),
-                    "disparos": [sum(c["disparos"] for c in base.ciclos),
-                                 sum(c["disparos"] for c in otra.ciclos)]}
-            fila["discrepancia"] = not (fila["multiconjunto_igual"] and fila["ordenes_iguales"]
-                                        and fila["episodios_iguales"] and fila["traza_igual"])
-            filas.append(fila)
-    por_estrategia = {}
-    for estrategia in otras:
-        f = [x for x in filas if x["estrategia"] == estrategia]
-        k = sum(x["discrepancia"] for x in f)
-        por_estrategia[estrategia] = {"semillas": len(f), "discrepancias": k,
-                                      "ic95": clopper_pearson(k, len(f)),
-                                      "ciclos": sum(x["ciclos"] for x in f),
-                                      "ciclos_secuencia_igual": sum(x["ciclos_secuencia_igual"] for x in f)}
+            filas.append({"semilla": semilla, "estrategia": estrategia, **comparar_ejecuciones(base, otra)})
+    por_estrategia = {e: _discrepancias([x for x in filas if x["estrategia"] == e]) for e in otras}
     return {"experimento": "A1 en bucle cerrado (roadmap §11.3)",
             "configuracion": {"estrategias": estrategias, "semillas": semillas, "dias": config["dias"],
                               "semilla-agenda (random)": config["semilla-agenda"]},
@@ -342,9 +349,12 @@ def holm(p: dict) -> dict:
 
 
 def _wilcoxon(d: np.ndarray, **kw) -> float:
+    """p de Wilcoxon de rangos con signo; 1 si todas las diferencias son nulas."""
+    if not np.any(d != 0):
+        return 1.0
     try:
         return float(stats.wilcoxon(d, **kw).pvalue)
-    except ValueError:                                  # todas las diferencias nulas
+    except ValueError:
         return 1.0
 
 
@@ -371,13 +381,11 @@ def _comparacion(x0: np.ndarray, x1: np.ndarray, delta: float) -> dict:
     rng = np.random.default_rng(0)
     medianas = np.median(rng.choice(d, size=(10000, len(d)), replace=True), axis=1)
     sigma_d = float(d.std(ddof=1)) if len(d) > 1 else 0.0
-    try:
-        p = float(stats.wilcoxon(d - delta, alternative="greater").pvalue)
-    except ValueError:                                  # todas las diferencias iguales a δ
-        p = 1.0
+    p = _wilcoxon(d - delta, alternative="greater")
     return {"mediana_diferencia": float(np.median(d)),
             "ic95": [float(np.percentile(medianas, 2.5)), float(np.percentile(medianas, 97.5))],
             "sigma_d": sigma_d, "delta": delta, "n": tamano_muestra(sigma_d, delta), "p_wilcoxon": p,
+            "p_menor_delta": _wilcoxon(d - delta, alternative="less"), "p_bilateral": _wilcoxon(d),
             "biserial": biserial(d)}
 
 
@@ -391,27 +399,34 @@ def _cargar(directorio: Path, semilla: int, config: dict) -> tuple[dict, "bucle.
 
 def aprenentatge(semillas: list[int] | None = None, dias: float | None = None,
                  salida: Path | None = None, configuraciones: dict | None = None,
-                 reutilizar: list[str] = ()) -> dict:
-    config = _config(dias)
+                 reutilizar: list[str] = (), cache: "Cache | None" = None) -> dict:
+    """Con cache (I5), las ejecuciones salen del caché compartido y reanudable; si no, se ejecutan
+    y se guardan en salida/<configuración> (I4)."""
+    config = cache.config if cache is not None else _config(dias)
     semillas = config["semillas"] if semillas is None else semillas
     configuraciones = CONFIGURACIONES if configuraciones is None else configuraciones
     bases = salida / "bases" if salida is not None else Path(tempfile.mkdtemp())
-    metr, ejecuciones = {}, {}
+    metr, ejecuciones, entornos = {}, {}, []
     for nombre, sobrescrituras in configuraciones.items():
-        base = on.generar_variante(sobrescrituras, bases / f"{nombre}.clp")
+        base = on.generar_variante(sobrescrituras, bases / f"{nombre}.clp") if cache is None else None
         metr[nombre] = {}
         for semilla in semillas:
-            if nombre in reutilizar:
-                metr[nombre][semilla], ejecuciones[(nombre, semilla)] = _cargar(salida / nombre, semilla, config)
-                continue
-            ej = bucle.ejecutar(semilla, config, base=base)
-            m = metricas.calcular(ej)
-            if ej.errores:
-                m["errores"] = ej.errores
+            if cache is not None:
+                m, ej = cache.ejecucion(semilla, config["estrategia"], nombre)
+                entornos.append(ej.entorno)
+            elif nombre in reutilizar:
+                m, ej = _cargar(salida / nombre, semilla, config)
+            else:
+                ej = bucle.ejecutar(semilla, config, base=base)
+                m = metricas.calcular(ej)
+                if ej.errores:
+                    m["errores"] = ej.errores
+                if salida is not None:
+                    bucle.guardar(ej, salida / nombre / f"semilla_{semilla}", m)
+                entornos.append(ej.entorno)
             metr[nombre][semilla] = m
-            ejecuciones[(nombre, semilla)] = ej
-            if salida is not None:
-                bucle.guardar(ej, salida / nombre / f"semilla_{semilla}", m)
+            # solo hacen falta las órdenes (H2): no se guardan episodios ni trazas en memoria
+            ejecuciones[(nombre, semilla)] = bucle.Ejecucion(semilla, ej.estrategia, config, ordenes=ej.ordenes)
     def serie(nombre, metrica):
         return np.array([metr[nombre][s][metrica] for s in semillas], dtype=float)
     resumen_m = {nombre: {metrica: {"mediana": float(np.median(serie(nombre, metrica))),
@@ -438,6 +453,16 @@ def aprenentatge(semillas: list[int] | None = None, dias: float | None = None,
     barrido = {c: {m: resumen_m[c][m]["mediana"] for m in ("tie-100", "chunks-vivos-max", "chunks-vivos-final",
                                                            "chunks-compilados", "chunks-olvidados")}
                for c in configuraciones if c.startswith("C2")}
+    # H1 (reducción > δ en C1 y C2) y H3 (aumento < δ) forman una familia: Holm (§11.2)
+    p_holm = holm({"H1 C0−C1": h1["C1"]["p_wilcoxon"], "H1 C0−C2": h1["C2"]["p_wilcoxon"],
+                   "H3 C2−C1 < δ": h3["aumento-tie-100"]["p_menor_delta"]})
+    # contabilidad de I4: tie(C0) = tie(Cx) + usos de chunk(Cx), semilla a semilla
+    def ties(c, s):
+        return round(metr[c][s]["tie-100"] * metr[c][s]["decisiones"] / 100)
+    contabilidad = {c: sum(ties("C0", s) == ties(c, s) + metr[c][s]["usos-chunk"] for s in semillas)
+                    for c in configuraciones if c != "C0"}
+    cpu = {c: _comparacion(serie("C0", "cpu-ms-ciclo"), serie(c, "cpu-ms-ciclo"), 0.0)
+           for c in configuraciones if c != "C0"}
     return {
         "experimento": "Piloto del aprendizaje (roadmap §11.4), iteración I4",
         "configuracion": {"semillas": semillas, "dias": config["dias"], "estrategia": config["estrategia"],
@@ -446,7 +471,9 @@ def aprenentatge(semillas: list[int] | None = None, dias: float | None = None,
                           "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=RAIZ,
                                                    capture_output=True, text=True).stdout.strip()},
         "por_semilla": metr, "metricas": resumen_m, "h1": h1, "h2": h2, "h3": h3,
-        "potencia_c0_c1": potencia, "barrido": barrido,
+        "potencia_c0_c1": potencia, "barrido": barrido, "holm": p_holm, "contabilidad": contabilidad,
+        "cpu": cpu, "loadavg_max": max((max(e["loadavg-inicio"][0], e["loadavg-fin"][0]) for e in entornos
+                                        if "loadavg-fin" in e), default=None),
         "violaciones": {c: sum(metr[c][s]["violaciones-decision"]["total"] for s in semillas)
                         for c in configuraciones},
         "errores": {f"{c}/{s}": metr[c][s]["errores"] for c in configuraciones for s in semillas
@@ -474,7 +501,16 @@ def resumen_aprenentatge(res: dict) -> str:
     h3 = res["h3"]
     l.append(f"  H3, olvido: chunks vivos máx. {h3['chunks-vivos-max']}, final {h3['chunks-vivos-final']}; "
              f"aumento de tie-100 de C2 frente a C1 (C2 − C1): mediana {h3['aumento-tie-100']['mediana_diferencia']:.3f}, "
-             f"IC 95 % [{h3['aumento-tie-100']['ic95'][0]:.3f}, {h3['aumento-tie-100']['ic95'][1]:.3f}] (δ = {h3['delta']:.3f})")
+             f"IC 95 % [{h3['aumento-tie-100']['ic95'][0]:.3f}, {h3['aumento-tie-100']['ic95'][1]:.3f}] (δ = {h3['delta']:.3f}, "
+             f"Wilcoxon unilateral d < δ p = {h3['aumento-tie-100']['p_menor_delta']:.4g})")
+    if "holm" in res:
+        l.append("  Holm (H1 y H3): " + ", ".join(f"{k} p = {v:.4g}" for k, v in res["holm"].items()))
+        l.append(f"  Contabilidad tie(C0) = tie(Cx) + usos(Cx): "
+                 + ", ".join(f"{c} {k}/{len(conf['semillas'])}" for c, k in res["contabilidad"].items()))
+        l.append(f"  CPU por ciclo (ms), C0 − Cx (loadavg máximo {res['loadavg_max']}):")
+        for c, h in res["cpu"].items():
+            l.append(f"    C0 − {c}: mediana {h['mediana_diferencia']:.3f}, IC 95 % [{h['ic95'][0]:.3f}, "
+                     f"{h['ic95'][1]:.3f}], Wilcoxon bilateral p = {h['p_bilateral']:.4f}, biserial {h['biserial']:.2f}")
     l.append("  Barrido del umbral de olvido (medianas):")
     for c, b in res["barrido"].items():
         l.append(f"    {c:12s} " + ", ".join(f"{k} {v:.3f}" for k, v in b.items()))
@@ -486,6 +522,258 @@ def resumen_aprenentatge(res: dict) -> str:
     if res["errores"]:
         l.append(f"  ERRORES de CLIPS en {sorted(res['errores'])}")
     return "\n".join(l)
+
+
+# --- I5: experimentos completos, reanudables (§11.2–§11.4) -------------------------
+
+FICHEROS_EJECUCION = [RAIZ / "python" / f for f in ("simulador.py", "pont_clips.py", "bucle.py")]
+BASES_I5 = ("C0", "C2")                    # aprendizaje desactivado y activado (§11.3)
+
+
+def huella_codigo(base: Path, variante: str | None) -> str:
+    """Huella de lo que determina una ejecución: los .clp que se cargan (base incluida) y el código
+    del simulador, del puente y del bucle. Una ejecución guardada solo se reutiliza con la misma."""
+    h = hashlib.sha1()
+    for f in [*pc.ficheros(base, variante), *FICHEROS_EJECUCION]:
+        h.update(Path(f).read_bytes())
+    return h.hexdigest()[:16]
+
+
+class Cache:
+    """Ejecuciones de I5 en directorio/<estrategia>-<base>-<variante>/semilla_n, compartidas por todos
+    los experimentos (C0 y C2 con depth sirven de referencia al aprendizaje, a B0, a A3 y a A1). Una
+    ejecución ya guardada con la misma clave (semilla, estrategia, simulación, base, variante y
+    huella del código) se lee en lugar de repetirse: así el experimento se puede reanudar (§11.2)."""
+
+    def __init__(self, directorio: Path, config: dict):
+        self.dir, self.config, self.bases = directorio, config, {}
+        self.ejecutadas = self.reutilizadas = 0
+
+    def base(self, nombre: str) -> Path:
+        if nombre not in self.bases:
+            self.bases[nombre] = on.generar_variante(CONFIGURACIONES[nombre], self.dir / "bases" / f"{nombre}.clp")
+        return self.bases[nombre]
+
+    def ejecucion(self, semilla: int, estrategia: str = "depth", base: str = "C2",
+                  variante: str | None = None) -> tuple[dict, "bucle.Ejecucion"]:
+        ruta = self.base(base)
+        clave = {"base": base, "variante": variante, "huella": huella_codigo(ruta, variante)}
+        d = self.dir / f"{estrategia}-{base}-{variante or 'nucleo'}" / f"semilla_{semilla}"
+        cargada = bucle.cargar(d, semilla, estrategia, self.config, clave)
+        if cargada is not None:
+            self.reutilizadas += 1
+            return cargada
+        ej = bucle.ejecutar(semilla, self.config, estrategia, ruta, variante)
+        m = metricas.calcular(ej)
+        if ej.errores:
+            m["errores"] = ej.errores
+        bucle.guardar(ej, d, m, clave)
+        ej.estados, ej.observaciones = [], []          # ya no hacen falta tras las métricas
+        self.ejecutadas += 1
+        print(f"  ejecutada {d.parent.name}/{d.name}", flush=True)
+        return m, ej
+
+
+def _diferencias_b0(nucleo: "bucle.Ejecucion", b0: "bucle.Ejecucion") -> dict:
+    """Decisiones de B0 distintas de las del núcleo por sector e instante, en total y en los ciclos de
+    conflicto (los del núcleo con un tie): por acción y por ángulo ordenado (más allá de la
+    tolerancia, o nil frente a un ángulo); y trazabilidad, la proporción de episodios con criterio
+    determinante (§11.3)."""
+    instal = sm.instalacion()
+    en = {(e["sector"], e["instante"]): e for e in nucleo.episodios}
+    eb = {(e["sector"], e["instante"]): e for e in b0.episodios}
+    conflicto = {k for k, e in en.items() if e["tipo-impasse"] == "tie"}
+    def angulo_distinto(a, b, s):
+        if a == "nil" or b == "nil":
+            return a != b
+        return abs(a - b) > instal[s]["tolerancia-angulo"]
+    accion, angulo = set(), set()
+    for k in en.keys() & eb.keys():
+        if en[k]["accion"] != eb[k]["accion"]:
+            accion.add(k)
+        if angulo_distinto(en[k]["angulo-ordenado"], eb[k]["angulo-ordenado"], k[0]):
+            angulo.add(k)
+    def traz(eps):
+        return sum(e["criterio-determinante"] != "nil" for e in eps.values()) / len(eps) if eps else 0.0
+    return {"decisiones": len(en), "ciclos-conflicto": len(conflicto),
+            "distintas-accion": len(accion), "distintas-angulo": len(angulo),
+            "distintas-accion-conflicto": len(accion & conflicto),
+            "distintas-angulo-conflicto": len(angulo & conflicto),
+            "trazabilidad-nucleo": traz(en), "trazabilidad-b0": traz(eb)}
+
+
+METRICAS_B0 = ["tie-100", "energia-kwh", "horas-estres-sector-dia", "movimientos-sector-dia", "escalados",
+               "reglas-ciclo", "cpu-ms-ciclo"]
+
+
+def b0_bucle(cache: Cache, semillas: list[int]) -> dict:
+    """B0 frente al núcleo, los dos sin aprendizaje (C0), con las mismas semillas (§11.3)."""
+    por_semilla, metr = {}, {"nucleo": {}, "b0": {}}
+    for s in semillas:
+        mn, en = cache.ejecucion(s, "depth", "C0")
+        mb, eb = cache.ejecucion(s, "depth", "C0", "b0")
+        metr["nucleo"][s], metr["b0"][s] = mn, mb
+        por_semilla[s] = _diferencias_b0(en, eb)
+    def serie(c, m):
+        return np.array([metr[c][s][m] for s in semillas], dtype=float)
+    comparaciones = {m: _comparacion(serie("nucleo", m), serie("b0", m), 0.0) for m in METRICAS_B0}
+    p_holm = holm({m: c["p_bilateral"] for m, c in comparaciones.items()})
+    for m in comparaciones:
+        comparaciones[m]["p_holm"] = p_holm[m]
+    medianas = {c: {m: float(np.median(serie(c, m))) for m in METRICAS_B0} for c in metr}
+    def suma(clave):
+        return sum(por_semilla[s][clave] for s in semillas)
+    return {"experimento": "B0 frente al núcleo en bucle cerrado (roadmap §11.3)",
+            "configuracion": {"semillas": semillas, "dias": cache.config["dias"], "base": "C0"},
+            "por_semilla": por_semilla, "medianas": medianas, "comparaciones": comparaciones,
+            "totales": {k: suma(k) for k in ("decisiones", "ciclos-conflicto", "distintas-accion",
+                                             "distintas-angulo", "distintas-accion-conflicto",
+                                             "distintas-angulo-conflicto")},
+            "trazabilidad": {c: float(np.median([por_semilla[s][f"trazabilidad-{c}"] for s in semillas]))
+                             for c in ("nucleo", "b0")},
+            "violaciones": {c: sum(metr[c][s]["violaciones-decision"]["total"] for s in semillas) for c in metr},
+            "errores": {f"{c}/{s}": metr[c][s]["errores"] for c in metr for s in semillas if "errores" in metr[c][s]}}
+
+
+def resumen_b0(res: dict) -> str:
+    conf, t = res["configuracion"], res["totales"]
+    l = [f"{res['experimento']}: {len(conf['semillas'])} semillas × {conf['dias']} días, base {conf['base']}.",
+         f"  violaciones de decisión: {res['violaciones']}",
+         f"  decisiones distintas del núcleo: por acción {t['distintas-accion']}/{t['decisiones']}, por ángulo "
+         f"{t['distintas-angulo']}/{t['decisiones']}; en los {t['ciclos-conflicto']} ciclos de conflicto (tie del "
+         f"núcleo): por acción {t['distintas-accion-conflicto']}, por ángulo {t['distintas-angulo-conflicto']}",
+         f"  trazabilidad (episodios con criterio determinante, mediana): núcleo {res['trazabilidad']['nucleo']:.3f}, "
+         f"B0 {res['trazabilidad']['b0']:.3f}",
+         f"  {'métrica':26s} {'núcleo':>9s} {'B0':>9s} {'mediana d':>10s} {'IC 95 %':>21s} {'biserial':>8s} {'p Holm':>8s}"]
+    for m, c in res["comparaciones"].items():
+        l.append(f"  {m:26s} {res['medianas']['nucleo'][m]:9.3f} {res['medianas']['b0'][m]:9.3f} "
+                 f"{c['mediana_diferencia']:10.3f} [{c['ic95'][0]:8.3f}, {c['ic95'][1]:8.3f}] "
+                 f"{c['biserial']:8.2f} {c['p_holm']:8.4f}")
+    l.append("  d = núcleo − B0; Wilcoxon bilateral pareado con corrección de Holm.")
+    if res["errores"]:
+        l.append(f"  ERRORES de CLIPS en {sorted(res['errores'])}")
+    return "\n".join(l)
+
+
+def a3_bucle(cache: Cache, semillas: list[int]) -> dict:
+    """A3s en bucle cerrado: depth frente a depth con a3s.clp, sin y con aprendizaje (§11.3)."""
+    filas = []
+    for base in BASES_I5:
+        for s in semillas:
+            _, ref = cache.ejecucion(s, "depth", base)
+            _, otra = cache.ejecucion(s, "depth", base, "a3s")
+            filas.append({"semilla": s, "base": base, **comparar_ejecuciones(ref, otra)})
+    return {"experimento": "A3s en bucle cerrado (roadmap §11.3)",
+            "configuracion": {"semillas": semillas, "dias": cache.config["dias"], "bases": list(BASES_I5)},
+            "filas": filas,
+            "por_base": {b: _discrepancias([f for f in filas if f["base"] == b]) for b in BASES_I5}}
+
+
+def a1_bucle_i5(cache: Cache, semillas: list[int]) -> dict:
+    """A1 y A2 en bucle cerrado sobre el caché, sin y con aprendizaje (§11.3). Cada estrategia se
+    compara con depth (A1) y complexity con simplicity (A2). La CPU por ciclo, la única métrica
+    que puede variar entre estrategias si se cumple la invariancia, se compara con Friedman."""
+    filas, cpu = [], {b: {e: [] for e in ESTRATEGIAS_A1} for b in BASES_I5}
+    for base in BASES_I5:
+        for s in semillas:
+            m, ref = cache.ejecucion(s, "depth", base)
+            cpu[base]["depth"].append(m["cpu-ms-ciclo"])
+            complejidad = None
+            for e in ESTRATEGIAS_A1[1:]:
+                m, otra = cache.ejecucion(s, e, base)
+                cpu[base][e].append(m["cpu-ms-ciclo"])
+                filas.append({"experimento": "A1", "semilla": s, "base": base, "estrategia": e,
+                              **comparar_ejecuciones(ref, otra)})
+                if e == "complexity":
+                    complejidad = otra
+                elif e == "simplicity":
+                    filas.append({"experimento": "A2", "semilla": s, "base": base, "estrategia": e,
+                                  **comparar_ejecuciones(complejidad, otra)})
+                del otra
+    por = {f"{x}/{b}/{e}": _discrepancias([f for f in filas if (f["experimento"], f["base"], f["estrategia"]) == (x, b, e)])
+           for x, b, e in dict.fromkeys((f["experimento"], f["base"], f["estrategia"]) for f in filas)}
+    return {"experimento": "A1 y A2 en bucle cerrado (roadmap §11.3)",
+            "configuracion": {"semillas": semillas, "dias": cache.config["dias"], "bases": list(BASES_I5),
+                              "estrategias": ESTRATEGIAS_A1, "semilla-agenda (random)": cache.config["semilla-agenda"]},
+            "filas": filas, "por_comparacion": por,
+            "cpu_mediana": {b: {e: float(np.median(v)) for e, v in c.items()} for b, c in cpu.items()},
+            "cpu_friedman": {b: friedman({e: np.array(v) for e, v in c.items()}) for b, c in cpu.items()}}
+
+
+def resumen_invariancia(res: dict, clave: str) -> str:
+    conf = res["configuracion"]
+    l = [f"{res['experimento']}: {len(conf['semillas'])} semillas × {conf['dias']} días, referencia depth "
+         f"(A2: complexity).",
+         f"  {'comparación':26s} {'discrepancias':>13s} {'IC 95 %':>17s} {'ciclos con secuencia igual':>27s}"]
+    for nombre, r in res[clave].items():
+        l.append(f"  {nombre:26s} {r['discrepancias']:>6d}/{r['semillas']:<6d} "
+                 f"[{r['ic95'][0]:.3f}, {r['ic95'][1]:.3f}] {r['ciclos_secuencia_igual']:>14d}/{r['ciclos']}")
+    if "cpu_friedman" in res:
+        for b, f in res["cpu_friedman"].items():
+            med = ", ".join(f"{e} {v:.2f}" for e, v in res["cpu_mediana"][b].items())
+            l.append(f"  CPU por ciclo (ms, medianas) con {b}: {med}; Friedman p = {f['p_friedman']:.4g}")
+            for par, v in f["pares"].items():
+                if v["p_holm"] < 0.05:
+                    l.append(f"    {par}: p Holm = {v['p_holm']:.4g}")
+    return "\n".join(l)
+
+
+def bateria_i5(cache: Cache, experimentos: list[str]) -> dict:
+    """A1, A2 o A3s sobre la batería de casos, sin y con aprendizaje (§11.3)."""
+    res = {}
+    for base in BASES_I5:
+        ruta = cache.base(base)
+        for x in experimentos:
+            res[f"{x}/{base}"] = {"A1": lambda: comparar(ESTRATEGIAS_A1, "A1", ruta),
+                                  "A2": lambda: comparar(ESTRATEGIAS_A2, "A2", ruta),
+                                  "A3s": lambda: comparar(["depth"], "A3s", ruta, "a3s")}[x]()
+    return res
+
+
+ETAPAS_I5 = ["aprenentatge", "b0", "a3", "a1"]          # el orden de lanzamiento (plan de I5)
+
+
+def i5(semillas: list[int], dias: float | None, salida: Path, etapas: list[str] = ETAPAS_I5) -> tuple[str, bool]:
+    """Experimentos completos de I5, en serie y reanudables. Cada etapa escribe su resultados.json y
+    su resumen.txt al terminar; resumen.txt reúne todas las etapas ejecutadas."""
+    config = _config(dias)
+    config["semillas"] = semillas
+    # δ de tie fijado con el piloto de I4, no con la mediana de C0 de estas semillas (§11.2)
+    config["delta"]["tie-100"] = {"abs": config["delta"]["tie-100"]["piloto-i4"]}
+    cache = Cache(salida / "ejecuciones", config)
+    textos, correcto = [], True
+    def escribir(nombre, res, texto):
+        d = salida / nombre
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "resultados.json").write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        (d / "resumen.txt").write_text(texto + "\n", encoding="utf-8")
+        textos.append(texto)
+        print(texto, flush=True)
+    for etapa in etapas:
+        print(f"[{etapa}]", flush=True)
+        if etapa == "aprenentatge":
+            res = aprenentatge(semillas, configuraciones={c: CONFIGURACIONES[c] for c in ("C0", "C1", "C2")},
+                               cache=cache)
+            res["experimento"] = "Aprendizaje completo (roadmap §11.4), iteración I5"
+            escribir(etapa, res, resumen_aprenentatge(res))
+            correcto &= not any(res["violaciones"].values()) and not res["errores"]
+        elif etapa == "b0":
+            res = b0_bucle(cache, semillas)
+            escribir(etapa, res, resumen_b0(res))
+            correcto &= not any(res["violaciones"].values()) and not res["errores"]
+        elif etapa in ("a3", "a1"):
+            res = a3_bucle(cache, semillas) if etapa == "a3" else a1_bucle_i5(cache, semillas)
+            clave = "por_base" if etapa == "a3" else "por_comparacion"
+            texto = resumen_invariancia(res, clave)
+            bat = bateria_i5(cache, ["A3s"] if etapa == "a3" else ["A1", "A2"])
+            texto += "\n" + "\n".join(f"Batería, {k}:\n" + resumen(v) for k, v in bat.items())
+            res["bateria"] = {k: {"configuracion": v["configuracion"], "invariante": invariante(v)} for k, v in bat.items()}
+            escribir(etapa, res, texto)
+            correcto &= all(r["discrepancias"] == 0 for r in res[clave].values()) and all(
+                invariante(v) for v in bat.values())
+    textos.append(f"Ejecuciones: {cache.ejecutadas} nuevas, {cache.reutilizadas} leídas del caché.")
+    (salida / "resumen.txt").write_text("\n\n".join(textos) + "\n", encoding="utf-8")
+    return "\n\n".join(textos), correcto
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -512,7 +800,21 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--salida", default=str(RESULTATS / "i4_aprenentatge"))
     p.add_argument("--reutilizar", nargs="+", default=[], choices=list(CONFIGURACIONES),
                    help="configuraciones que se leen de la salida en lugar de ejecutarse")
+    p = sub.add_parser("a3s", help="A3s sobre la batería: depth frente a depth con salience (§11.3)")
+    p.add_argument("--base", choices=["C0", "C2"], default="C2")
+    p.add_argument("--salida", default=str(RESULTATS / "i5_a3s"))
+    p = sub.add_parser("i5", help="experimentos completos de I5, reanudables (§11.2–§11.4)")
+    p.add_argument("--semillas", nargs="+", type=int, default=list(range(10, 40)))
+    p.add_argument("--dias", type=float, default=None)
+    p.add_argument("--etapas", nargs="+", choices=ETAPAS_I5, default=ETAPAS_I5)
+    p.add_argument("--salida", default=str(RESULTATS / "i5"))
     args = parser.parse_args(argv)
+
+    if args.experimento == "i5":
+        salida = RAIZ / args.salida
+        texto, correcto = i5(args.semillas, args.dias, salida, args.etapas)
+        print(f"\nResultados en {salida}")
+        return 0 if correcto else 1
 
     if args.experimento in ("piloto", "a1-bucle", "aprenentatge"):
         salida = RAIZ / args.salida
@@ -536,7 +838,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\nResultados en {salida}")
         return 0 if correcto else 1
 
-    res = {"a1": a1, "a2": a2}[args.experimento](args.estrategias)
+    if args.experimento == "a3s":
+        base = on.generar_variante(CONFIGURACIONES[args.base], RAIZ / args.salida / "bases" / f"{args.base}.clp")
+        res = a3s(base)
+    else:
+        res = {"a1": a1, "a2": a2}[args.experimento](args.estrategias)
     salida = RAIZ / args.salida                     # una ruta absoluta sustituye a RAIZ
     salida.mkdir(parents=True, exist_ok=True)
     (salida / "resultados.json").write_text(json.dumps(res, ensure_ascii=False, indent=1) + "\n",

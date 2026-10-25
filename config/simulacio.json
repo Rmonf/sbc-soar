@@ -121,7 +121,9 @@
   "delta": {
     "_nota": "Efecto mínimo relevante por semilla, fijado antes del piloto (roadmap §11.2). rel = fracción de la mediana del piloto.",
     "tie-100": {
-      "rel": 0.5
+      "rel": 0.5,
+      "piloto-i4": 0.798,
+      "_piloto-i4": "δ = 0,5 · 1,596, la mediana de C0 del piloto de I4 (semillas 0–9). Los experimentos completos de I5 usan este valor fijo, no la mediana de sus semillas (roadmap §11.2)."
     },
     "energia-kwh": {
       "rel": 0.02

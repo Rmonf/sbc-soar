@@ -61,3 +61,16 @@ def test_friedman():
     distintas = {"a": np.arange(10.0), "b": np.arange(10.0) + 1, "c": np.arange(10.0) + 2}
     res = experiments.friedman(distintas)
     assert res["p_friedman"] < 0.05 and set(res["pares"]) == {"a-b", "a-c", "b-c"}
+
+
+def test_i5_corto_y_reanudable(tmp_path):
+    """Las cuatro etapas de I5 en una semilla corta; la segunda vez todo sale del caché y el
+    resultado es el mismo (salvo la línea del recuento de ejecuciones)."""
+    texto, correcto = experiments.i5([0], 0.05, tmp_path, ["aprenentatge", "b0", "a3"])
+    assert correcto, texto
+    assert "Ejecuciones: 6 nuevas" in texto            # C0, C1, C2, B0, C0+A3s y C2+A3s
+    texto2, _ = experiments.i5([0], 0.05, tmp_path, ["aprenentatge", "b0", "a3"])
+    assert "0 nuevas" in texto2
+    quitar = lambda s: [l for l in s.splitlines() if not l.startswith("Ejecuciones")]
+    assert quitar(texto) == quitar(texto2)
+    assert (tmp_path / "b0" / "resumen.txt").exists() and (tmp_path / "a3" / "resultados.json").exists()
