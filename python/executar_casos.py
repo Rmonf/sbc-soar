@@ -6,7 +6,8 @@ sector y paso; null quita una observación. La mezcla la hace este arnés, no el
 aserta queda escrito en la base y en el caso. Por paso se comprueba lo esperado y lo prohibido
 por sector y unos invariantes generales. Además de los slots de la orden y del episodio,
 esperado admite resultado-previo (resultado del episodio del paso anterior) y traza-contiene
-(textos que deben aparecer en la traza del paso). Al final lista las reglas no disparadas (§10.1).
+(textos que deben aparecer en la traza del paso). Un paso puede indicar además chunks: los ids de
+los chunks vivos tras el paso, como conjunto (§6.2). Al final lista las reglas no disparadas (§10.1).
 
     uv run python python/executar_casos.py [--estrategia depth]
 """
@@ -74,11 +75,11 @@ def episodio_de(resultado: Paso, sector: str) -> dict | None:
 
 def bloques(traza: str) -> list[str]:
     """La traza en bloques: uno por decisión de sector (desde "Fets d'entrada") y uno por
-    línea "Resultat observat" o "Deliberacio". El orden entre bloques depende de la estrategia
-    (§2.3.11)."""
+    línea "Resultat observat", "Deliberacio" o "Aprenentatge". El orden entre bloques depende de
+    la estrategia (§2.3.11)."""
     res = []
     for linea in traza.splitlines(keepends=True):
-        if linea.startswith(("Fets d'entrada:", "Resultat observat", "Deliberacio")) or not res:
+        if linea.startswith(("Fets d'entrada:", "Resultat observat", "Deliberacio", "Aprenentatge")) or not res:
             res.append(linea)
         else:
             res[-1] += linea
@@ -105,6 +106,8 @@ def comprobar(caso: dict, resultados: list[Paso]) -> list[str]:
         donde = f"paso {n} (t={r.instante})"
         if r.errores:
             fallos.append(f"{donde}: CLIPS ha escrito errores o avisos: {r.errores.strip()}")
+        if "chunks" in p and sorted(c["id"] for c in r.chunks) != sorted(p["chunks"]):
+            fallos.append(f"{donde}: chunks vivos {sorted(c['id'] for c in r.chunks)}, se esperaban {sorted(p['chunks'])}")
         for s in expandir_paso(caso, p)["sectores"]:
             # Invariantes: una orden por sector, del instante actual (la de t−1 ya se ha retirado),
             # su episodio y un bloque de traza.

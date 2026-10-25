@@ -1,7 +1,7 @@
 {
   "id": "caso_55_tie_prioritat_objectius",
-  "descripcion": "Empate real en s3 con el panel a 0°: los dos mueven 30° y minima-intervencio no decide; prioritat-objectius elige la sombra (proteccio-cultiu, prioridad 3, frente a produccio-energia, 4).",
-  "requisito": "§5.5 empate real; §5.6 S6; §5.7 prioritat-objectius",
+  "descripcion": "Empate real en s3 con el panel a 0°: los dos mueven 30° y minima-intervencio no decide; prioritat-objectius elige la sombra (proteccio-cultiu, prioridad 3, frente a produccio-energia, 4). APRENENTATGE compila el chunk del empate (§5.10.1).",
+  "requisito": "§5.5 empate real; §5.6 S6; §5.7 prioritat-objectius; §5.10 compilar",
   "base": "_base_tranquil",
   "pasos": [
     {
@@ -28,10 +28,14 @@
           "escalado-humano": "FALSE",
           "traza-contiene": [
             "Impasse: tie (prioritat-objectius)",
-            "prioritat-objectius: orientar-ombra: proteccio-cultiu (prioritat 3), orientar-produccio: produccio-energia (prioritat 4) -> orientar-ombra"
+            "prioritat-objectius: orientar-ombra: proteccio-cultiu (prioritat 3), orientar-produccio: produccio-energia (prioritat 4) -> orientar-ombra",
+            "Aprenentatge (t=0): compilat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar: orientar-ombra (benefici mitja) sobre orientar-produccio (benefici alt), delta similar, criteri proteccio-cultiu, apres de prioritat-objectius"
           ]
         }
-      }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
     }
   ]
 }

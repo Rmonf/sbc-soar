@@ -1,7 +1,7 @@
 """Puente entre Python y CLIPS (roadmap §9).
 
 Carga el sistema en un Environment nuevo por ejecución, aserta los hechos observados
-(familia 1), ejecuta el ciclo y lee orden-actuador y episodio, junto con la traza y la
+(familia 1), ejecuta el ciclo y lee orden-actuador, episodio y chunk, junto con la traza y la
 secuencia de reglas disparadas. Python no decide: nunca modifica ni retracta hechos.
 """
 
@@ -64,6 +64,7 @@ class Paso:
     reglas: list[str]                   # nombres de las reglas disparadas, en orden
     ordenes: list[dict]                 # orden-actuador presentes tras el ciclo
     episodios: list[dict]               # episodio presentes tras el ciclo
+    chunks: list[dict]                  # chunk vivos tras el ciclo (§6.2)
     traza: str                          # router traza
     errores: str = ""                   # stderr y stdwrn
     ventana_episodica: int = 60         # ?*ventana-episodica* (§2.3.8)
@@ -146,6 +147,7 @@ class Pont:
             reglas=FIRE.findall(self.captura.vaciar("stdout")),
             ordenes=self._leer("orden-actuador"),
             episodios=self._leer("episodio"),
+            chunks=self._leer("chunk"),
             traza=self.captura.vaciar("traza"),
             errores=self.captura.vaciar("stderr") + self.captura.vaciar("stdwrn"),
             modulo_de=self.modulo_de,
