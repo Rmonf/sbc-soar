@@ -17,13 +17,23 @@ CLIPS_DIR = RAIZ / "clips"
 BASE = RAIZ / "config" / "base_coneixement.clp"
 SIMULACIO = RAIZ / "config" / "simulacio.json"
 
+# Variantes del experimento de agenda (§11.3): módulos de producción que se quitan y ficheros de
+# clips/variants/ que se cargan después de los demás. A3s redefine reglas existentes con salience;
+# B0 sustituye la evaluación, la selección y la deliberación.
+VARIANTES = {
+    "a3s": ((), ("a3s.clp",)),
+    "b0": (("05_avaluacio.clp", "06_seleccio.clp", "07_deliberacio.clp"), ("b0.clp",)),
+}
+
 FIRE = re.compile(r"FIRE\s+\d+\s+(\S+):")
 
 
-def ficheros(base: Path = BASE) -> list[Path]:
-    """Orden de carga de §8: 00_main → configuración generada → 01…11."""
-    modulos = sorted(p for p in CLIPS_DIR.glob("[01][0-9]_*.clp") if p.name != "00_main.clp")
-    return [CLIPS_DIR / "00_main.clp", base, *modulos]
+def ficheros(base: Path = BASE, variante: str | None = None) -> list[Path]:
+    """Orden de carga de §8: 00_main → configuración generada → 01…11 → variante (§11.3)."""
+    quitados, anadidos = VARIANTES[variante] if variante else ((), ())
+    modulos = sorted(p for p in CLIPS_DIR.glob("[01][0-9]_*.clp")
+                     if p.name != "00_main.clp" and p.name not in quitados)
+    return [CLIPS_DIR / "00_main.clp", base, *modulos, *(CLIPS_DIR / "variants" / f for f in anadidos)]
 
 
 def simulacio() -> dict:
@@ -94,12 +104,12 @@ def _clips(valor):
 class Pont:
     """Una ejecución: un Environment nuevo, un único reset (§9, §14)."""
 
-    def __init__(self, estrategia: str | None = None, base: Path = BASE):
+    def __init__(self, estrategia: str | None = None, base: Path = BASE, variante: str | None = None):
         self.estrategia = estrategia or estrategia_por_defecto()
         self.env = clips.Environment()
         self.captura = Captura()
         self.env.add_router(self.captura)
-        for ruta in ficheros(base):
+        for ruta in ficheros(base, variante):
             self.env.load(str(ruta))
         self.env.eval(f"(set-strategy {self.estrategia})")
         if self.estrategia == "random":         # estrategia random reproducible (§11.3)

@@ -92,17 +92,21 @@ ESTRATEGIAS_A1 = ["depth", "breadth", "lex", "mea", "complexity", "simplicity", 
 ESTRATEGIAS_A2 = ["complexity", "simplicity"]
 
 
-def comparar(estrategias: list[str], experimento: str) -> dict:
-    """Cada caso con cada estrategia, comparado ciclo a ciclo con la primera."""
+def comparar(estrategias: list[str], experimento: str, base: Path = pc.BASE,
+             variante: str | None = None) -> dict:
+    """Cada caso con cada estrategia, comparado ciclo a ciclo con la primera. Con variante (A3s,
+    §11.3), la referencia sin variante se compara con la misma estrategia con la variante."""
     referencia, otras = estrategias[0], estrategias[1:]
+    if variante:
+        otras = [referencia]
     filas = []
     for caso in ec.cargar_casos():
-        base = ec.ejecutar_caso(caso, referencia)
+        ref_pasos = ec.ejecutar_caso(caso, referencia, base)
         for estrategia in otras:
-            otra = ec.ejecutar_caso(caso, estrategia)
-            for ref, otro in zip(base, otra):
+            otra = ec.ejecutar_caso(caso, estrategia, base, variante)
+            for ref, otro in zip(ref_pasos, otra):
                 filas.append({"caso": caso["id"], "estrategias": [referencia, estrategia],
-                              **comparar_paso(ref, otro)})
+                              "variante": variante, **comparar_paso(ref, otro)})
     return {
         "experimento": f"{experimento} (roadmap §11.3)",
         "configuracion": {
@@ -110,7 +114,8 @@ def comparar(estrategias: list[str], experimento: str) -> dict:
             "semilla-agenda (random)": pc.simulacio()["semilla-agenda"],
             "commit": subprocess.run(["git", "rev-parse", "HEAD"], cwd=RAIZ, capture_output=True,
                                      text=True).stdout.strip(),
-            "base_coneixement": "config/base_coneixement.clp (sin sobrescrituras)",
+            "base_coneixement": str(Path(base).relative_to(RAIZ) if Path(base).is_relative_to(RAIZ) else base),
+            "variante": variante,
             "casos": sorted({f["caso"] for f in filas}),
         },
         "ciclos": filas,
@@ -127,6 +132,11 @@ def a2(estrategias: list[str] = ESTRATEGIAS_A2) -> dict:
     return comparar(estrategias, "A2")
 
 
+def a3s(base: Path = pc.BASE) -> dict:
+    """A3s sobre la batería: depth frente a depth con la salience de clips/variants/a3s.clp."""
+    return comparar(["depth"], "A3s", base, "a3s")
+
+
 def invariante(res: dict) -> bool:
     """Hipótesis de §11.3: cambia el orden de disparo pero no lo que se decide ni se explica."""
     return all(c["multiconjunto_igual"] and c["ordenes_iguales"] and c["episodios_iguales"]
@@ -139,11 +149,12 @@ def resumen(res: dict) -> str:
     lineas = [f"{res['experimento']}: {len(conf['casos'])} casos, referencia {referencia}.",
               f"  {'estrategia':11s} {'ciclos':>6s} {'multiconj.':>10s} {'secuencia':>9s} {'órdenes':>8s} "
               f"{'episodios':>9s} {'traza':>6s} {'disparos':>9s} {'ref.':>6s}"]
-    for estrategia in conf["estrategias"][1:]:
+    for estrategia in dict.fromkeys(c["estrategias"][1] for c in res["ciclos"]):
         ciclos = [c for c in res["ciclos"] if c["estrategias"][1] == estrategia]
         def n(clave):
             return sum(c[clave] for c in ciclos)
-        lineas.append(f"  {estrategia:11s} {len(ciclos):6d} {n('multiconjunto_igual'):10d} "
+        etiqueta = f"{estrategia}+{conf['variante']}" if conf.get("variante") else estrategia
+        lineas.append(f"  {etiqueta:11s} {len(ciclos):6d} {n('multiconjunto_igual'):10d} "
                       f"{n('secuencia_igual'):9d} {n('ordenes_iguales'):8d} {n('episodios_iguales'):9d} "
                       f"{n('traza_igual'):6d} {sum(c['disparos'][1] for c in ciclos):9d} "
                       f"{sum(c['disparos'][0] for c in ciclos):6d}")

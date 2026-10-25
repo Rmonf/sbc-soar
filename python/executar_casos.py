@@ -59,9 +59,10 @@ def expandir_paso(caso: dict, paso: dict) -> dict:
             "predicciones": predicciones}
 
 
-def ejecutar_caso(caso: dict, estrategia: str | None = None, base: Path = BASE) -> list[Paso]:
+def ejecutar_caso(caso: dict, estrategia: str | None = None, base: Path = BASE,
+                  variante: str | None = None) -> list[Paso]:
     """Ejecuta los pasos del caso; base permite una configuración variante (§2.2)."""
-    pont = Pont(estrategia, base)
+    pont = Pont(estrategia, base, variante)
     resultados = []
     for p in caso["pasos"]:
         e = expandir_paso(caso, p)

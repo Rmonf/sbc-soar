@@ -54,11 +54,12 @@ def huella(reglas) -> str:
 
 
 def ejecutar(semilla: int, config: dict | None = None, estrategia: str | None = None,
-             base: Path = BASE) -> Ejecucion:
-    """Una ejecución; base permite una configuración variante, p. ej. C0 sin aprendizaje (§2.2)."""
+             base: Path = BASE, variante: str | None = None) -> Ejecucion:
+    """Una ejecución; base permite una configuración variante, p. ej. C0 sin aprendizaje (§2.2), y
+    variante, las reglas de clips/variants/ del experimento de agenda (§11.3)."""
     config = config or sm.cargar_config()
     sim = sm.Simulador(semilla, config)
-    pont = Pont(estrategia, base)               # un Environment por ejecución (§14)
+    pont = Pont(estrategia, base, variante)     # un Environment por ejecución (§14)
     ej = Ejecucion(semilla, pont.estrategia, config)
     episodios, chunks, trazas, errores = {}, {}, [], []
     ej.entorno = {"loadavg-inicio": os.getloadavg(), "cpus": os.cpu_count()}
