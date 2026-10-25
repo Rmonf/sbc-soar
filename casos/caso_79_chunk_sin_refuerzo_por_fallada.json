@@ -1,0 +1,119 @@
+{
+  "id": "caso_79_chunk_sin_refuerzo_por_fallada",
+  "descripcion": "Un uso no confirmado no refuerza. t=0 y t=5 como el caso 77. t=10: el panel sigue en -30° (actuador encallado), MONITORATGE marca fallada-actuador el episodio decidido por el chunk y el chunk no recibe referencia. R3 rechaza los movimientos y se elige diagnosticar.",
+  "requisito": "§5.10 reforzar (solo usos confirmados); §5.2",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "tie",
+          "chunk-aplicado": "nil",
+          "criterio-determinante": "proteccio-cultiu"
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          },
+          "predicciones": {
+            "angle-captacio": 0,
+            "angle-ombra": -60
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -60.0,
+          "tipo-impasse": "nil",
+          "chunk-aplicado": "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar",
+          "criterio-determinante": "proteccio-cultiu",
+          "resultado-previo": "ok",
+          "traza-contiene": [
+            "Impasse: -",
+            "Decisio: orientar-ombra (chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, apres de prioritat-objectius)   Criteri: proteccio-cultiu"
+          ],
+          "descartes": [
+            "orientar-produccio:proteccio-cultiu",
+            "mantenir-posicio:proteccio-cultiu",
+            "mantenir-posicio:produccio-energia"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    },
+    {
+      "instante": 10,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          },
+          "predicciones": {
+            "angle-captacio": 0,
+            "angle-ombra": -60
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "diagnosticar",
+          "resultado-previo": "fallada-actuador",
+          "traza-no-contiene": [
+            "reforcat"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    }
+  ]
+}

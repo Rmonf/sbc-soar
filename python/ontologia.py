@@ -310,6 +310,16 @@ def generar(onto: Ontologia, plantillas: dict[str, dict[str, Slot]],
     return "\n".join(lineas) + "\n"
 
 
+def generar_variante(sobrescrituras: list[str], salida: Path) -> Path:
+    """Genera en salida la configuración con los parámetros de aprendizaje sobrescritos: es lo
+    mismo que --set … --salida (§2.2), para tests y experimentos."""
+    onto = leer_ontologia()
+    aplicar_sobrescrituras(onto, sobrescrituras)
+    salida.parent.mkdir(parents=True, exist_ok=True)
+    salida.write_text(generar(onto, leer_plantillas(), sobrescrituras), encoding="utf-8")
+    return salida
+
+
 # ---------------------------------------------------------------------------
 # Verificación de la base de conocimiento (§10.1), con mundo cerrado
 # ---------------------------------------------------------------------------

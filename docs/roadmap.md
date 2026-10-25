@@ -398,7 +398,7 @@ Ordre: sector=s3, angle=-35
 Vista agronomica: estres-termic=mitja; benefici cultiu=mitja; renuncia cultiu=baix
 Vista energetica: benefici energia=baix; renuncia energia=alt; restriccions actives: -
 Resultat observat (t+1): angle=-34.5, ok
-Aprenentatge (t+1): reforcat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, referencies=2
+Aprenentatge (t+1): reforcat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar per l'us de t, referencies=(… t)
 ```
 
 En la implementación, cada sector escribe su bloque (desde `Fets d'entrada`) en una sola regla, cuando el episodio está completo, y el orden entre bloques depende de la estrategia: la traza se compara como multiconjunto de bloques (§2.3.11). El bloque añade una línea `Impasse: <tipo> (<estrategia>)` (o `-`), el escalado en la línea `Ordre` (`escalat a persona: si|no`), los estrés del sector en la vista agronómica y una línea `Evidencies` con las evidencias de cada diagnóstico (anexo B: qué hechos sustentan la inferencia); sin `observacion-panel` dice `panell=desconegut` y el episodio tiene `angulo-previo` nil y beneficios `baix`. La línea `Resultat observat (t=…): sector=…, ordre t=…, angle=…, ok|fallada-actuador` la escribe MONITORATGE en el ciclo siguiente (§5.2). La estrategia de deliberación que se aplica escribe `Deliberacio (t=…): sector=…, <tipo>, <estrategia>: <lo que comparó> -> <resultado>`: los Δ y la tolerancia en `minima-intervencio`, el objetivo y la prioridad de cada empatado en `prioritat-objectius`, el estado de `posicio-seguretat`, el R2 y los episodios con riesgo reciente en `posicio-preventiva` y `demanar-dades`, y los reject con su criterio y prioridad en `restriccio-prioritaria`; `escalar-impasse` escribe la del escalado. Cada una es un bloque propio de la traza.

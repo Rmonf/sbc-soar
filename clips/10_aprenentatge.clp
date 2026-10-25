@@ -37,3 +37,36 @@
                   (criterio ?k) (estrategia-resolucion ?e) (instante ?t) (referencias ?t)))
    (printout traza "Aprenentatge (t=" ?t "): compilat " ?id ": " ?ap " (benefici " ?bp ") sobre "
                    ?ad " (benefici " ?bd "), delta " ?rel ", criteri " ?k ", apres de " ?e crlf))
+
+;; Reforzar: un uso confirmado (episodio decidido por el chunk y verificado ok en t+1) posterior a
+;; la referencia más reciente añade su instante y se conservan las max-referencias más recientes.
+;; Los usos son cronológicos, así que la última referencia es la mayor y la condición no vuelve a
+;; añadir referencias ya recortadas (§5.10.2).
+(defrule APRENENTATGE::reforzar-chunk
+   (estado-soar (id S0) (fase aprenentatge))
+   (parametros-aprendizaje (aprendizaje-activo TRUE) (max-referencias ?max))
+   (ciclo-temporal (instante ?t))
+   ?k <- (chunk (id ?c) (referencias $?refs))
+   (episodio (chunk-aplicado ?c) (resultado ok) (instante ?i&:(> ?i (nth$ (length$ ?refs) ?refs))))
+   =>
+   (bind ?nuevas (create$ ?refs ?i))
+   (if (> (length$ ?nuevas) ?max)
+      then (bind ?nuevas (subseq$ ?nuevas (- (length$ ?nuevas) (- ?max 1)) (length$ ?nuevas))))
+   (modify ?k (referencias ?nuevas))
+   (printout traza "Aprenentatge (t=" ?t "): reforcat " ?c " per l'us de t=" ?i
+                   ", referencies=(" (implode$ ?nuevas) ")" crlf))
+
+;; Olvidar: un chunk cuya activación base cae bajo umbral-olvido se retracta, salvo que tenga un
+;; refuerzo pendiente de reforzar-chunk (§5.10.3, §6.2).
+(defrule APRENENTATGE::olvidar-chunk
+   (estado-soar (id S0) (fase aprenentatge))
+   (parametros-aprendizaje (aprendizaje-activo TRUE) (tasa-decaimiento ?d) (umbral-olvido ?u))
+   (ciclo-temporal (instante ?t))
+   ?k <- (chunk (id ?c) (referencias $?refs))
+   (test (< (activacio ?refs ?t ?d) ?u))
+   (not (episodio (chunk-aplicado ?c) (resultado ok)
+                  (instante ?i&:(> ?i (nth$ (length$ ?refs) ?refs)))))
+   =>
+   (printout traza "Aprenentatge (t=" ?t "): oblidat " ?c ", activacio="
+                   (format nil "%.3f" (activacio ?refs ?t ?d)) " < " ?u crlf)
+   (retract ?k))

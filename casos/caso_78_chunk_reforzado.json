@@ -1,0 +1,121 @@
+{
+  "id": "caso_78_chunk_reforzado",
+  "descripcion": "Refuerzo por uso confirmado. t=0 y t=5 como el caso 77 (se aprende y se aplica el chunk). t=10: el panel está en -60°, donde se ordenó en t=5, así que MONITORATGE verifica ok el episodio decidido por el chunk y APRENENTATGE le añade la referencia t=5. En t=10 el panel ya está en sombra: la acción sin movimiento hereda el cultivo mitja y empata con producción, que mueve 60°; minima-intervencio elige mantener y se compila un segundo chunk (§6.2).",
+  "requisito": "§5.10 reforzar; §6.2 refuerzo por uso confirmado",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "tie",
+          "chunk-aplicado": "nil",
+          "criterio-determinante": "proteccio-cultiu"
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    },
+    {
+      "instante": 5,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          },
+          "predicciones": {
+            "angle-captacio": 0,
+            "angle-ombra": -60
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -60.0,
+          "tipo-impasse": "nil",
+          "chunk-aplicado": "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar",
+          "criterio-determinante": "proteccio-cultiu",
+          "resultado-previo": "ok",
+          "traza-contiene": [
+            "Impasse: -",
+            "Decisio: orientar-ombra (chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, apres de prioritat-objectius)   Criteri: proteccio-cultiu"
+          ],
+          "descartes": [
+            "orientar-produccio:proteccio-cultiu",
+            "mantenir-posicio:proteccio-cultiu",
+            "mantenir-posicio:produccio-energia"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    },
+    {
+      "instante": 10,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -60
+          },
+          "predicciones": {
+            "angle-captacio": 0,
+            "angle-ombra": -60
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "tipo-impasse": "tie",
+          "resultado-previo": "ok",
+          "traza-contiene": [
+            "Aprenentatge (t=10): reforcat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar per l'us de t=5, referencies=(0 5)"
+          ]
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar",
+        "chunk-mantenir-posicio-mitja-orientar-produccio-alt-menor"
+      ]
+    }
+  ]
+}

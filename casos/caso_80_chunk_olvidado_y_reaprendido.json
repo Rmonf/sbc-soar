@@ -1,0 +1,94 @@
+{
+  "id": "caso_80_chunk_olvidado_y_reaprendido",
+  "descripcion": "Olvido y reaprendizaje. t=0: empate como en el caso 55 y se compila el chunk (referencias (0)). t=15000 (250 h después): situación tranquila con el panel en -30°, donde se ordenó; la activación ln((250 h)^-0,5) = -2,76 está por debajo del umbral -2 y el chunk se olvida. t=15005: el mismo par con Δ similares (captación 0°, sombra -60°) vuelve a abrir el impasse, porque ya no hay chunk, y se compila de nuevo con el mismo id (§5.10).",
+  "requisito": "§5.10 olvidar; §6.2 olvido por activación base",
+  "base": "_base_tranquil",
+  "pasos": [
+    {
+      "instante": 0,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "angulo-ordenado": -30.0,
+          "tipo-impasse": "tie",
+          "chunk-aplicado": "nil",
+          "criterio-determinante": "proteccio-cultiu"
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    },
+    {
+      "instante": 15000,
+      "esperado": {
+        "s3": {
+          "accion": "mantenir-posicio",
+          "traza-contiene": [
+            "Aprenentatge (t=15000): oblidat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar, activacio=-2.761 < -2.0"
+          ]
+        }
+      },
+      "chunks": [],
+      "sectores": {
+        "s3": {
+          "panel": {
+            "angulo-actual": -30
+          }
+        }
+      }
+    },
+    {
+      "instante": 15005,
+      "sectores": {
+        "s3": {
+          "sensores": {
+            "temp-cultiu": {
+              "valor": 32,
+              "calidad": "ok"
+            },
+            "radiacio": {
+              "valor": 600,
+              "calidad": "ok"
+            }
+          },
+          "panel": {
+            "angulo-actual": -30
+          },
+          "predicciones": {
+            "angle-captacio": 0,
+            "angle-ombra": -60
+          }
+        }
+      },
+      "esperado": {
+        "s3": {
+          "accion": "orientar-ombra",
+          "tipo-impasse": "tie",
+          "chunk-aplicado": "nil",
+          "traza-contiene": [
+            "Aprenentatge (t=15005): compilat chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+          ],
+          "angulo-ordenado": -60.0
+        }
+      },
+      "chunks": [
+        "chunk-orientar-ombra-mitja-orientar-produccio-alt-similar"
+      ]
+    }
+  ]
+}

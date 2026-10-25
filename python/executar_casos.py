@@ -5,8 +5,8 @@ base (casos/_base_*.json, los tres sectores con datos completos) e indica solo l
 sector y paso; null quita una observación. La mezcla la hace este arnés, no el sistema: lo que se
 aserta queda escrito en la base y en el caso. Por paso se comprueba lo esperado y lo prohibido
 por sector y unos invariantes generales. Además de los slots de la orden y del episodio,
-esperado admite resultado-previo (resultado del episodio del paso anterior) y traza-contiene
-(textos que deben aparecer en la traza del paso). Un paso puede indicar además chunks: los ids de
+esperado admite resultado-previo (resultado del episodio del paso anterior), traza-contiene
+(textos que deben aparecer en la traza del paso) y traza-no-contiene (textos que no deben aparecer). Un paso puede indicar además chunks: los ids de
 los chunks vivos tras el paso, como conjunto (§6.2). Al final lista las reglas no disparadas (§10.1).
 
     uv run python python/executar_casos.py [--estrategia depth]
@@ -18,7 +18,7 @@ import json
 import sys
 from pathlib import Path
 
-from pont_clips import RAIZ, Paso, Pont
+from pont_clips import BASE, RAIZ, Paso, Pont
 
 CASOS = RAIZ / "casos"
 
@@ -59,8 +59,9 @@ def expandir_paso(caso: dict, paso: dict) -> dict:
             "predicciones": predicciones}
 
 
-def ejecutar_caso(caso: dict, estrategia: str | None = None) -> list[Paso]:
-    pont = Pont(estrategia)
+def ejecutar_caso(caso: dict, estrategia: str | None = None, base: Path = BASE) -> list[Paso]:
+    """Ejecuta los pasos del caso; base permite una configuración variante (§2.2)."""
+    pont = Pont(estrategia, base)
     resultados = []
     for p in caso["pasos"]:
         e = expandir_paso(caso, p)
@@ -136,6 +137,8 @@ def comprobar(caso: dict, resultados: list[Paso]) -> list[str]:
                     obtenido = previo.get("resultado")
                 elif slot == "traza-contiene":              # textos que la traza del paso incluye
                     obtenido = [t for t in valor if t in r.traza]
+                elif slot == "traza-no-contiene":           # textos que la traza del paso no incluye
+                    obtenido = [t for t in valor if t not in r.traza]
                 else:
                     obtenido = orden[slot] if slot in orden else episodio.get(slot)
                 if not _igual(valor, obtenido):
