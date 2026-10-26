@@ -16,7 +16,11 @@ equipo lo valore. Si un caso indica panel-sigue-orden, en cada paso el ángulo o
 paneles que el caso no fija es el de la última orden con ángulo de su sector: el arnés hace de
 actuador que cumple, como el simulador (§9), y no decide nada.
 
+Con --caso ejecuta solo los casos cuyo id empieza por el texto dado y escribe, por paso, las
+órdenes, la traza y los errores de CLIPS.
+
     uv run python python/executar_casos.py [--estrategia depth]
+    uv run python python/executar_casos.py --caso caso_08
     uv run python python/executar_casos.py --no-vistos [--salida resultats/i5_no_vistos]
 """
 
@@ -215,6 +219,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--estrategia", default=None, help="estrategia de agenda (por defecto, simulacio.json)")
     parser.add_argument("--no-vistos", action="store_true", help="ejecuta casos_no_vistos/ y escribe el informe")
     parser.add_argument("--salida", default="resultats/i5_no_vistos")
+    parser.add_argument("--caso", default=None, help="ejecuta solo los casos cuyo id empieza así y escribe su traza")
     args = parser.parse_args(argv)
 
     if args.no_vistos:
@@ -226,9 +231,23 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     casos = cargar_casos()
+    if args.caso:
+        casos = [c for c in casos if c["id"].startswith(args.caso)]
+        if not casos:
+            print(f"Ningún caso empieza por {args.caso!r}.")
+            return 1
     disparadas, todas, fallidos = set(), [], 0
     for caso in casos:
         resultados = ejecutar_caso(caso, args.estrategia)
+        if args.caso:
+            print(f"# {caso['id']}: {caso['descripcion']}\n")
+            for r in resultados:
+                print(f"## t = {r.instante}\n")
+                for o in sorted((o for o in r.ordenes if o["instante"] == r.instante), key=lambda o: o["sector"]):
+                    print(f"{o['sector']}: {o['accion']}, ángulo {o['angulo-ordenado']}, escalado {o['escalado-humano']}")
+                print("\n" + r.traza.rstrip("\n") + "\n")
+                if r.errores:
+                    print(f"Errores de CLIPS: {r.errores}\n")
         todas = resultados[0].modulo_de
         for r in resultados:
             disparadas.update(r.reglas)
@@ -239,7 +258,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"      {f}")
     muertas = [f"{todas[r]}::{r}" for r in todas if r not in disparadas]
     print(f"\n{len(casos) - fallidos}/{len(casos)} casos pasan.")
-    print(f"Reglas no disparadas en la batería (§10.1): {', '.join(muertas) or 'ninguna'}")
+    if not args.caso:                               # con un caso suelto, la lista no dice nada
+        print(f"Reglas no disparadas en la batería (§10.1): {', '.join(muertas) or 'ninguna'}")
     return 1 if fallidos else 0
 
 
