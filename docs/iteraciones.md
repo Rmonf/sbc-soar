@@ -322,7 +322,7 @@ APRENENTATGE no depende del orden de disparo: la invariancia se mantiene con el 
 
 ## I5. Congelación: experimentos completos y casos no vistos
 
-El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no cambia en I5.
+El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no cambió durante I5. Después de la congelación, R3 se corrigió dos veces (pasos M1–M3) y los experimentos se relanzaron con el código nuevo: **las cifras de esta sección son las del relanzamiento**, salvo las de CPU marcadas como de la versión anterior. Los resultados anteriores a la corrección se guardan en `resultats/i5_pre_r3/` y los de la primera versión de la corrección, en `resultats/i5_r3_v1/` (métricas y resúmenes).
 
 ### Qué se implementó (pasos L0–L6)
 - **L0 (`0326cd7`):** especificación de I5 (tabla siguiente).
@@ -335,6 +335,10 @@ El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no camb
 - **L4 (`c7e7a7b`):** `experiments.py i5`, en serie y reanudable, con las etapas aprendizaje → B0 → A3 → A1/A2. Un caché compartido (`resultats/i5/ejecuciones/<estrategia>-<base>-<variante>/semilla_n`) guarda cada ejecución con una clave que incluye la huella del código que la produce; C0 y C2 con `depth` sirven a todas las etapas.
 - **L5 (`37b98dc`):** seis casos no vistos en `casos_no_vistos/` y `executar_casos.py --no-vistos`.
 - **L6:** cierre: verificación (0 anomalías), 364 tests y 82/82 casos; las únicas reglas no disparadas son las de la reserva de escalado.
+- **M1 (`64a381a`), corrección de R3 posterior a la congelación:** el caso no visto 05 mostró que, con el actuador encallado, el diagnóstico `fallada-actuador` dura un solo ciclo y el sistema volvía a ordenar al actuador roto cada dos ciclos. R3 rechaza ahora también los movimientos si hay un episodio del sector con `fallada-actuador` en la ventana episódica (función `fallada-actuador-reciente` de MAIN; las copias de R3 en B0 y A3s siguen siendo textuales). Caso 83: actuador encallado varios ciclos, sin alternar.
+- **M2 (`690faf0`, `7b7971d`):** `experiments.py i5 --procesos N` llena el caché en paralelo para las métricas de decisión; C0 y C2 con `depth` se ejecutan después en serie, cada una cuando el `loadavg` de 1 min baja de 1, y son las únicas con CPU válida. B0 añade la trazabilidad en los ciclos de conflicto.
+- **M3 (`28daa3f`), segunda corrección de R3:** el primer relanzamiento mostró que la memoria episódica de R3 contaba también fallas de órdenes que no pedían mover (falsos positivos por ruido y `moviment-no-ordenat`), que bloqueaban todo movimiento, incluida `posicio-seguretat`, durante una hora. Ahora solo cuentan las órdenes con |angulo-ordenado − angulo-previo| > tolerancia, como en R4. Caso 84: falso positivo por ruido que se registra y no bloquea el ciclo siguiente.
+- **M4 (`1fa5d03`):** con `--procesos`, la serie de C0 y C2 con `depth` se ejecuta en un proceso nuevo (ver «CPU tras la corrección de R3»). `docs/roadmap.md` §11.4 explica el contraste de H1 frente al análisis de potencia.
 
 ### Decisiones que cambiaron el roadmap
 | Commit | Cambio | Motivo |
@@ -344,26 +348,30 @@ El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no camb
 | `0326cd7` | §11.3: definición de A3s y de B0. B0 tiene las mismas condiciones de §5.4 y las mismas restricciones R1–R5; solo cambia la resolución del conflicto (salience = 6 − prioridad, la primera regla gana) | §11.3 no decía qué sustituye B0. Que la comparación mida conflictos, empates y trazabilidad, no seguridad. |
 | `9d564be` | §11.3: salience de A3s negativa (−10 los refinamientos, −20 las restricciones) | Con valores positivos, la secuencia solo cambiaba en 3 de los 115 ciclos de la batería con `depth`; con negativos, en 34. |
 | `c7e7a7b` | §11.2: en I5, el δ de `tie` es el del piloto de I4 (0,798, `simulacio.json`), sin recalcularlo con las semillas nuevas | Fijado antes de ver los resultados completos (§11.2). |
+| `64a381a` | §5.5a, §7 (y §2.3.8, §5.7, §6.3, §8): R3 también rechaza los movimientos con un episodio del sector con `fallada-actuador` en `[t−60, t)` (memoria episódica, como R4) | Caso no visto 05: el sistema alternaba `orientar-ombra` y `diagnosticar` con el actuador encallado. Cambio aprobado posterior a la congelación. |
+| `28daa3f` | §5.5a: la memoria episódica de R3 solo cuenta las fallas de órdenes que pedían mover | Con la primera versión, en B0, 1215 de las 1576 fallas eran de órdenes que no pedían mover y cada una bloqueaba una hora (ver incidencias). |
+| (este commit) | §11.4: nota sobre el contraste de H1 (d > δ) frente al análisis de potencia (d > 0) | La potencia se había calculado para otra hipótesis nula que la contrastada. |
 
 ### Experimento: aprendizaje completo, semillas 10–39 × 7 días (§11.4)
 `resultats/i5/aprenentatge/`. Violaciones de decisión: 0 en C0, C1 y C2.
 
 | Medida | C0 | C1 | C2 |
 |---|---|---|---|
-| `tie` por 100 decisiones, mediana [IQR] | 1,091 [0,562, 1,699] | 0,132 [0,116, 0,165] | 0,190 [0,120, 0,231] |
+| `tie` por 100 decisiones, mediana [IQR] | 1,091 [0,562, 1,687] | 0,132 [0,116, 0,165] | 0,190 [0,120, 0,244] |
 | Chunks vivos, máximo / final (mediana) | – | 8 / 8 | 7 / 4 |
 
 | Hipótesis | Resultado | p (Holm) | ¿Se cumple? |
 |---|---|---|---|
-| H1, C0 − C1 > δ = 0,798 | mediana 0,951, IC 95 % [0,587, 1,314] | 0,120 | **No** al 5 % |
-| H1, C0 − C2 > δ | mediana 0,926, IC 95 % [0,579, 1,265] | 0,120 | **No** al 5 % |
+| H1, C0 − C1 > δ = 0,798 | mediana 0,951, IC 95 % [0,587, 1,323] | 0,120 | **No** al 5 % |
+| H1, C0 − C2 > δ | mediana 0,926, IC 95 % [0,579, 1,248] | 0,120 | **No** al 5 % |
 | H2, órdenes idénticas a C0 | C1 y C2: 30/30, IC 95 % [0,884, 1,000] | – | Sí |
-| H3, C2 − C1 < δ | mediana 0,033, IC 95 % [0,017, 0,066] | 2,4·10⁻⁶ | Sí |
+| H3, C2 − C1 < δ | mediana 0,033, IC 95 % [0,017, 0,074] | 2,4·10⁻⁶ | Sí |
 
-- **H1 no se confirma con las semillas confirmatorias.** La mediana de la reducción (0,95) supera δ, pero el IC llega por debajo y el contraste unilateral frente a δ da p = 0,06 y 0,10 (0,12 con Holm). La reducción es claramente positiva (el IC excluye 0), pero no se puede afirmar que supere δ. σ_d = 0,80 ≈ δ, así que n = 30 era el mínimo justo; la dispersión entre semillas de `tie` en C0 (IQR 0,56–1,70) es la que manda. Se informa tal cual; no se cambia δ a posteriori.
-- **Contabilidad** `tie`(C0) = `tie`(Cx) + usos(Cx): 30/30 en C1 y en C2.
+- **H1 no se confirma con las semillas confirmatorias.** La mediana de la reducción (0,95 en C1 y 0,93 en C2, IC arriba) supera δ, pero el IC llega por debajo y el contraste unilateral frente a δ da p = 0,060 y 0,099 (0,120 con Holm). Solo 17 de las 30 semillas tienen d > δ. Se informa tal cual; no se cambia δ a posteriori.
+- **Por qué no bastaba n = 30 (roadmap §11.4, nota de I5).** H1 se contrastó como **d > δ**, pero el análisis de potencia de §11.2 se calculó para **d > 0**: n = ((z₀,₉₇₅ + z₀,₈)·σ_d/δ)² es el n para detectar un efecto de tamaño δ frente a 0, y con σ_d = 0,642 del piloto de I4 daba n ≈ 5 (se tomó el mínimo de 30). Para d > δ lo que cuenta es el margen entre el efecto real y δ: con la media observada (1,08 en C1 y 1,03 en C2) y σ_d = 0,79 y 0,75, harían falta unas 49 y 65 semillas. Frente a 0, la reducción es clara: Wilcoxon unilateral p = 1,9·10⁻⁶ (C1) y 2,8·10⁻⁶ (C2), biserial 1,00, y una reducción relativa mediana del 88 % y el 84 % (en las 28 semillas con algún `tie` en C0). Este contraste frente a 0 no estaba fijado de antemano y se da como descriptivo.
+- **Contabilidad exacta** `tie`(C0) = `tie`(Cx) + usos(Cx), semilla a semilla: 30/30 en C1 y en C2. En total, 2198 `tie` en C0 = 239 `tie` + 1959 usos de chunk en C1 = 332 `tie` + 1866 usos en C2.
 - **Transferencia** (mediana, C2): 0, como se esperaba (incidencia abierta).
-- **CPU por ciclo** (`loadavg` máximo 1,13 en 12 CPU, limpio): C1 gasta 0,29 ms más por ciclo que C0 (IC [0,10, 0,41], biserial 0,88) y C2 0,15 ms más (IC [0,005, 0,46]). Es el coste de emparejar los chunks, muy por debajo del δ de CPU (1,05 ms).
+- **CPU por ciclo, versión anterior a la corrección de R3** (en serie, `loadavg` máximo 1,13 en 12 CPU): C1 gasta 0,29 ms más por ciclo que C0 (IC [0,10, 0,41], biserial 0,88) y C2 0,15 ms más (IC [0,005, 0,46]). Es el coste de emparejar los chunks, muy por debajo del δ de CPU (1,05 ms). En el relanzamiento, C1 se ejecutó en paralelo y su CPU no vale; la de C0 y C2 se repitió en serie (ver «CPU tras la corrección de R3» más abajo).
 
 ### Experimento: B0 frente al núcleo, 30 semillas × 7 días, base C0 (§11.3)
 `resultats/i5/b0/`. Violaciones de decisión: 0 en los dos.
@@ -371,16 +379,19 @@ El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no camb
 | Métrica (mediana) | Núcleo | B0 | d = núcleo − B0, IC 95 % | p (Holm) |
 |---|---|---|---|---|
 | `tie` por 100 decisiones | 1,091 | 0 | 1,091 [0,711, 1,496] | < 10⁻⁴ |
-| Energía (kWh, 7 días) | 22 539 | 22 766 | −234 [−275, −166] | < 10⁻⁴ |
-| Horas de estrés por sector y día | 3,00 | 3,02 | −0,002 [−0,008, 0,004] | 0,42 |
-| Movimientos por sector y día | 20,2 | 34,9 | −14,9 [−15,1, −14,6] | < 10⁻⁴ |
-| Escalados | 0 | 0 | 0 | 0,42 |
-| Reglas por ciclo | 178,4 | 156,5 | 22,0 [20,4, 23,4] | < 10⁻⁴ |
-| CPU por ciclo (ms) | 10,50 | 9,60 | 0,90 [0,84, 0,96] | < 10⁻⁴ |
+| Energía (kWh, 7 días) | 22 539 | 22 662 | −167 [−232, −111] | < 10⁻⁴ |
+| Horas de estrés por sector y día | 3,00 | 3,02 | −0,004 [−0,008, 0,000] | 0,49 |
+| Movimientos por sector y día | 20,1 | 33,0 | −13,4 [−13,5, −12,8] | < 10⁻⁴ |
+| Escalados | 0 | 0 | 0 | 0,49 |
+| Reglas por ciclo | 178,4 | 156,9 | 21,7 [20,3, 23,1] | < 10⁻⁴ |
+| CPU por ciclo (ms), **versión anterior** (en serie) | 10,50 | 9,60 | 0,90 [0,84, 0,96] | < 10⁻⁴ |
 
-- **Decisiones distintas:** 68 895 de 181 440 por acción (38 %) y 81 429 por ángulo (45 %). En los 2212 ciclos de conflicto (con `tie` en el núcleo), 1807 por acción y 1344 por ángulo.
-- **Trazabilidad:** el núcleo registra un criterio determinante en el 48,5 % de los episodios (mediana); B0, en ninguno.
-- **Lectura.** Con las mismas condiciones de §5.4 y las mismas restricciones, B0 no tiene ni un empate ni una violación, pero no sabe explicar por qué elige y mueve los paneles casi el doble: la regla de `produccio-energia` gana a la de `estabilitat` en cada ciclo en que hay oportunidad, porque B0 no tiene la valoración de coste del movimiento (§5.5b) ni la preferencia de mínima intervención. Así gana un 1 % de energía sin cambiar el estrés del cultivo. En la batería coincidía con el núcleo en 325/345 decisiones porque los casos son de uno o pocos pasos.
+La CPU de B0 del relanzamiento se midió en paralelo y no vale; la fila de CPU es la de la versión anterior a la corrección de R3 (con la que B0 disparaba 156,5 reglas por ciclo, frente a 156,9 ahora).
+
+- **Decisiones distintas:** 66 215 de 181 440 por acción (36 %) y 85 001 por ángulo (47 %). En los 2198 ciclos de conflicto (con `tie` en el núcleo), 1740 por acción (79 %) y 1323 por ángulo (60 %).
+- **Trazabilidad:** el núcleo registra un criterio determinante en el 48,3 % de los episodios (mediana por semilla); B0, en el 0,008 % (solo los `require` de R2). **En los ciclos de conflicto**, el núcleo lo registra en el 100 % (mediana por semilla y en los 2198 ciclos en total) y B0 en ninguno: justo donde hay que elegir entre objetivos, B0 no puede decir por qué eligió.
+- **Lectura.** Con las mismas condiciones de §5.4 y las mismas restricciones, B0 no tiene ni un empate ni una violación, pero no sabe explicar por qué elige y mueve los paneles 1,6 veces más: la regla de `produccio-energia` gana a la de `estabilitat` en cada ciclo en que hay oportunidad, porque B0 no tiene la valoración de coste del movimiento (§5.5b) ni la preferencia de mínima intervención. Así gana un 0,7 % de energía sin cambiar el estrés del cultivo. En la batería coincidía con el núcleo en 325/345 decisiones porque los casos son de uno o pocos pasos.
+- **Efecto de la corrección de R3 en B0.** Antes de la corrección, B0 movía 34,9 veces por sector y día; con la primera versión, 28,6, y con la final, 33,0. B0 ordena muchos ajustes pequeños cerca de la tolerancia y tiene muchos falsos positivos de MONITORATGE por ruido (ver incidencias); con la primera versión cada uno bloqueaba una hora. Con la final solo bloquean los de órdenes que pedían mover.
 
 ### Experimento: A1, A2 y A3s, 30 semillas × 7 días, sin (C0) y con (C2) aprendizaje (§11.3)
 `resultats/i5/a1/` y `resultats/i5/a3/`.
@@ -391,9 +402,9 @@ El conocimiento del núcleo (`clips/01…11`, el TTL y la base generada) no camb
 | A2: `simplicity` frente a `complexity` | 0/30 | [0, 0,116] |
 | A3s frente a `depth` | 0/30 | [0, 0,116] |
 
-- La secuencia de reglas cambia en todos los ciclos con A1 y A2, y en 10 411 de 60 480 con A3s (en C0 y en C2, con las mismas cifras por semilla: los refinamientos que reordena A3s no dependen de los chunks). El multiconjunto, las órdenes, los episodios y la traza son iguales en todos los ciclos.
-- **Batería:** A1, A2 y A3s son invariantes con C0 y con C2 en los 115 ciclos. A3s cambia la secuencia en 34 ciclos (AVALUACIO 31, ELABORACIO 4).
-- **CPU por estrategia** (medianas, ms por ciclo), todas las ejecuciones sin carga (`loadavg` de 1 min < 1,5 en 12 CPU; las 44 que se habían medido con carga se repitieron, ver incidencias):
+- La secuencia de reglas cambia en todos los ciclos con A1 y A2, y en 10 543 de 60 480 con A3s (en C0 y en C2, con las mismas cifras por semilla: los refinamientos que reordena A3s no dependen de los chunks). El multiconjunto, las órdenes, los episodios y la traza son iguales en todos los ciclos.
+- **Batería** (84 casos): A1, A2 y A3s son invariantes con C0 y con C2 en los 125 ciclos. A3s cambia la secuencia en 39 ciclos (AVALUACIO 36, ELABORACIO 4).
+- **CPU por estrategia, versión anterior a la corrección de R3** (medianas, ms por ciclo), todas las ejecuciones sin carga (`loadavg` de 1 min < 1,5 en 12 CPU; las 44 que se habían medido con carga se repitieron, ver incidencias). En el relanzamiento, las estrategias distintas de `depth` se ejecutaron en paralelo y su CPU no vale, así que no se repite el Friedman:
 
   | Base | `depth` | `breadth` | `lex` | `mea` | `complexity` | `simplicity` | `random` | Friedman p |
   |---|---|---|---|---|---|---|---|---|
@@ -411,7 +422,7 @@ Informe completo, con la traza de cada paso: `resultats/i5_no_vistos/informe.md`
 | 02, noche del operador | Datos ausentes, antiguos y fallados en s1 y s3 | s1 `diagnosticar` con impasse `dades-insuficients` (R5) durante tres ciclos; s3 un `diagnosticar` aislado; luego todo mantiene |
 | 03, ola de calor | s3 en zona gris durante 30 min | Dos `tie` en s3 (prioridad de objetivos y mínima intervención); después mantiene sin impasse |
 | 04, pérdida de comunicación con viento | El panel de s2 deja de informar mientras sube el viento | Dos `diagnosticar` con `dades-insuficients` (R5; el segundo con R2), `posicio-seguretat` con R2, y vuelta a producción cuando se recupera |
-| 05, actuador encallado | El actuador de s1 se queda a 20° durante 40 min | s1 alterna `orientar-ombra` y `diagnosticar` (R3) cada ciclo, sin escalado |
+| 05, actuador encallado | El actuador de s1 se queda a 20° durante 40 min | s1 `orientar-ombra`; al ver la falla, `diagnosticar` (R3); después mantiene con R3 activa (memoria episódica) hasta el final del caso, sin volver a ordenar al actuador roto ni escalar. Antes de la corrección de R3 alternaba `orientar-ombra` y `diagnosticar` cada ciclo |
 | 06, tormenta con maquinaria | Viento crítico con maquinaria en s3 | s1 y s2 `posicio-seguretat` (R2); s3 `constraint-failure` (R1 frente al `require` de R2) y escalado a una persona durante tres ciclos |
 
 **Valoración del equipo (pendiente):**
@@ -420,21 +431,46 @@ Informe completo, con la traza de cada paso: `resultats/i5_no_vistos/informe.md`
 |---|---|---|---|---|
 | | | | | |
 
+### CPU tras la corrección de R3 (C0 y C2 con `depth`, en serie)
+Comparación pareada por semilla del código anterior a la corrección (`7ea432a`) y del final (`7b7971d`), las dos en serie, en un proceso aparte, en el mismo arranque de la máquina y con un `loadavg` de 1 min < 1 al empezar cada ejecución (máximo 1,12 en 12 CPU; ninguna pasa de 1,5):
+
+| Base | Anterior (ms por ciclo) | Final | d = final − anterior, IC 95 % | Wilcoxon p | Reglas por ciclo |
+|---|---|---|---|---|---|
+| C0 | 10,45 | 10,39 | +0,038 [0,015, 0,047] | 0,45 | 178,45 en las dos |
+| C2 | 10,60 | 10,63 | +0,051 [0,032, 0,068] | 2·10⁻⁴ | 178,30 en las dos |
+
+- **La corrección de R3 no cambia la CPU de forma relevante:** cuesta unos 0,04–0,05 ms por ciclo (0,4–0,5 %), lo que tarda la consulta de los episodios, frente a un δ de CPU de 1,05 ms. C2 sigue costando 0,15 ms más que C0 (IC [0,11, 0,21]), como antes.
+- **Medida descartada.** La primera serie de C0 y C2, ejecutada dentro del proceso de `i5 --procesos` después del pool, salía un 8 % más alta en todas las semillas (C0 11,25 ms), aunque el `loadavg` era < 1. Una comparación intercalada de las dos versiones fuera de `i5` (+0,04 ms en 5 semillas) mostró que no era el código. No se ha averiguado la causa; desde M4, la serie se ejecuta en un proceso nuevo, y una prueba de 3 semillas da la misma CPU que en el proceso aparte. Las ejecuciones de C0 y C2 del caché (`resultats/i5/ejecuciones/`) son las del proceso aparte, con la misma clave y las mismas órdenes, episodios y chunks.
+- En las 7 primeras ejecuciones del código anterior, recién terminado el relanzamiento, la CPU salía hasta un 10 % más alta con un `loadavg` < 1. Sin ellas, d no cambia (C0 +0,043, C2 +0,051).
+
+### Rachas de `diagnosticar` antes y después de la corrección de R3 (C0, 30 semillas)
+| Versión | Rachas | Más larga | Rachas ≥ 30 min (por causa) | Ciclos en rachas ≥ 30 min | `diagnosticar` | Escalados |
+|---|---|---|---|---|---|---|
+| Antes de la corrección | 1141 | 90 min | 171 (151 `incertesa-dades`, 20 `fallada-actuador`) | 1950 | 3057 | 8 (semilla 27) |
+| R3, primera versión | 1091 | 90 min | 171 (151, 20) | 1950 | 3006 | 8 |
+| R3, versión final | 1090 | 90 min | 171 (151, 20) | 1950 | 3006 | 8 |
+
+- La corrección quita 51 `diagnosticar` y 51 rachas: son las rachas de un ciclo de la alternancia `orientar-ombra`/`diagnosticar` con el actuador encallado. Tras el ciclo de diagnóstico, el sistema mantiene la posición en lugar de volver a ordenar.
+- **Las rachas largas no cambian**: no vienen de esa alternancia. Las 151 por `incertesa-dades` son datos insuficientes (R5) mientras dura la pérdida de comunicación del panel; las 20 por `fallada-actuador` son alarmas del seguidor (estado mecánico `alarma`, que ELABORACIO diagnostica cada ciclo mientras dura). En los dos casos el sistema sigue sin escalar a una persona: los 8 escalados son los `constraint-failure` de la semilla 27.
+- Las métricas de dominio del núcleo apenas cambian: energía 22 539 kWh, horas de estrés 3,00 por sector y día y movimientos 20,1 frente a 20,2.
+- **Decisión pendiente del equipo:** escalar a una persona tras k `diagnosticar` seguidos del mismo sector (p. ej., k = 6, 30 min). Las rachas ≥ 30 min, 171 en 30 semillas × 7 días × 3 sectores, darían una idea de cuántos escalados habría. Sería un cambio de especificación posterior a la congelación (§5.6 S7, §5.8) y no se ha hecho.
+
 ### Estado al cierre
-- 0 anomalías en la verificación, 364 tests y 82/82 casos. Las únicas reglas no disparadas son las de la reserva de escalado.
-- El núcleo no cambió en I5. Las variantes A3s y B0 están en `clips/variants/`, el único sitio con salience.
+- 0 anomalías en la verificación, 370 tests y 84/84 casos. Las únicas reglas no disparadas son las de la reserva de escalado.
+- El núcleo no cambió durante I5; después de la congelación, R3 se corrigió en dos pasos (M1 y M3) y los experimentos se relanzaron. Las variantes A3s y B0 están en `clips/variants/`, el único sitio con salience.
 
 ## Incidencias abiertas
 - **Fuga `ENVRNMNT8` (§13):** CLIPS deja unos 128 bytes por cada hecho con multislot que Python leyó y una regla retractó después. Son unos 0,8 MB por ejecución de 7 días. Aparece al final de la salida, no afecta a ningún resultado y, por decisión del equipo, no se filtra.
 - **`escalat` sigue siendo inalcanzable** con el conocimiento actual. Es una reserva de terminación probada con una variante de configuración (`tests/test_escalado.py`).
 - **Transferencia estructuralmente 0:** solo s3 puede empatar con el TTL actual. La generalización solo se prueba con una variante (`tests/test_chunk_fidelidad.py`).
 - **Empates de tres inalcanzables:** S6 con tres o más no dominados, en presencia de un chunk, solo se prueba con SELECCIO aislada (`tests/test_seleccio_chunk.py`).
-- **CPU por ciclo:** cerrada. El aprendizaje y B0 se midieron sin carga (`loadavg` ≤ 1,13 en 12 CPU). En A1, 44 ejecuciones con `loadavg` de 1 min > 1,5 (hasta 12,2) se repitieron sin carga; ahora ninguna de las 450 ejecuciones de estrategia pasa de 1,5. Las discrepancias siguen en 0/30 y el resto de los resultados no cambia.
-- **Zona gris cuantificada (C0, 30 semillas):** 2145 `tie` en los 53 días de calor (≈ 40 por día), 67 en los 116 templados y 0 en los 41 nublados. Es la dispersión que impide confirmar H1.
-- **`diagnosticar` repetido (C0, 30 semillas):** 1141 rachas por sector; la más larga dura 90 min; 171 duran 30 min o más (1950 ciclos), 151 por `incertesa-dades` y 20 por `fallada-actuador`. Solo hay 8 escalados, todos en la semilla 27. El caso no visto 05 muestra la misma pauta con un actuador encallado: `orientar-ombra` y `diagnosticar` alternados sin escalado. Si el equipo quiere un escalado tras k `diagnosticar` seguidos, es un cambio de especificación posterior a la congelación.
+- **CPU por ciclo:** las tablas de CPU de I5 (aprendizaje, B0 y estrategias) son de la versión anterior a la corrección de R3, medidas en serie y sin carga; en el relanzamiento solo C0 y C2 con `depth` se midieron en serie (ver «CPU tras la corrección de R3»).
+- **Falso positivo de MONITORATGE por ruido (§5.2):** MONITORATGE compara la orden con el ángulo *observado*, que lleva ruido, mientras que el simulador no mueve el panel si la orden está a menos de la tolerancia del ángulo *real*, y el actuador tiene un error de hasta 1°. Con el panel ya donde se ordenó, una observación algo más allá de la tolerancia (p. ej., 2,06° con tolerancia 2°) se registra como `fallada-actuador` y provoca un `diagnosticar`. Frecuencia en el relanzamiento (30 semillas × 7 días, 181 440 decisiones), contando como falso positivo la falla con el ángulo real dentro de la tolerancia de la orden: **núcleo, 0 de 46 fallas** (32 por actuador encallado y 14 por `moviment-no-ordenat`); **B0, 1842 de 1892**, 1434 en órdenes que no pedían mover y 408 en órdenes que sí. B0 los provoca porque ordena muchos ajustes pequeños cerca de la tolerancia; el núcleo, con la estabilidad y la mínima intervención, no. Desde M3, los de órdenes que no piden mover ya no bloquean los ciclos siguientes, pero **los 408 de órdenes que piden mover sí activan R3 durante 60 min**: B0 tiene 4719 ciclos con R3 solo por la memoria episódica (el núcleo, 338, todos de fallas reales). Corregirlo sería un cambio de §5.2 (p. ej., un margen de ruido en la verificación) o del simulador; no se ha hecho.
+- **Zona gris cuantificada (C0, 30 semillas):** 2131 `tie` en los 53 días de calor (≈ 40 por día), 67 en los 116 templados y 0 en los 41 nublados. Es la dispersión que impide confirmar H1.
+- **`diagnosticar` repetido (C0, 30 semillas, tras la corrección de R3):** 1090 rachas por sector (1141 antes); la más larga dura 90 min; 171 duran 30 min o más (1950 ciclos), 151 por `incertesa-dades` y 20 por `fallada-actuador` (alarmas del seguidor), igual que antes. Solo hay 8 escalados, todos en la semilla 27. La corrección de R3 eliminó la alternancia del actuador encallado, pero no las rachas largas. El escalado tras k `diagnosticar` seguidos queda como decisión pendiente del equipo.
 - **Modelos del simulador heurísticos:** la lechuga (umbral de 26 °C, del TTL) tiene unas 4 h de estrés también los días templados, lo que es plausible para lechuga en verano. Los parámetros meteorológicos son sintéticos y no están calibrados con datos reales.
 
 ## Siguiente paso: informe y diagramas (§12)
 - El equipo valora los casos no vistos y rellena la tabla de discrepancias de I5.
 - Informe y diagramas (§12) a partir de esta sección y de `resultats/i5/`.
-- Decisiones pendientes del equipo, todas posteriores a la congelación: un posible escalado tras k `diagnosticar`.
+- Decisiones pendientes del equipo, todas posteriores a la congelación: un posible escalado tras k `diagnosticar` seguidos, y si se corrige el falso positivo de MONITORATGE por ruido.

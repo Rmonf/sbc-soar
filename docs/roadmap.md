@@ -719,6 +719,8 @@ Cada iteración termina con:
 | Sensibilidad | Barrido del umbral de olvido (−1, −2, −3) con d = 0,5, para elegir el valor en la iteración I4. |
 | Transferencia | Proporción de usos de chunks en un sector distinto del que los aprendió. Con el TTL actual es 0 por construcción: solo la viña (sensibilidad `mitja`) puede tener estrés `mitja` tras el ajuste por sensibilidad, así que solo s3 empata (§5.5). La generalización entre sectores se prueba con una variante de configuración (s1 con sensibilidad `mitja`), solo en un test. |
 
+**Contraste de H1 y análisis de potencia (nota de I5).** H1 se contrasta como **d > δ**: Wilcoxon unilateral de d − δ, de modo que la reducción tiene que superar δ, no solo ser positiva. El análisis de potencia de §11.2, en cambio, calcula n = ((z₁₋α/₂ + z₁₋β)·σ_d/δ)², que es el n para detectar un efecto de tamaño δ frente a **d = 0** (bilateral): con la σ_d del piloto de I4 (0,642) daba n ≈ 5, que se elevó al mínimo de 30. Para d > δ, la potencia depende del margen entre el efecto real y δ, no del propio δ: con la media de las diferencias observada en I5 (1,08 en C1 y 1,03 en C2, con σ_d = 0,79 y 0,75), harían falta unas 49 y 65 semillas (unilateral, α = 0,05, potencia 0,8). La hipótesis no se cambia a posteriori: H1 se informa como no confirmada al 5 %, y la reducción frente a 0 se da como resultado descriptivo (`docs/iteraciones.md`, I5).
+
 ---
 
 ## 12. Diagramas e informe
