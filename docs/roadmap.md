@@ -298,13 +298,13 @@ Siempre se propone exactamente una acción sin movimiento. PROPOSTA no filtra: A
 |---|---|---|---|
 | R1 | `risc-persones` | `reject` a todo candidato que mueva | `seguretat-persones` |
 | R2 | `risc-mecanic critic` | `require posicio-seguretat`; `reject` a `orientar-produccio` y `orientar-ombra` | `integritat-mecanica` |
-| R3 | diagnóstico `fallada-actuador` del sector, o algún episodio del sector en `[t−60, t)` con `resultado fallada-actuador` | `reject` a todo candidato que mueva | `integritat-mecanica` |
+| R3 | diagnóstico `fallada-actuador` del sector, o algún episodio del sector en `[t−60, t)` con `resultado fallada-actuador` cuya orden pedía mover (\|angulo-ordenado − angulo-previo\| > tolerancia, como en R4) | `reject` a todo candidato que mueva | `integritat-mecanica` |
 | R4 | episodios del sector en `[t−60, t)` con movimiento (\|angulo-ordenado − angulo-previo\| > tolerancia) ≥ `max-movimientos-hora` | `reject` a todo candidato que mueva, excepto `posicio-seguretat` | `integritat-mecanica` |
 | R5 | no hay `observacion-panel` | `reject` a todo candidato que mueva | `seguretat-persones` |
 
 Ninguna restricción rechaza una acción sin movimiento, así que nunca quedan todos los candidatos rechazados. R3 y R4 son los usos de la memoria episódica en una decisión (enunciado 3.6).
 
-**Por qué R3 consulta los episodios (cambio posterior a la congelación de I5).** El diagnóstico `fallada-actuador` solo existe en el ciclo en que MONITORATGE verifica la orden (§5.2): en el siguiente, la orden fallada ya se ha retirado y no hay nada que verificar. Con R3 limitada al diagnóstico, el caso no visto 05 (actuador encallado a 20°, informando `operatiu`) alternaba `orientar-ombra` y `diagnosticar` cada ciclo: el sistema volvía a ordenar al actuador roto cada dos ciclos. Con el episodio de la orden fallada en la ventana, R3 sigue rechazando los movimientos durante 60 min y el sistema mantiene; cuando el episodio sale de la ventana, vuelve a intentarlo (caso 83).
+**Por qué R3 consulta los episodios (cambio posterior a la congelación de I5).** El diagnóstico `fallada-actuador` solo existe en el ciclo en que MONITORATGE verifica la orden (§5.2): en el siguiente, la orden fallada ya se ha retirado y no hay nada que verificar. Con R3 limitada al diagnóstico, el caso no visto 05 (actuador encallado a 20°, informando `operatiu`) alternaba `orientar-ombra` y `diagnosticar` cada ciclo: el sistema volvía a ordenar al actuador roto cada dos ciclos. Con el episodio de la orden fallada en la ventana, R3 sigue rechazando los movimientos durante 60 min y el sistema mantiene; cuando el episodio sale de la ventana, vuelve a intentarlo (caso 83). **Solo cuentan las órdenes que pedían mover** (segundo cambio, aprobado tras relanzar I5): una orden que no pide mover también puede acabar en `fallada-actuador`, por un `moviment-no-ordenat` (el actuador funciona) o por el ruido del ángulo observado cuando el panel está casi en la tolerancia (falso positivo de MONITORATGE, ver `docs/iteraciones.md`). Con la primera versión, cada una de esas fallas bloqueaba todo movimiento, incluida `posicio-seguretat`, durante una hora; en B0, que ordena muchos ajustes pequeños, eran 1215 de sus 1576 fallas. Esas fallas siguen registrándose y diagnosticándose en su ciclo, pero no bloquean los siguientes (caso 84).
 
 **(b) Valoración** de cada candidato con Δ calculable:
 - `desplazamiento` = Δ; `coste-movimiento` = nivel de Δ según el umbral `moviment`.
@@ -566,7 +566,7 @@ proyecto-sbc-agrovoltaica/
 - `nivel-diagnostico`: nivel del diagnóstico de un tipo en el sector, o `baix` si no existe (§5.5b);
 - `tolerancia-sector` y `candidato-mueve`: definición de "candidato que mueve" de §5 (Δ > tolerancia o Δ desconocido sin panel);
 - `movimientos-recientes`: episodios del sector con movimiento en `[t − ?*ventana-episodica*, t)` (R4);
-- `fallada-actuador-reciente`: diagnóstico `fallada-actuador` del sector o algún episodio suyo en la ventana con `resultado fallada-actuador` (R3);
+- `fallada-actuador-reciente`: diagnóstico `fallada-actuador` del sector o algún episodio suyo en la ventana con `resultado fallada-actuador` y una orden que pedía mover (R3);
 - `riesgo-mecanico-reciente`: algún episodio del sector en la ventana con `risc-mecanic` ≥ `alt` (`posicio-preventiva`, §5.7);
 - `criterio-servido`: objetivo de mayor prioridad que sirve una valoración con beneficio ≥ `mitja` (§5.5c.3, §5.7);
 - `instante-actual` y `angulo-observado`: ángulo del panel vigente del sector, o nil sin observación vigente (§3.2, §5.1);

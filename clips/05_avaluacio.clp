@@ -66,7 +66,7 @@
                         (operador-referencia ?c) (criterio integritat-mecanica)
                         (origen regla) (restriccion R2))))
 
-;; R3: con fallada del actuador en este ciclo o en un episodio del sector de la última hora
+;; R3: con fallada del actuador en este ciclo, o en una orden que pedía mover en la última hora
 ;; (memoria episódica, como R4), se rechaza todo candidato que mueva (§5.5a).
 (defrule AVALUACIO::r3-rechazar-con-fallada
    (estado-soar (id S0) (fase avaluacio))

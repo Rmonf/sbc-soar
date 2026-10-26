@@ -375,15 +375,19 @@
                            (member$ risc-mecanic:critic ?e:situacion)))))
       0))
 
-;; ¿Hay fallada del actuador en el sector: el diagnóstico de este ciclo o algún episodio con
-;; resultado fallada-actuador en [t − ventana, t)? Condición de R3 (§5.5a), con memoria
-;; episódica como R4. Diagnósticos y episodios no cambian en AVALUACIO.
+;; ¿Hay fallada del actuador en el sector: el diagnóstico de este ciclo o algún episodio en
+;; [t − ventana, t) con resultado fallada-actuador cuya orden pedía mover (|angulo-ordenado −
+;; angulo-previo| > tolerancia, como en R4)? Condición de R3 (§5.5a). Diagnósticos y episodios
+;; no cambian en AVALUACIO.
 (deffunction MAIN::fallada-actuador-reciente (?sector ?t)
+   (bind ?tol (tolerancia-sector ?sector))
    (or (any-factp ((?d diagnostico))
           (and (eq ?d:sector ?sector) (eq ?d:tipo-diagnostico fallada-actuador)))
        (any-factp ((?e episodio))
           (and (eq ?e:sector ?sector) (eq ?e:resultado fallada-actuador)
-               (>= ?e:instante (- ?t ?*ventana-episodica*)) (< ?e:instante ?t)))))
+               (>= ?e:instante (- ?t ?*ventana-episodica*)) (< ?e:instante ?t)
+               (neq ?e:angulo-ordenado nil) (neq ?e:angulo-previo nil)
+               (> (abs (- ?e:angulo-ordenado ?e:angulo-previo)) ?tol)))))
 
 ;; Episodios del sector en [t − ventana, t) en los que se movió el panel: |angulo-ordenado −
 ;; angulo-previo| > tolerancia (R4, §5.5a). Los episodios no cambian en AVALUACIO.
