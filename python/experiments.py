@@ -44,6 +44,8 @@ from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 
 import math
+import os
+import time
 from pathlib import Path
 
 import numpy as np
@@ -556,7 +558,9 @@ class Cache:
         return self.bases[nombre]
 
     def ejecucion(self, semilla: int, estrategia: str = "depth", base: str = "C2",
-                  variante: str | None = None) -> tuple[dict, "bucle.Ejecucion"]:
+                  variante: str | None = None, loadavg_max: float | None = None) -> tuple[dict, "bucle.Ejecucion"]:
+        """Con loadavg_max, una ejecución que no está en el caché espera antes de empezar a que el
+        loadavg de 1 min baje de ese valor (CPU en serie sin otras cargas, §11.2)."""
         ruta = self.base(base)
         clave = {"base": base, "variante": variante, "huella": huella_codigo(ruta, variante)}
         d = self.dir / f"{estrategia}-{base}-{variante or 'nucleo'}" / f"semilla_{semilla}"
@@ -564,6 +568,8 @@ class Cache:
         if cargada is not None:
             self.reutilizadas += 1
             return cargada
+        while loadavg_max is not None and os.getloadavg()[0] >= loadavg_max:
+            time.sleep(10)
         ej = bucle.ejecutar(semilla, self.config, estrategia, ruta, variante)
         m = metricas.calcular(ej)
         if ej.errores:
@@ -748,6 +754,7 @@ def bateria_i5(cache: Cache, experimentos: list[str]) -> dict:
 
 ETAPAS_I5 = ["aprenentatge", "b0", "a3", "a1"]          # el orden de lanzamiento (plan de I5)
 CPU_EN_SERIE = {("depth", b, None) for b in BASES_I5}   # las únicas que se repiten en serie con --procesos
+LOADAVG_LIBRE = 1.0      # con --procesos, cada ejecución en serie espera a un loadavg de 1 min menor (§11.2)
 
 
 def tareas_i5(etapas: list[str], semillas: list[int]) -> list[tuple]:
@@ -796,6 +803,9 @@ def i5(semillas: list[int], dias: float | None, salida: Path, etapas: list[str] 
             for ejecutada in ex.map(_ejecutar_i5, [(cache.dir, config, bases, *t) for t in tareas]):
                 cache.ejecutadas += ejecutada
                 cache.reutilizadas += not ejecutada
+        for t in tareas_i5(etapas, semillas):
+            if t[1:] in CPU_EN_SERIE:
+                cache.ejecucion(*t, loadavg_max=LOADAVG_LIBRE)
     def escribir(nombre, res, texto):
         texto = aviso + texto
         res["cpu_valida"] = "todas" if procesos == 1 else "solo depth C0 y C2"

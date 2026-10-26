@@ -71,7 +71,7 @@ uv run python python/experiments.py a3s --base C0  # A3s sobre la batería (clip
 uv run python python/experiments.py i5          # experimentos completos de I5 (semillas 10–39 × 7 días), en serie y reanudables: aprenentatge, b0, a3, a1 (--etapas para elegir); resultats/i5/
 ```
 
-`experiments.py i5` mide la CPU: lánzalo sin otras cargas en la máquina (cada ejecución guarda su `loadavg`). Con `--procesos N` llena antes el caché en N procesos para las métricas de decisión; solo C0 y C2 con `depth` se ejecutan después en serie, y son las únicas con CPU válida (los resúmenes lo avisan). Si se interrumpe, al relanzarlo lee del caché (`resultats/i5/ejecuciones/`) las ejecuciones ya hechas con el mismo código.
+`experiments.py i5` mide la CPU: lánzalo sin otras cargas en la máquina (cada ejecución guarda su `loadavg`). Con `--procesos N` llena antes el caché en N procesos para las métricas de decisión; solo C0 y C2 con `depth` se ejecutan después en serie, cada una cuando el `loadavg` de 1 min baja de 1, y son las únicas con CPU válida (los resúmenes lo avisan). Si se interrumpe, al relanzarlo lee del caché (`resultats/i5/ejecuciones/`) las ejecuciones ya hechas con el mismo código.
 
 Al final de la salida de estos comandos puede aparecer `[ENVRNMNT8] Environment data not fully deallocated`. Es una fuga conocida de CLIPS, documentada en roadmap §13, y no indica ningún error: no se filtra.
 
