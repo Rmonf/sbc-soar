@@ -772,13 +772,15 @@ def tareas_i5(etapas: list[str], semillas: list[int]) -> list[tuple]:
     return [(s, *c) for c in dict.fromkeys(t) for s in semillas]
 
 
-def _ejecutar_i5(args: tuple) -> bool:
-    """Una ejecución del caché en un proceso aparte; True si se ejecutó (False si ya estaba)."""
-    directorio, config, bases, semilla, estrategia, base, variante = args
+def _ejecutar_i5(args: tuple) -> int:
+    """Ejecuciones del caché en un proceso aparte, en orden; devuelve cuántas se ejecutaron (el resto
+    ya estaban). Con loadavg_max, cada una espera a que el loadavg baje de ese valor."""
+    directorio, config, bases, tareas, loadavg_max = args
     cache = Cache(directorio, config)
     cache.bases = bases                                 # generadas por el padre: ningún proceso las reescribe
-    cache.ejecucion(semilla, estrategia, base, variante)
-    return cache.ejecutadas == 1
+    for semilla, estrategia, base, variante in tareas:
+        cache.ejecucion(semilla, estrategia, base, variante, loadavg_max)
+    return cache.ejecutadas
 
 
 def i5(semillas: list[int], dias: float | None, salida: Path, etapas: list[str] = ETAPAS_I5,
@@ -797,15 +799,18 @@ def i5(semillas: list[int], dias: float | None, salida: Path, etapas: list[str] 
     aviso = (f"AVISO: ejecuciones en paralelo ({procesos} procesos). Solo es válida la CPU de C0 y C2 con "
              f"depth, ejecutadas en serie; el resto de cifras de CPU no se pueden usar.\n") if procesos > 1 else ""
     if procesos > 1:
-        tareas = [t for t in tareas_i5(etapas, semillas) if t[1:] not in CPU_EN_SERIE]
-        bases = {b: cache.base(b) for b in dict.fromkeys(t[2] for t in tareas)}
+        todas = tareas_i5(etapas, semillas)
+        paralelo = [t for t in todas if t[1:] not in CPU_EN_SERIE]
+        serie = [t for t in todas if t[1:] in CPU_EN_SERIE]
+        bases = {b: cache.base(b) for b in dict.fromkeys(t[2] for t in todas)}
         with ProcessPoolExecutor(procesos) as ex:
-            for ejecutada in ex.map(_ejecutar_i5, [(cache.dir, config, bases, *t) for t in tareas]):
-                cache.ejecutadas += ejecutada
-                cache.reutilizadas += not ejecutada
-        for t in tareas_i5(etapas, semillas):
-            if t[1:] in CPU_EN_SERIE:
-                cache.ejecucion(*t, loadavg_max=LOADAVG_LIBRE)
+            ejecutadas = sum(ex.map(_ejecutar_i5, [(cache.dir, config, bases, [t], None) for t in paralelo]))
+        # La serie va en un proceso nuevo: medida en este proceso después del pool, la CPU de C0 con
+        # depth salía un 8 % más alta que en un proceso aparte con el mismo código (I5, M4).
+        with ProcessPoolExecutor(1) as ex:
+            ejecutadas += ex.submit(_ejecutar_i5, (cache.dir, config, bases, serie, LOADAVG_LIBRE)).result()
+        cache.ejecutadas += ejecutadas
+        cache.reutilizadas += len(todas) - ejecutadas
     def escribir(nombre, res, texto):
         texto = aviso + texto
         res["cpu_valida"] = "todas" if procesos == 1 else "solo depth C0 y C2"
