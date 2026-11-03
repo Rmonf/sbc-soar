@@ -1,0 +1,9 @@
+{
+  "descripcion": "Tomate (s1) con estrés térmico alt y sol alto, con el panel ya en el ángulo de sombra (-23° frente a -25°). orientar-ombra no se propone; mantenir-posicio hereda su beneficio y gana a orientar-produccio: no sale a producir y no hay vaivén.",
+  "requisito": "Enunciado 3.2 (evitar oscilaciones innecesarias entre posiciones)",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"temp-cultiu": 33, "radiacio": 600, "angle-captacio": 30, "angle-ombra": -25,
+                                 "panel": {"angulo-actual": -23}}},
+     "esperado": {"s1": {"accion": "mantenir-posicio", "impasse": null}}}
+  ]
+}

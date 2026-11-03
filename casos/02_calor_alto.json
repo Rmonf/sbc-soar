@@ -1,0 +1,9 @@
+{
+  "descripcion": "Tomate (s1) a 33 °C, 3 °C por encima de su umbral, con poca radiación: estrés térmico alt y orientar-ombra por preferencia better.",
+  "requisito": "Enunciado 3.2 (proteger el cultivo del calor) y 3.7.2 (conflicto del dominio resuelto con preferencias)",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"temp-cultiu": 33, "radiacio": 150, "angle-ombra": -25}},
+     "esperado": {"s1": {"accion": "orientar-ombra", "impasse": null},
+                  "s2": {"accion": "mantenir-posicio"}, "s3": {"accion": "mantenir-posicio"}}}
+  ]
+}

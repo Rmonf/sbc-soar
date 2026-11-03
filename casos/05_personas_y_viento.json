@@ -1,0 +1,8 @@
+{
+  "descripcion": "Personas bajo los paneles de s1 con viento alt (60 km/h). Ir a defensa sería mejor, pero R1 prohíbe cualquier movimiento: mantenir-posicio.",
+  "requisito": "Enunciado 3.4 (ningún objetivo prevalece sobre una restricción dura); testimonio del jefe de operaciones",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"vent": 60, "panel": {"angulo-actual": 30, "ocupacion": "persones"}}},
+     "esperado": {"s1": {"accion": "mantenir-posicio", "impasse": null}}}
+  ]
+}

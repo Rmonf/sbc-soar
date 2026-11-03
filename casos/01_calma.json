@@ -1,0 +1,10 @@
+{
+  "descripcion": "Noche tranquila en los tres sectores: el ciclo completo termina en mantenir-posicio.",
+  "requisito": "Enunciado 3.8 (ciclo de funcionamiento) y operación normal (guion, semana 1)",
+  "pasos": [
+    {"t": 0, "sectores": {},
+     "esperado": {"s1": {"accion": "mantenir-posicio", "impasse": null},
+                  "s2": {"accion": "mantenir-posicio", "impasse": null},
+                  "s3": {"accion": "mantenir-posicio", "impasse": null}}}
+  ]
+}

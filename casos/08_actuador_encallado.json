@@ -1,0 +1,12 @@
+{
+  "descripcion": "Viento alt en s1 con el panel a 30°. Se ordena ir a defensa, pero el actuador está encallado: el panel sigue a 30°. MONITORATGE detecta el fallo (diagnosticar) y R3, con la memoria episódica, impide volver a intentarlo en la hora siguiente.",
+  "requisito": "Enunciado 3.8.8 (observar el resultado y revisar la decisión) y 3.9 (historial)",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"vent": 60, "panel": {"angulo-actual": 30}}},
+     "esperado": {"s1": {"accion": "posicio-seguretat"}}},
+    {"t": 5, "sectores": {"s1": {"vent": 60, "panel": {"angulo-actual": 30}}},
+     "esperado": {"s1": {"accion": "diagnosticar"}}},
+    {"t": 10, "sectores": {"s1": {"vent": 60, "panel": {"angulo-actual": 30}}},
+     "esperado": {"s1": {"accion": "mantenir-posicio"}}}
+  ]
+}
