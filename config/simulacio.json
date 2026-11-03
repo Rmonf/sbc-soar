@@ -1,144 +1,20 @@
 {
-  "estrategia": "depth",
-  "semilla-agenda": 42,
+  "_nota": "Datos sintéticos y heurísticos (final de primavera, unas 14 h de luz); no son medidas reales.",
   "dt-min": 5,
-  "dias": 7,
-  "semillas": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9
-  ],
-  "meteo": {
-    "radiacio-max": 950,
-    "hora-sortida": 6,
-    "hora-posta": 20,
-    "_estacio": "Final de primavera (junio, ≈ 41° N, unas 14 h de luz). Datos sintéticos: los parámetros son heurísticos y plausibles, no un registro meteorológico real (roadmap §9).",
-    "tipus-dia": {
-      "templat": {
-        "prob": 0.5,
-        "temp-mitjana": 19,
-        "temp-amplitud": 6,
-        "nuvolositat": 0.2
-      },
-      "calor": {
-        "prob": 0.3,
-        "temp-mitjana": 27,
-        "temp-amplitud": 8,
-        "nuvolositat": 0.1
-      },
-      "nuvol": {
-        "prob": 0.2,
-        "temp-mitjana": 18,
-        "temp-amplitud": 4,
-        "nuvolositat": 0.7
-      }
-    },
-    "nuvolositat-retorn": 0.05,
-    "nuvolositat-desviacio": 0.05,
-    "temp-desviacio-dia": 1.5,
-    "vent-mitja": 12,
-    "vent-desviacio": 4,
-    "prob-tempesta-dia": 0.2,
-    "vent-tempesta": [
-      55,
-      95
-    ],
-    "durada-tempesta-h": [
-      1,
-      3
-    ],
-    "prob-inici-pluja": 0.002,
-    "prob-fi-pluja": 0.05,
-    "pluja-mitjana": 3.0,
-    "horitzo-prediccio-min": 30,
-    "preu-base": 60
+  "sol": {"hora-sortida": 6, "hora-posta": 20, "radiacio-max": 950, "desfase-ombra": 45},
+  "tipus-dia": {
+    "templat": {"prob": 0.5, "temp-mitjana": 21, "temp-amplitud": 6, "nuvolositat": 0.2},
+    "calor":   {"prob": 0.3, "temp-mitjana": 27, "temp-amplitud": 8, "nuvolositat": 0.1},
+    "nuvol":   {"prob": 0.2, "temp-mitjana": 18, "temp-amplitud": 4, "nuvolositat": 0.6}
   },
-  "cultiu": {
-    "efecte-radiacio-temp": 8.0,
-    "et-maxima-per-hora": 1.2,
-    "pluja-a-humitat": 1.5,
-    "reg-hora": 6,
-    "reg-objectiu": 20,
-    "humitat-inicial": 20,
-    "kc": {
-      "cultivo-s1": 1.05,
-      "cultivo-s2": 1.0,
-      "cultivo-s3": 0.7
-    }
-  },
-  "panell": {
-    "ombra-maxima": 0.6,
-    "error-posicio": 0.5,
-    "superficie-m2": 1000,
-    "rendiment": 0.2
-  },
-  "soroll-sensors": {
-    "vent": 1.0,
-    "radiacio": 10.0,
-    "temp-cultiu": 0.3,
-    "temp-ambient": 0.3,
-    "humitat-sol": 0.5,
-    "pluja": 0.1,
-    "angulo": 0.2,
-    "prediccio-vent": 5.0,
-    "prediccio-pluja": 0.5
-  },
+  "vent": {"mitja": 12, "desviacio": 3, "prob-tempesta-dia": 0.2, "pic-tempesta": [55, 95], "durada-tempesta-h": [1, 3]},
+  "cultiu": {"efecte-radiacio-temp": 8.0, "et-per-hora": 1.2, "hora-reg": 6, "reg-sobre-umbral": 20},
+  "panell": {"ombra-maxima": 0.6, "error-posicio": 0.5},
+  "soroll": {"vent": 1.0, "radiacio": 10.0, "temp-cultiu": 0.3, "humitat-sol": 0.5, "angulo": 0.2},
   "fallos": {
-    "prob-sensor-fallada": 0.0005,
-    "prob-sensor-degradat": 0.002,
-    "prob-sensor-antic": 0.0005,
-    "prob-sensor-absent": 0.0003,
-    "prob-dia": {
-      "panell-sense-comunicacio": 0.15,
-      "panell-lectura-antiga": 0.15,
-      "actuador-encallat": 0.1,
-      "actuador-alarma": 0.05,
-      "moviment-no-ordenat": 0.1,
-      "persones": 0.4,
-      "maquinaria": 0.15
-    },
-    "durada-min": [
-      15,
-      90
-    ],
-    "hores-treball": [
-      8,
-      14
-    ],
-    "moviment-no-ordenat-graus": [
-      8,
-      20
-    ],
-    "calendari": []
-  },
-  "delta": {
-    "_nota": "Efecto mínimo relevante por semilla, fijado antes del piloto (roadmap §11.2). rel = fracción de la mediana del piloto.",
-    "tie-100": {
-      "rel": 0.5,
-      "piloto-i4": 0.798,
-      "_piloto-i4": "δ = 0,5 · 1,596, la mediana de C0 del piloto de I4 (semillas 0–9). Los experimentos completos de I5 usan este valor fijo, no la mediana de sus semillas (roadmap §11.2)."
-    },
-    "energia-kwh": {
-      "rel": 0.02
-    },
-    "horas-estres-sector-dia": {
-      "abs": 1.0
-    },
-    "movimientos-sector-dia": {
-      "abs": 2.0
-    },
-    "reglas-ciclo": {
-      "rel": 0.05
-    },
-    "cpu-ms-ciclo": {
-      "rel": 0.1
-    }
+    "prob-sensor-fallat": 0.001,
+    "prob-dia": {"panell-sense-comunicacio": 0.15, "actuador-encallat": 0.1, "persones": 0.4},
+    "durada-min": [15, 90],
+    "hores-treball": [8, 14]
   }
 }

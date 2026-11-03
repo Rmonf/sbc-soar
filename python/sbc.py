@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from simulador import simular
 from sistema import Sistema
 
 SECTORES = ("s1", "s2", "s3")
@@ -48,7 +49,18 @@ def main():
     ap.add_argument("orden", choices=("demo", "caso", "aprendizaje", "agenda"))
     ap.add_argument("fichero", nargs="?")
     ap.add_argument("--estrategia", choices=ESTRATEGIAS, default="depth")
+    ap.add_argument("--dias", type=int, default=1)
+    ap.add_argument("--semilla", type=int, default=0)
+    ap.add_argument("--sin-aprendizaje", action="store_true")
     args = ap.parse_args()
+    if args.orden == "demo":
+        pasos = simular(Sistema(args.estrategia, not args.sin_aprendizaje), args.semilla, args.dias)
+        for i, r in enumerate(pasos):
+            print(f"===== t={i * 5} ({i * 5 // 60 % 24:02d}:{i * 5 % 60:02d}) =====\n{r['traza']}")
+        episodios = [e for r in pasos for e in r["episodios"].values()]
+        print(f"Resum: {len(episodios)} decisions, {sum(e['tipo-impasse'] == 'tie' for e in episodios)} empats, "
+              f"{sum(e['chunk-aplicado'] != 'nil' for e in episodios)} decisions amb chunk, "
+              f"{len(pasos[-1]['chunks'])} chunks vius al final")
     if args.orden == "caso":
         caso, resultados = ejecutar_caso(args.fichero, args.estrategia)
         print(f"{caso['descripcion']}\nRequisit: {caso['requisito']}\n")
