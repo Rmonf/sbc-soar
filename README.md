@@ -84,7 +84,7 @@ En la traza se ve cada paso:
 Aprenentatge (t=665): compilat chunk-mantenir-posicio-mitja-orientar-produccio-mitja ...
 Decisio: mantenir-posicio (chunk-..., apres de prioritat-objectius)   Criteri: proteccio-cultiu
 Aprenentatge (t=670): reforcat chunk-... per l'us de t=665
-Aprenentatge (t=1765): oblidat chunk-..., activacio=-2.001 < -2
+Aprenentatge (t=1765): oblidat chunk-..., activacio=-2.001 < -2.0
 ```
 
 ---
@@ -152,5 +152,3 @@ tests/                            Tests de pytest
 docs/ontologia-explicada.md       Qué significa cada clase y propiedad de la ontología
 fuentes/                          Enunciado, testimonios y material de clase
 ```
-
-La ontología es más rica que la implementación: algunos valores (por ejemplo, el impasse `constraint-failure` o la preferencia `require`) están en el vocabulario, pero el sistema no los usa.

@@ -62,9 +62,9 @@ Se cargan al arrancar y no cambian durante la ejecución.
 |---|---|
 | `ConocimientoDominio` | Raíz: todo lo que es configuración fija. |
 | `Sector` | Una parcela de la instalación, con su cultivo y su seguidor. |
-| `Cultivo` | El cultivo de un sector: especie, fase de crecimiento, sensibilidad y umbrales a partir de los cuales sufre calor o sequía. |
+| `Cultivo` | El cultivo de un sector: los umbrales a partir de los cuales sufre calor o sequía. |
 | `SeguidorSolar` | Los paneles de un sector: límites de giro, posición de defensa contra el viento, viento máximo tolerado y movimientos permitidos por hora. |
-| `ObjetivoActivo` | Uno de los cinco objetivos del sistema, con su prioridad (1 = la más alta) y si es obligatorio (`dura`) o deseable (`tova`). Orden de prioridad: seguridad de las personas, integridad mecánica, protección del cultivo, producción de energía y estabilidad. |
+| `ObjetivoActivo` | Uno de los cinco objetivos del sistema, con su prioridad (1 = la más alta). Orden de prioridad: seguridad de las personas, integridad mecánica, protección del cultivo, producción de energía y estabilidad. |
 | `DatoRequerido` | Una medida que debe llegar en cada ciclo, junto con lo grave que es que falte. |
 | `Umbral` | Un tramo de valores de una variable al que se asigna un nivel (p. ej., viento de 50 a 70 km/h = `alt`). Sirve para pasar de números a niveles. |
 | `DefinicionFase` | Una fila de la tabla del ciclo: qué módulo ejecuta cada fase y cuál es la siguiente. |
@@ -78,9 +78,9 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 |---|---|
 | `HechoObservado` | Raíz: datos que vienen de fuera. |
 | `CicloTemporal` | La señal de que empieza un ciclo nuevo, con el instante actual. |
-| `ObservacionSensor` | Una lectura numérica de un sensor (radiación, temperatura, humedad, viento, lluvia…) y su calidad. |
+| `ObservacionSensor` | Una lectura numérica de un sensor (radiación, temperatura del cultivo, humedad del suelo o viento) y su calidad. |
 | `ObservacionPanel` | El estado de los paneles de un sector: ángulo actual, si funcionan bien y si hay personas o maquinaria debajo. |
-| `Prediccion` | Un valor previsto o calculado por un servicio externo: viento y lluvia previstos, ángulo ideal para producir, ángulo ideal para dar sombra y precio de la energía. |
+| `Prediccion` | Un valor calculado por un servicio externo: el ángulo ideal para producir y el ángulo ideal para dar sombra. |
 
 ### 2.3 Hechos derivados (la interpretación de la situación)
 
@@ -96,7 +96,7 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 |---|---|
 | `HechoControl` | Raíz: el estado interno del razonamiento. |
 | `EstadoSOAR` | El estado del razonamiento. El principal (`S0`) indica en qué fase del ciclo está el sistema. Los secundarios se crean para deliberar sobre un impasse. |
-| `Impasse` | Una situación en la que el sistema no puede elegir. Hay tres tipos: empate entre opciones (`tie`), faltan datos para decidir (`dades-insuficients`) y las restricciones se contradicen (`constraint-failure`). |
+| `Impasse` | Una situación en la que el sistema no puede elegir. Hay dos tipos: empate entre opciones (`tie`) y faltan datos para decidir (`dades-insuficients`). |
 
 ### 2.5 Candidatos (las opciones y cómo se comparan)
 
@@ -104,8 +104,8 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 |---|---|
 | `HechoCandidato` | Raíz: las opciones del ciclo y lo que se opina de ellas. |
 | `OperadorCandidato` | Una acción propuesta para un sector, con el ángulo al que llevaría los paneles y su estado (propuesta, descartada, seleccionada o aplicada). |
-| `Valoracion` | La evaluación de una opción: cuánto beneficia a la mecánica, al cultivo y a la energía, cuánto cuesta moverse y cuántos grados habría que girar. |
-| `Preferencia` | Una opinión sobre una opción: prohibirla (`reject`), exigirla (`require`) o preferirla a otra (`better`). Incluye el objetivo que la justifica y quién la emitió. |
+| `Valoracion` | La evaluación de una opción: cuánto beneficia a la mecánica, al cultivo y a la energía, y cuántos grados habría que girar. |
+| `Preferencia` | Una opinión sobre una opción: prohibirla (`reject`) o preferirla a otra (`better`). Incluye el objetivo que la justifica y quién la emitió. |
 
 ### 2.6 Resultados (lo que queda de cada decisión)
 
@@ -113,7 +113,7 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 |---|---|
 | `HechoResultado` | Raíz: lo que produce o recuerda el sistema. |
 | `OrdenActuador` | La orden enviada a los paneles: acción, ángulo y si se avisa a una persona. Se comprueba en el ciclo siguiente. |
-| `Episodio` | El registro de una decisión: situación, opciones, descartes, motivo, ángulos, lo que gana o pierde el cultivo y la energía, y si la orden se cumplió. Sirve de memoria (se guarda una hora) y de explicación. |
+| `Episodio` | El registro de una decisión: situación, opciones, descartes, motivo, ángulos, lo que gana el cultivo y la energía, y si la orden se cumplió. Sirve de memoria (se guarda una hora) y de explicación. |
 | `Chunk` | Una regla aprendida de un empate ya resuelto: "si vuelven a empatar estas dos acciones en las mismas condiciones, elige esta". Se refuerza cada vez que funciona y se olvida si deja de usarse. |
 
 ---
@@ -124,13 +124,13 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 |---|---|---|
 | `tiene-cultivo` | `Sector` → `Cultivo` | El cultivo que crece en el sector. |
 | `tiene-seguidor` | `Sector` → `SeguidorSolar` | Los paneles que hay en el sector. |
-| `sector` | casi todos los hechos → `Sector` | El sector al que se refiere el dato o la decisión. Falta solo en predicciones generales, como el precio de la energía. |
+| `sector` | casi todos los hechos → `Sector` | El sector al que se refiere el dato o la decisión. |
 | `en-estado` | `Impasse`, `OperadorCandidato`, `Preferencia` → `EstadoSOAR` | El estado de razonamiento en el que se creó. |
 | `estado-padre` | `EstadoSOAR` → `EstadoSOAR` | En un estado de deliberación, el estado principal del que cuelga. |
 | `impasse-asociado` | `EstadoSOAR` → `Impasse` | En un estado de deliberación, el impasse que intenta resolver. |
 | `operadores-en-conflicto` | `Impasse` → `OperadorCandidato` | Las opciones entre las que no se ha podido elegir (varias). |
 | `evalua-operador` | `Valoracion` → `OperadorCandidato` | La opción a la que corresponde la evaluación. |
-| `operador-referencia` | `Preferencia` → `OperadorCandidato` | La opción sobre la que opina la preferencia (la prohibida, la exigida o la preferida). |
+| `operador-referencia` | `Preferencia` → `OperadorCandidato` | La opción sobre la que opina la preferencia (la prohibida o la preferida). |
 | `operador-comparado` | `Preferencia` → `OperadorCandidato` | Solo en `better`: la opción que queda por detrás. |
 | `chunk-aplicado` | `Preferencia`, `Episodio` → `Chunk` | La regla aprendida que produjo la preferencia o que se usó en la decisión. |
 
@@ -146,7 +146,7 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 |---|---|---|---|
 | `id` | la mayoría de hechos e individuos | texto | Identificador único. |
 | `instante` | observaciones, predicciones, órdenes, episodios, chunks, ciclo | entero (minutos) | Cuándo ocurrió. En un chunk, cuándo se aprendió. |
-| `variable` | observaciones, predicciones, abstracciones, umbrales, datos requeridos | `radiacio`, `temp-ambient`, `temp-cultiu`, `humitat-sol`, `vent`, `pluja`, `produccio`, `vent-previst`, `pluja-prevista`, `angle-captacio`, `angle-ombra`, `preu-energia`, `moviment` | Qué magnitud es: radiación, temperatura, humedad del suelo, viento, lluvia, producción, previsiones, ángulos ideales, precio o giro de los paneles. |
+| `variable` | observaciones, predicciones, abstracciones, umbrales, datos requeridos | `radiacio`, `temp-cultiu`, `humitat-sol`, `vent`, `angle-captacio`, `angle-ombra`, `moviment` | Qué magnitud es: radiación, temperatura del cultivo, humedad del suelo, viento, ángulos ideales o giro de los paneles. |
 | `valor` | `ObservacionSensor`, `Prediccion` | número | El valor medido o previsto. |
 | `nivel` | `Abstraccion`, `Diagnostico`, `Umbral`, `DatoRequerido` | nivel | Gravedad o intensidad. En un dato requerido, lo grave que es que falte. |
 | `accion` | `OperadorCandidato`, `OrdenActuador`, `Episodio` | acción | La acción propuesta, ordenada o tomada. |
@@ -154,8 +154,8 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 | `beneficio-cultivo` | `Valoracion`, `Episodio` | nivel | Cuánto ayuda la acción al cultivo. |
 | `beneficio-energia` | `Valoracion`, `Episodio` | nivel | Cuánto ayuda la acción a producir energía. |
 | `criterio` | `Preferencia`, `Chunk` | objetivo | El objetivo que justifica la preferencia. |
-| `estrategia-resolucion` | `Impasse`, `Chunk` | `minima-intervencio`, `prioritat-objectius`, `posicio-preventiva`, `demanar-dades`, `restriccio-prioritaria`, `escalat` | Cómo se resolvió el impasse: moviéndose lo mínimo, por el objetivo más prioritario, yendo a posición de seguridad, pidiendo datos, haciendo prevalecer las prohibiciones o pasando el caso a una persona. |
-| `tipo-impasse` | `Impasse`, `Episodio` | `tie`, `dades-insuficients`, `constraint-failure` | Tipo de bloqueo. En un episodio, vacío si no lo hubo. |
+| `estrategia-resolucion` | `Impasse`, `Chunk` | `prioritat-objectius`, `posicio-preventiva`, `demanar-dades`, `escalat` | Cómo se resolvió el impasse: por el objetivo más prioritario, yendo a posición de seguridad, pidiendo datos o pasando el caso a una persona. |
+| `tipo-impasse` | `Impasse`, `Episodio` | `tie`, `dades-insuficients` | Tipo de bloqueo. En un episodio, vacío si no lo hubo. |
 | `escalado-humano` | `OrdenActuador`, `Episodio` | sí/no | Si la decisión se pasa a una persona para que la revise. |
 | `fase` | `EstadoSOAR`, `DefinicionFase` | las 12 fases del ciclo (`percepcio` … `neteja`, más `espera`) | Fase actual del razonamiento o fase a la que se refiere la fila. |
 
@@ -163,9 +163,6 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 
 | Propiedad | Clase | Valores | Significado |
 |---|---|---|---|
-| `nombre-cultivo` | `Cultivo` | texto | Especie (tomate, lechuga, viña). |
-| `fase-fenologica` | `Cultivo` | texto | Etapa de crecimiento (floración, desarrollo, maduración). |
-| `sensibilidad` | `Cultivo` | nivel | Lo delicado que es el cultivo. Agrava los diagnósticos de estrés. |
 | `umbral-temp-estres` | `Cultivo` | número (°C) | Temperatura a partir de la cual el cultivo sufre calor. |
 | `umbral-humedad-critica` | `Cultivo` | número (%) | Humedad del suelo por debajo de la cual el cultivo sufre sequía. |
 | `angulo-minimo`, `angulo-maximo` | `SeguidorSolar` | número (°) | Límites de giro de los paneles. |
@@ -180,7 +177,6 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 |---|---|---|---|
 | `nombre-objetivo` | `ObjetivoActivo` | `seguretat-persones`, `integritat-mecanica`, `proteccio-cultiu`, `produccio-energia`, `estabilitat` | Nombre del objetivo. |
 | `prioridad` | `ObjetivoActivo` | entero (1–5) | Importancia; 1 es la más alta. |
-| `tipo-restriccion` | `ObjetivoActivo` | `dura`, `tova` | Si el objetivo es obligatorio o solo deseable. |
 | `limite-inferior` | `Umbral` | número | Inicio del tramo (incluido). Si falta, el tramo no tiene mínimo. |
 | `limite-superior` | `Umbral` | número | Fin del tramo (excluido). Si falta, el tramo no tiene máximo. |
 | `referencia` | `Umbral` | `absoluta`, `cultiu`, `seguidor` | Con qué se compara el valor: directamente, o como diferencia con el umbral del cultivo o del seguidor. |
@@ -215,11 +211,9 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 |---|---|---|---|
 | `angulo-objetivo` | `OperadorCandidato` | número (°) | Ángulo al que llevaría la acción. Vacío si no se conoce el ángulo actual. |
 | `estado-candidato` | `OperadorCandidato` | `candidat`, `descartat`, `seleccionat`, `aplicat` | En qué punto está la opción: propuesta, descartada, elegida o ya ejecutada. |
-| `motivos` | `OperadorCandidato` | textos (varios) | Por qué se propuso la opción. |
 | `beneficio-mecanico` | `Valoracion` | nivel | Cuánto protege la acción la estructura. |
-| `coste-movimiento` | `Valoracion` | nivel | Lo que cuesta el giro (desgaste). |
 | `desplazamiento` | `Valoracion` | número (°) | Grados que habría que girar; 0 si la acción no mueve. |
-| `tipo-preferencia` | `Preferencia` | `reject`, `require`, `better` | Prohibir, exigir o preferir. |
+| `tipo-preferencia` | `Preferencia` | `reject`, `better` | Prohibir o preferir. |
 | `origen` | `Preferencia` | `regla`, `deliberacio`, `chunk` | Quién la emitió: la evaluación normal, la deliberación de un impasse o una regla aprendida. |
 | `restriccion` | `Preferencia` | `R1` … `R5` | Qué regla de seguridad la provocó: personas debajo (R1), viento crítico (R2), fallo del actuador (R3), demasiados movimientos en la última hora (R4) o estado de los paneles desconocido (R5). |
 
@@ -233,13 +227,11 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 | `restricciones-activas` | `Episodio` | `R1` … `R5` (varias) | Las reglas de seguridad que estaban actuando. |
 | `criterio-determinante` | `Episodio` | texto | El motivo final de la decisión: un objetivo o la estrategia con que se resolvió un impasse. |
 | `angulo-previo` | `Episodio` | número (°) | Ángulo de los paneles al decidir. Sirve para saber si hubo movimiento. |
-| `perdida-cultivo` | `Episodio` | nivel | Lo que se dejó de ganar para el cultivo al descartar otras opciones. |
-| `perdida-energia` | `Episodio` | nivel | Lo que se dejó de ganar en energía al descartar otras opciones. |
 | `resultado` | `Episodio` | `pendent`, `ok`, `fallada-actuador` | Si la orden se cumplió: aún por comprobar, cumplida o con los paneles sin responder bien. |
 
 ### 4.8 Chunks (reglas aprendidas)
 
-Un chunk dice: "si las acciones A y B empatan con estos beneficios y esta diferencia de giro, prefiere A".
+Un chunk dice: "si las acciones A y B empatan con estos beneficios, prefiere A".
 
 | Propiedad | Clase | Valores | Significado |
 |---|---|---|---|
@@ -247,5 +239,4 @@ Un chunk dice: "si las acciones A y B empatan con estos beneficios y esta difere
 | `accion-descartada` | `Chunk` | acción | La acción que queda por detrás (B). |
 | `beneficio-preferida` | `Chunk` | nivel | El mayor beneficio de A cuando se aprendió la regla. |
 | `beneficio-descartada` | `Chunk` | nivel | El mayor beneficio de B cuando se aprendió la regla. |
-| `relacion-delta` | `Chunk` | `menor`, `similar` | Si A obligaba a girar claramente menos que B, o lo mismo. |
 | `referencias` | `Chunk` | enteros (varios) | Cuándo se creó la regla y cuándo funcionó. De estos instantes depende su fuerza: si se usa poco, se debilita y acaba olvidándose. |

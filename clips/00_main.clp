@@ -11,9 +11,7 @@
    (slot id) (slot tiene-cultivo) (slot tiene-seguidor))
 
 (deftemplate cultivo
-   (slot id) (slot nombre-cultivo) (slot fase-fenologica)
-   (slot sensibilidad (allowed-symbols baix mitja alt critic))
-   (slot umbral-temp-estres (type NUMBER)) (slot umbral-humedad-critica (type NUMBER)))
+   (slot id) (slot umbral-temp-estres (type NUMBER)) (slot umbral-humedad-critica (type NUMBER)))
 
 (deftemplate seguidor-solar
    (slot id) (slot angulo-minimo (type NUMBER)) (slot angulo-maximo (type NUMBER))
@@ -24,7 +22,7 @@
 (deftemplate objetivo-activo
    (slot nombre-objetivo (allowed-symbols seguretat-persones integritat-mecanica proteccio-cultiu
                                           produccio-energia estabilitat))
-   (slot prioridad (type INTEGER)) (slot tipo-restriccion (allowed-symbols dura tova)))
+   (slot prioridad (type INTEGER)))
 
 ;; Variable que debe observarse y nivel de incertidumbre si falta.
 (deftemplate dato-requerido
