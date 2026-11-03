@@ -67,6 +67,9 @@ def main():
         for paso, r in zip(caso["pasos"], resultados):
             print(f"===== t={paso['t']} =====\n{r['traza']}")
         print("\n".join(discrepancias(caso, resultados)) or "Resultat: tot com s'esperava")
+    if args.orden in ("aprendizaje", "agenda"):
+        import experimentos
+        getattr(experimentos, args.orden)()
 
 
 if __name__ == "__main__":

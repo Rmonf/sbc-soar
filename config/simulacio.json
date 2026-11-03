@@ -1,6 +1,7 @@
 {
   "_nota": "Datos sintéticos y heurísticos (final de primavera, unas 14 h de luz); no son medidas reales.",
   "dt-min": 5,
+  "experiments": {"aprenentatge": {"llavors": 10, "dies": 7}, "agenda": {"llavors": 3}},
   "sol": {"hora-sortida": 6, "hora-posta": 20, "radiacio-max": 950, "desfase-ombra": 45},
   "tipus-dia": {
     "templat": {"prob": 0.5, "temp-mitjana": 21, "temp-amplitud": 6, "nuvolositat": 0.2},

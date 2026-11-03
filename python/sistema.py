@@ -51,6 +51,7 @@ class Sistema:
         if variante == "b0":
             self.env.load(str(CLIPS / "b0.clp"))
         self.env.eval(f"(set-strategy {estrategia})")
+        self.env.eval("(seed 42)")  # estrategia random reproducible
         self.env.eval("(watch rules)")
         self.env.reset()
         ontologia.cargar(self.env, aprendizaje)
