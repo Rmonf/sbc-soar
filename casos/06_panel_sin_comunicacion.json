@@ -1,0 +1,9 @@
+{
+  "descripcion": "El panel de s3 no comunica: no se sabe dónde está. R5 prohíbe moverlo, faltan datos críticos (impasse dades-insuficients) y la deliberación pide datos: diagnosticar, con escalado a una persona.",
+  "requisito": "Enunciado 3.7.3 (impasse por datos insuficientes; pedir datos o derivar a una persona)",
+  "pasos": [
+    {"t": 0, "sectores": {"s3": {"panel": null}},
+     "esperado": {"s3": {"accion": "diagnosticar", "impasse": "dades-insuficients"},
+                  "s1": {"accion": "mantenir-posicio"}}}
+  ]
+}

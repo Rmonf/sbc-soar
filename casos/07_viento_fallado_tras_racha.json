@@ -1,0 +1,12 @@
+{
+  "descripcion": "Racha de viento alt en s1 (t=0, defensa), calma con sol (t=5, producción) y el sensor de viento falla (t=10). Faltan datos críticos; como la memoria episódica recuerda el riesgo mecánico de la última hora, la deliberación lleva el panel a defensa por prevención.",
+  "requisito": "Enunciado 3.7.3 (deliberación que consulta el historial)",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"vent": 60, "panel": {"angulo-actual": 30}}},
+     "esperado": {"s1": {"accion": "posicio-seguretat"}}},
+    {"t": 5, "sectores": {"s1": {"vent": 20, "radiacio": 650, "angle-captacio": 30, "panel": {"angulo-actual": 0}}},
+     "esperado": {"s1": {"accion": "orientar-produccio"}}},
+    {"t": 10, "sectores": {"s1": {"vent": "fallada", "radiacio": 650, "angle-captacio": 30, "panel": {"angulo-actual": 30}}},
+     "esperado": {"s1": {"accion": "posicio-seguretat", "impasse": "dades-insuficients"}}}
+  ]
+}
