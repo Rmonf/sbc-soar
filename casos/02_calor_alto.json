@@ -1,9 +1,15 @@
 {
-  "descripcion": "Tomate (s1) a 33 °C, 3 °C por encima de su umbral, con poca radiación: estrés térmico alt y orientar-ombra por preferencia better.",
-  "requisito": "Enunciado 3.2 (proteger el cultivo del calor) y 3.7.2 (conflicto del dominio resuelto con preferencias)",
+  "descripcion": "Tomate (s1) a 33 °C, 3 °C por encima de su umbral, con poca radiación: estrés térmico alt y orientar-ombra por preferencia better (t=0). Con la sombra la temperatura baja y el estrés desaparece (t=5): quedarse quieto conserva el beneficio de la sombra ordenada hace menos de una hora y no sale a producir (histéresis, sin vaivén). Pasada la hora (t=65), sin estrés, vuelve a producir.",
+  "requisito": "Enunciado 3.2 (proteger el cultivo del calor; evitar oscilaciones) y 3.7.2 (conflicto del dominio resuelto con preferencias)",
   "pasos": [
     {"t": 0, "sectores": {"s1": {"temp-cultiu": 33, "radiacio": 150, "angle-ombra": -25}},
      "esperado": {"s1": {"accion": "orientar-ombra", "impasse": null},
-                  "s2": {"accion": "mantenir-posicio"}, "s3": {"accion": "mantenir-posicio"}}}
+                  "s2": {"accion": "mantenir-posicio"}, "s3": {"accion": "mantenir-posicio"}}},
+    {"t": 5, "sectores": {"s1": {"temp-cultiu": 26, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25,
+                                 "panel": {"angulo-actual": -25}}},
+     "esperado": {"s1": {"accion": "mantenir-posicio", "impasse": null}}},
+    {"t": 65, "sectores": {"s1": {"temp-cultiu": 26, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25,
+                                  "panel": {"angulo-actual": -25}}},
+     "esperado": {"s1": {"accion": "orientar-produccio"}}}
   ]
 }

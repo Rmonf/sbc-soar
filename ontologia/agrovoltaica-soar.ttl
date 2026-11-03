@@ -9,7 +9,7 @@
 <http://www.upc.edu/ontologies/agrovoltaica-soar> rdf:type owl:Ontology ;
                                                    rdfs:comment "Esquema de la memoria de trabajo del sistema CLIPS e individuos del conocimiento estático. No importa ontologías externas." ;
                                                    rdfs:label "Ontología agrovoltaica-SOAR (versión 3.0)" ;
-                                                   owl:versionInfo "3.2" .
+                                                   owl:versionInfo "3.3" .
 
 #################################################################
 #    Annotation properties
@@ -805,6 +805,27 @@
                       ] .
 
 
+###  http://www.upc.edu/ontologies/agrovoltaica-soar/sensibilidad
+:sensibilidad rdf:type owl:DatatypeProperty ,
+                       owl:FunctionalProperty ;
+              rdfs:domain :Cultivo ;
+              rdfs:range [ rdf:type rdfs:Datatype ;
+                           owl:oneOf [ rdf:type rdf:List ;
+                                       rdf:first "alt" ;
+                                       rdf:rest [ rdf:type rdf:List ;
+                                                  rdf:first "baix" ;
+                                                  rdf:rest [ rdf:type rdf:List ;
+                                                             rdf:first "critic" ;
+                                                             rdf:rest [ rdf:type rdf:List ;
+                                                                        rdf:first "mitja" ;
+                                                                        rdf:rest rdf:nil
+                                                                      ]
+                                                           ]
+                                                ]
+                                     ]
+                         ] .
+
+
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/siguiente
 :siguiente rdf:type owl:DatatypeProperty ,
                     owl:FunctionalProperty ;
@@ -996,12 +1017,24 @@
                                                          rdf:rest [ rdf:type rdf:List ;
                                                                     rdf:first "moviment" ;
                                                                     rdf:rest [ rdf:type rdf:List ;
-                                                                               rdf:first "radiacio" ;
+                                                                               rdf:first "pluja" ;
                                                                                rdf:rest [ rdf:type rdf:List ;
-                                                                                          rdf:first "temp-cultiu" ;
+                                                                                          rdf:first "produccio" ;
                                                                                           rdf:rest [ rdf:type rdf:List ;
-                                                                                                     rdf:first "vent" ;
-                                                                                                     rdf:rest rdf:nil
+                                                                                                     rdf:first "radiacio" ;
+                                                                                                     rdf:rest [ rdf:type rdf:List ;
+                                                                                                                rdf:first "temp-ambient" ;
+                                                                                                                rdf:rest [ rdf:type rdf:List ;
+                                                                                                                           rdf:first "temp-cultiu" ;
+                                                                                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                      rdf:first "vent" ;
+                                                                                                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                 rdf:first "vent-previst" ;
+                                                                                                                                                 rdf:rest rdf:nil
+                                                                                                                                               ]
+                                                                                                                                    ]
+                                                                                                                         ]
+                                                                                                              ]
                                                                                                    ]
                                                                                         ]
                                                                              ]
@@ -1041,7 +1074,7 @@
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Cultivo
 :Cultivo rdf:type owl:Class ;
          rdfs:subClassOf :ConocimientoDominio ;
-         rdfs:comment "Parámetros agronómicos: umbrales de estrés térmico e hídrico." .
+         rdfs:comment "Parámetros agronómicos: umbrales de estrés térmico e hídrico y sensibilidad del cultivo (informativa: se muestra en la vista agronómica)." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/DatoRequerido
@@ -1138,7 +1171,7 @@
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Prediccion
 :Prediccion rdf:type owl:Class ;
             rdfs:subClassOf :HechoObservado ;
-            rdfs:comment "Servicio externo heurístico: ángulos de captación y de sombra de cada sector. Calcula, no decide." .
+            rdfs:comment "Servicio externo heurístico: ángulos de captación y de sombra y viento previsto a 30 minutos de cada sector. Calcula, no decide." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Preferencia
@@ -1183,6 +1216,7 @@
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/cultivo-s1
 :cultivo-s1 rdf:type owl:NamedIndividual ,
                      :Cultivo ;
+            :sensibilidad "alt" ;
             :umbral-humedad-critica 45.0 ;
             :umbral-temp-estres 30.0 .
 
@@ -1190,6 +1224,7 @@
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/cultivo-s2
 :cultivo-s2 rdf:type owl:NamedIndividual ,
                      :Cultivo ;
+            :sensibilidad "critic" ;
             :umbral-humedad-critica 55.0 ;
             :umbral-temp-estres 26.0 .
 
@@ -1197,6 +1232,7 @@
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/cultivo-s3
 :cultivo-s3 rdf:type owl:NamedIndividual ,
                      :Cultivo ;
+            :sensibilidad "mitja" ;
             :umbral-humedad-critica 30.0 ;
             :umbral-temp-estres 35.0 .
 

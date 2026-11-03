@@ -11,7 +11,8 @@
    (slot id) (slot tiene-cultivo) (slot tiene-seguidor))
 
 (deftemplate cultivo
-   (slot id) (slot umbral-temp-estres (type NUMBER)) (slot umbral-humedad-critica (type NUMBER)))
+   (slot id) (slot sensibilidad (allowed-symbols baix mitja alt critic))
+   (slot umbral-temp-estres (type NUMBER)) (slot umbral-humedad-critica (type NUMBER)))
 
 (deftemplate seguidor-solar
    (slot id) (slot angulo-minimo (type NUMBER)) (slot angulo-maximo (type NUMBER))
@@ -160,22 +161,6 @@
 (deffunction accion-sin-movimiento (?a)
    (if (member$ ?a (create$ mantenir-posicio diagnosticar)) then TRUE else FALSE))
 
-;; Beneficio del candidato de acción ?a en el criterio de la acción que se mueve ?x: el nivel de
-;; los diagnósticos que motivan ?x si ?a es ?x, o si ?a no se mueve y ?x no se propuso porque el
-;; panel ya está en su ángulo (beneficio heredado). Si no, baix.
-(deffunction beneficio (?s ?a ?x)
-   (if (and (neq ?a ?x)
-            (or (not (accion-sin-movimiento ?a))
-                (any-factp ((?c operador-candidato)) (and (eq ?c:sector ?s) (eq ?c:accion ?x)))))
-      then (return baix))
-   (bind ?motivos (switch ?x (case posicio-seguretat then (create$ risc-mecanic))
-                             (case orientar-ombra then (create$ estres-termic estres-hidric))
-                             (default (create$ oportunitat-energetica))))
-   (bind ?n baix)
-   (do-for-all-facts ((?d diagnostico)) (and (eq ?d:sector ?s) (member$ ?d:tipo-diagnostico ?motivos))
-      (bind ?n (nivel-max ?n ?d:nivel)))
-   ?n)
-
 ;; Objetivo más prioritario al que sirve un candidato: el de su criterio con beneficio ≥ mitja,
 ;; o estabilitat (mínima intervención) si no sirve a ninguno.
 (deffunction objetivo-servido (?c)
@@ -226,6 +211,36 @@
 (deffunction episodio-reciente-p (?e ?s ?t)
    (and (eq (fact-slot-value ?e sector) ?s) (< (fact-slot-value ?e instante) ?t)
         (>= (fact-slot-value ?e instante) (- ?t ?*ventana-episodica*))))
+
+;; Memoria episódica: beneficio de cultivo del último movimiento del sector en la última hora si
+;; fue orientar-ombra; si no, baix.
+(deffunction sombra-reciente (?s)
+   (bind ?t (fact-slot-value (nth$ 1 (find-fact ((?c ciclo-temporal)) TRUE)) instante))
+   (bind ?n baix) (bind ?ultimo -1)
+   (do-for-all-facts ((?e episodio))
+         (and (episodio-reciente-p ?e ?s ?t) (not (accion-sin-movimiento ?e:accion)) (> ?e:instante ?ultimo))
+      (bind ?ultimo ?e:instante)
+      (bind ?n (if (eq ?e:accion orientar-ombra) then ?e:beneficio-cultivo else baix)))
+   ?n)
+
+;; Beneficio del candidato de acción ?a en el criterio de la acción que se mueve ?x: el nivel de
+;; los diagnósticos que motivan ?x si ?a es ?x, o si ?a no se mueve y ?x no se propuso porque el
+;; panel ya está en su ángulo (beneficio heredado). Si no, baix.
+;; Histéresis: quedarse quieto también hereda el beneficio de una sombra ordenada en la última
+;; hora, aunque el estrés ya no se observe (desaparece precisamente por la sombra).
+(deffunction beneficio (?s ?a ?x)
+   (if (and (neq ?a ?x)
+            (or (not (accion-sin-movimiento ?a))
+                (any-factp ((?c operador-candidato)) (and (eq ?c:sector ?s) (eq ?c:accion ?x)))))
+      then (return baix))
+   (bind ?motivos (switch ?x (case posicio-seguretat then (create$ risc-mecanic))
+                             (case orientar-ombra then (create$ estres-termic estres-hidric))
+                             (default (create$ oportunitat-energetica))))
+   (bind ?n baix)
+   (do-for-all-facts ((?d diagnostico)) (and (eq ?d:sector ?s) (member$ ?d:tipo-diagnostico ?motivos))
+      (bind ?n (nivel-max ?n ?d:nivel)))
+   (if (and (neq ?a ?x) (eq ?x orientar-ombra)) then (bind ?n (nivel-max ?n (sombra-reciente ?s))))
+   ?n)
 
 ;; R3: fallo del actuador en este ciclo, o en la última hora al intentar mover el panel.
 (deffunction fallada-reciente (?s ?t)

@@ -70,6 +70,7 @@
    (bind ?r (create$))
    (do-for-all-facts ((?o observacion-sensor)) (eq ?o:sector ?s)
       (bind ?r (create$ ?r (sym-cat ?o:variable = (if (eq ?o:calidad fallada) then fallada else ?o:valor)))))
+   (do-for-all-facts ((?o prediccion)) (eq ?o:sector ?s) (bind ?r (create$ ?r (sym-cat ?o:variable = ?o:valor))))
    (bind ?p "desconegut")
    (do-for-fact ((?o observacion-panel)) (eq ?o:sector ?s)
       (bind ?p (str-cat ?o:angulo-actual " (" ?o:estado-mecanico ", " ?o:ocupacion ")")))
@@ -90,6 +91,8 @@
    (bind ?ti (slot-impasse ?s tipo-impasse))
    (bind ?bc (beneficio-de ?c beneficio-cultivo))
    (bind ?be (beneficio-de ?c beneficio-energia))
+   (bind ?sens nil)
+   (do-for-fact ((?x sector) (?k cultivo)) (and (eq ?x:id ?s) (eq ?k:id ?x:tiene-cultivo)) (bind ?sens ?k:sensibilidad))
    (assert (episodio (sector ?s) (instante ?t) (situacion ?sit) (alternativas (alternativas ?s))
                      (descartes (descartes ?s)) (restricciones-activas (restricciones ?s))
                      (criterio-determinante ?criterio) (accion ?a) (angulo-previo ?previo)
@@ -104,4 +107,4 @@
                         (fact-slot-value (nth$ 1 (find-fact ((?k chunk)) (eq ?k:id ?chunk))) estrategia-resolucion) ")"))
                    "   Criteri: " (if (eq ?criterio nil) then "-" else ?criterio) crlf
                    "Ordre: sector=" ?s ", angle=" ?ang ", escalat a persona: " (if ?esc then "si" else "no") crlf
-                   "Vista agronomica: benefici cultiu=" ?bc "   Vista energetica: benefici energia=" ?be crlf crlf))
+                   "Vista agronomica: benefici cultiu=" ?bc ", sensibilitat del cultiu=" ?sens "   Vista energetica: benefici energia=" ?be crlf crlf))

@@ -9,8 +9,8 @@ import clips
 import ontologia
 
 CLIPS = Path(__file__).resolve().parent.parent / "clips"
-SENSORES = ("vent", "radiacio", "temp-cultiu", "humitat-sol")
-PREDICCIONES = ("angle-captacio", "angle-ombra")
+SENSORES = ("vent", "radiacio", "temp-cultiu", "humitat-sol", "temp-ambient", "pluja", "produccio")
+PREDICCIONES = ("angle-captacio", "angle-ombra", "vent-previst")
 # B0 sustituye a la evaluación, la selección, la deliberación y el aprendizaje.
 SUSTITUIDOS_POR_B0 = {"05_avaluacio.clp", "06_seleccio.clp", "07_deliberacio.clp", "10_aprenentatge.clp"}
 
@@ -71,7 +71,7 @@ class Sistema:
                     sensor.assert_fact(sector=clips.Symbol(s), variable=clips.Symbol(v),
                                        valor=0.0 if fallada else float(obs[v]),
                                        calidad=clips.Symbol("fallada" if fallada else "ok"))
-            for v in PREDICCIONES:
+            for v in (v for v in PREDICCIONES if obs.get(v) is not None):
                 self.env.find_template("prediccion").assert_fact(
                     sector=clips.Symbol(s), variable=clips.Symbol(v), valor=float(obs[v]))
             if obs.get("panel"):

@@ -1,8 +1,11 @@
 {
-  "descripcion": "Anexo B del enunciado: viento de 82 km/h en s2 con sol. R2 prohíbe producir y el riesgo mecánico critic lleva a posicio-seguretat (0°).",
-  "requisito": "Enunciado, anexo B; 3.4 (restricciones de seguridad duras)",
+  "descripcion": "Anexo B del enunciado: viento de 82 km/h en s2 con sol. R2 prohíbe producir y el riesgo mecánico critic lleva a posicio-seguretat (0°). En s1 el viento aún es flojo, pero la previsión a 30 minutos es de 75 km/h: el sistema se anticipa y también va a defensa.",
+  "requisito": "Enunciado, anexo B; 3.4 (restricciones de seguridad duras); 3.1 (anticipar la evolución a corto plazo)",
   "pasos": [
-    {"t": 0, "sectores": {"s2": {"vent": 82, "radiacio": 600, "angle-captacio": 35, "panel": {"angulo-actual": 20}}},
-     "esperado": {"s2": {"accion": "posicio-seguretat", "impasse": null}}}
+    {"t": 0, "sectores": {"s2": {"vent": 82, "radiacio": 600, "angle-captacio": 35, "panel": {"angulo-actual": 20}},
+                          "s1": {"vent": 20, "vent-previst": 75, "radiacio": 600, "angle-captacio": 35,
+                                 "panel": {"angulo-actual": 20}}},
+     "esperado": {"s2": {"accion": "posicio-seguretat", "impasse": null},
+                  "s1": {"accion": "posicio-seguretat", "impasse": null}}}
   ]
 }

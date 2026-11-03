@@ -17,14 +17,14 @@ El código es deliberadamente pequeño: cada regla hace una sola cosa y lleva un
 |---|---|
 | Memoria de trabajo | Hechos de CLIPS (`deftemplate`), con el vocabulario de la ontología `ontologia/agrovoltaica-soar.ttl` |
 | Ciclo de decisión | 11 fases, una por módulo de CLIPS; MAIN las encadena con `focus` |
-| Elaboración | ELABORACIO: lecturas → niveles (`baix` < `mitja` < `alt` < `critic`) → diagnósticos (riesgo, estrés, oportunidad) |
+| Elaboración | ELABORACIO: lecturas y previsión de viento → niveles (`baix` < `mitja` < `alt` < `critic`) → diagnósticos (riesgo, estrés, oportunidad) |
 | Operadores | PROPOSTA: un `operador-candidato` por acción aplicable |
 | Preferencias | AVALUACIO: `reject` (restricciones duras R1–R5) y `better` (comparación de beneficios) |
 | Procedimiento de decisión | SELECCIO: si queda un único candidato no dominado, se elige; si no, se produce un impasse |
 | Impasse y subestado | `tie` (empate) y `dades-insuficients` (faltan datos). DELIBERACIO abre un subestado, decide y devuelve una preferencia |
 | Chunking | APRENENTATGE convierte cada empate resuelto en un `chunk`. La próxima vez, SELECCIO aplica el chunk y **no hay impasse** |
 | Refuerzo y olvido | Activación base de Soar, A = ln Σ Δt⁻ᵈ (d = 0,5, umbral −2, tiempo en ciclos): cada uso confirmado refuerza el chunk; sin uso, se olvida |
-| Memoria episódica | `episodio`: una decisión por sector y ciclo, guardada una hora. La consultan R3, R4 y la deliberación |
+| Memoria episódica | `episodio`: una decisión por sector y ciclo, guardada una hora. La consultan R3, R4, la deliberación y la valoración (sombra reciente) |
 | Entrada y salida | Python introduce observaciones y lee la `orden-actuador` |
 
 Diferencias con Soar: los chunks son hechos aplicados por una regla genérica, no producciones nuevas; las condiciones del chunk salen de un análisis fijo, no del *backtracing*; los subestados tienen un solo nivel. Se explican en el informe.
@@ -45,7 +45,7 @@ espera ──(llega un ciclo)──► percepcio ► monitoratge ► elaboracio 
 |---|---|
 | PERCEPCIO | Marca los datos que faltan o están fallados (`incertesa-dades`) |
 | MONITORATGE | Comprueba si la orden anterior se cumplió; si no, diagnostica un fallo del actuador |
-| ELABORACIO | Pasa las lecturas a niveles con los umbrales de la ontología y crea diagnósticos |
+| ELABORACIO | Pasa las lecturas y la previsión de viento a niveles con los umbrales de la ontología y crea diagnósticos |
 | PROPOSTA | Propone las acciones aplicables: `orientar-produccio`, `orientar-ombra`, `posicio-seguretat`, `mantenir-posicio` o `diagnosticar` |
 | AVALUACIO | Prohíbe lo peligroso (R1–R5) y compara los demás candidatos |
 | SELECCIO | Elige, aplica un chunk o declara un impasse |
@@ -60,12 +60,12 @@ espera ──(llega un ciclo)──► percepcio ► monitoratge ► elaboracio 
 | | Si… | …se prohíbe |
 |---|---|---|
 | R1 | hay personas bajo los paneles | cualquier movimiento |
-| R2 | el viento es crítico | orientar a producción o a sombra |
+| R2 | el viento es crítico, o se prevé que lo sea en 30 minutos | orientar a producción o a sombra |
 | R3 | el actuador ha fallado (en este ciclo o en la última hora) | cualquier movimiento |
 | R4 | ya se ha movido el máximo de veces en la última hora | cualquier movimiento salvo ir a defensa |
 | R5 | no se sabe dónde está el panel | cualquier movimiento |
 
-**Preferencias:** gana la acción con mayor beneficio en el criterio más prioritario (mecánico, después cultivo, después energía) cuando la diferencia es clara (nivel `alt` o más). Si los dos beneficios son solo `mitja`, la diferencia no es clara (**zona gris**) y el sistema no sabe elegir: es un **empate**. Si el panel ya está casi en el ángulo de una acción (menos de 5°), esa acción no se propone y "quedarse quieto" hereda su beneficio. Así el sistema no oscila entre posiciones.
+**Preferencias:** gana la acción con mayor beneficio en el criterio más prioritario (mecánico, después cultivo, después energía) cuando la diferencia es clara (nivel `alt` o más). Si los dos beneficios son solo `mitja`, la diferencia no es clara (**zona gris**) y el sistema no sabe elegir: es un **empate**. Si el panel ya está casi en el ángulo de una acción (menos de 5°), esa acción no se propone y "quedarse quieto" hereda su beneficio. Además, tras orientar a sombra, quedarse quieto conserva ese beneficio durante una hora aunque el estrés ya no se observe, porque desaparece precisamente gracias a la sombra (histéresis con la memoria episódica). Así el sistema no oscila entre posiciones.
 
 ---
 
@@ -142,7 +142,7 @@ clips/00_main.clp                 Plantillas, funciones comunes y las reglas de 
 clips/01_percepcio.clp … 11_neteja.clp   Un módulo por fase
 clips/b0.clp                      Variante B0 (decisión por salience) para el experimento de la agenda
 python/ontologia.py               Lee el TTL y carga el conocimiento estático en CLIPS
-python/simulador.py               Entorno simulado: meteorología, cultivo, paneles y fallos
+python/simulador.py               Entorno simulado: meteorología (con lluvia y previsión de viento), cultivo, paneles, producción y fallos
 python/sistema.py                 Puente con CLIPS: carga, introduce observaciones, ejecuta un ciclo y lee resultados
 python/experimentos.py            Experimentos de aprendizaje y de agenda
 python/sbc.py                     Punto de entrada (demo, caso, aprendizaje, agenda)

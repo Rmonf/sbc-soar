@@ -41,6 +41,18 @@
    =>
    (assert (diagnostico (sector ?s) (tipo-diagnostico risc-mecanic) (nivel ?n) (evidencias (sym-cat vent: ?n)))))
 
+;; SOAR: elaboración con una predicción (anticipación). Viento previsto a 30 minutos alt o critic,
+;; con los umbrales del viento: riesgo mecánico.
+(defrule ELABORACIO::risc-mecanic-previst
+   (estado-soar (id S0) (fase elaboracio))
+   (prediccion (sector ?s) (variable vent-previst) (valor ?x))
+   (sector (id ?s) (tiene-seguidor ?g))
+   (seguidor-solar (id ?g) (umbral-viento-critico ?u))
+   (umbral (variable vent) (referencia seguidor) (nivel ?n&alt|critic) (limite-inferior ?li) (limite-superior ?ls))
+   (test (dins-interval (- ?x ?u) ?li ?ls))
+   =>
+   (assert (diagnostico (sector ?s) (tipo-diagnostico risc-mecanic) (nivel ?n) (evidencias (sym-cat vent-previst: ?n)))))
+
 ;; SOAR: elaboración. Temperatura del cultivo cerca o por encima de su umbral: estrés térmico.
 (defrule ELABORACIO::estres-termic
    (estado-soar (id S0) (fase elaboracio))

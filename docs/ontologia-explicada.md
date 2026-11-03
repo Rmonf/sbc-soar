@@ -62,7 +62,7 @@ Se cargan al arrancar y no cambian durante la ejecución.
 |---|---|
 | `ConocimientoDominio` | Raíz: todo lo que es configuración fija. |
 | `Sector` | Una parcela de la instalación, con su cultivo y su seguidor. |
-| `Cultivo` | El cultivo de un sector: los umbrales a partir de los cuales sufre calor o sequía. |
+| `Cultivo` | El cultivo de un sector: su sensibilidad y los umbrales a partir de los cuales sufre calor o sequía. |
 | `SeguidorSolar` | Los paneles de un sector: límites de giro, posición de defensa contra el viento, viento máximo tolerado y movimientos permitidos por hora. |
 | `ObjetivoActivo` | Uno de los cinco objetivos del sistema, con su prioridad (1 = la más alta). Orden de prioridad: seguridad de las personas, integridad mecánica, protección del cultivo, producción de energía y estabilidad. |
 | `DatoRequerido` | Una medida que debe llegar en cada ciclo, junto con lo grave que es que falte. |
@@ -78,9 +78,9 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 |---|---|
 | `HechoObservado` | Raíz: datos que vienen de fuera. |
 | `CicloTemporal` | La señal de que empieza un ciclo nuevo, con el instante actual. |
-| `ObservacionSensor` | Una lectura numérica de un sensor (radiación, temperatura del cultivo, humedad del suelo o viento) y su calidad. |
+| `ObservacionSensor` | Una lectura numérica de un sensor (radiación, temperatura del cultivo y ambiente, humedad del suelo, viento, lluvia o producción) y su calidad. |
 | `ObservacionPanel` | El estado de los paneles de un sector: ángulo actual, si funcionan bien y si hay personas debajo. |
-| `Prediccion` | Un valor calculado por un servicio externo: el ángulo ideal para producir y el ángulo ideal para dar sombra. |
+| `Prediccion` | Un valor calculado por un servicio externo: el ángulo ideal para producir, el ángulo ideal para dar sombra y el viento previsto a 30 minutos. |
 
 ### 2.3 Hechos derivados (la interpretación de la situación)
 
@@ -146,7 +146,7 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 |---|---|---|---|
 | `id` | la mayoría de hechos e individuos | texto | Identificador único. |
 | `instante` | observaciones, predicciones, órdenes, episodios, chunks, ciclo | entero (minutos) | Cuándo ocurrió. En un chunk, cuándo se aprendió. |
-| `variable` | observaciones, predicciones, abstracciones, umbrales, datos requeridos | `radiacio`, `temp-cultiu`, `humitat-sol`, `vent`, `angle-captacio`, `angle-ombra`, `moviment` | Qué magnitud es: radiación, temperatura del cultivo, humedad del suelo, viento, ángulos ideales o giro de los paneles. |
+| `variable` | observaciones, predicciones, abstracciones, umbrales, datos requeridos | `radiacio`, `temp-cultiu`, `temp-ambient`, `humitat-sol`, `vent`, `pluja`, `produccio`, `vent-previst`, `angle-captacio`, `angle-ombra`, `moviment` | Qué magnitud es: radiación, temperatura del cultivo o ambiente, humedad del suelo, viento, lluvia, producción, viento previsto, ángulos ideales o giro de los paneles. |
 | `valor` | `ObservacionSensor`, `Prediccion` | número | El valor medido o previsto. |
 | `nivel` | `Abstraccion`, `Diagnostico`, `Umbral`, `DatoRequerido` | nivel | Gravedad o intensidad. En un dato requerido, lo grave que es que falte. |
 | `accion` | `OperadorCandidato`, `OrdenActuador`, `Episodio` | acción | La acción propuesta, ordenada o tomada. |
@@ -163,6 +163,7 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 
 | Propiedad | Clase | Valores | Significado |
 |---|---|---|---|
+| `sensibilidad` | `Cultivo` | nivel | Lo delicado que es el cultivo. Informativa: se muestra en la vista agronómica de la traza. |
 | `umbral-temp-estres` | `Cultivo` | número (°C) | Temperatura a partir de la cual el cultivo sufre calor. |
 | `umbral-humedad-critica` | `Cultivo` | número (%) | Humedad del suelo por debajo de la cual el cultivo sufre sequía. |
 | `angulo-minimo`, `angulo-maximo` | `SeguidorSolar` | número (°) | Límites de giro de los paneles. |
