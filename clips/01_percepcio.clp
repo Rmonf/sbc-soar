@@ -1,5 +1,4 @@
 ;;; 01_percepcio.clp: PERCEPCIO. Marca los datos que faltan o están fallados.
-;;; Las lecturas degradat se tratan como ok.
 
 (defmodule PERCEPCIO (import MAIN ?ALL))
 
@@ -8,7 +7,7 @@
    (estado-soar (id S0) (fase percepcio))
    (sector (id ?s))
    (dato-requerido (variable ?v) (nivel ?n))
-   (not (observacion-sensor (sector ?s) (variable ?v) (calidad ok|degradat)))
+   (not (observacion-sensor (sector ?s) (variable ?v) (calidad ok)))
    =>
    (assert (diagnostico (sector ?s) (tipo-diagnostico incertesa-dades) (nivel ?n)
                         (evidencias (sym-cat ?v :absent)))))

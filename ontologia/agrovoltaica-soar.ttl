@@ -9,16 +9,11 @@
 <http://www.upc.edu/ontologies/agrovoltaica-soar> rdf:type owl:Ontology ;
                                                    rdfs:comment "Esquema de la memoria de trabajo del sistema CLIPS e individuos del conocimiento estático. No importa ontologías externas." ;
                                                    rdfs:label "Ontología agrovoltaica-SOAR (versión 3.0)" ;
-                                                   owl:versionInfo "3.1" .
+                                                   owl:versionInfo "3.2" .
 
 #################################################################
 #    Annotation properties
 #################################################################
-
-###  http://www.upc.edu/ontologies/agrovoltaica-soar/escrito-por
-:escrito-por rdf:type owl:AnnotationProperty ;
-             rdfs:comment "Quien puede crear/modifica el hecho" .
-
 
 #################################################################
 #    Object Properties
@@ -370,13 +365,10 @@
          rdfs:domain :ObservacionSensor ;
          rdfs:range [ rdf:type rdfs:Datatype ;
                       owl:oneOf [ rdf:type rdf:List ;
-                                  rdf:first "degradat" ;
+                                  rdf:first "fallada" ;
                                   rdf:rest [ rdf:type rdf:List ;
-                                             rdf:first "fallada" ;
-                                             rdf:rest [ rdf:type rdf:List ;
-                                                        rdf:first "ok" ;
-                                                        rdf:rest rdf:nil
-                                                      ]
+                                             rdf:first "ok" ;
+                                             rdf:rest rdf:nil
                                            ]
                                 ]
                     ] .
@@ -481,13 +473,10 @@
                                     owl:oneOf [ rdf:type rdf:List ;
                                                 rdf:first "demanar-dades" ;
                                                 rdf:rest [ rdf:type rdf:List ;
-                                                           rdf:first "escalat" ;
+                                                           rdf:first "posicio-preventiva" ;
                                                            rdf:rest [ rdf:type rdf:List ;
-                                                                      rdf:first "posicio-preventiva" ;
-                                                                      rdf:rest [ rdf:type rdf:List ;
-                                                                                 rdf:first "prioritat-objectius" ;
-                                                                                 rdf:rest rdf:nil
-                                                                               ]
+                                                                      rdf:first "prioritat-objectius" ;
+                                                                      rdf:rest rdf:nil
                                                                     ]
                                                          ]
                                               ]
@@ -686,11 +675,8 @@
                         owl:oneOf [ rdf:type rdf:List ;
                                     rdf:first "lliure" ;
                                     rdf:rest [ rdf:type rdf:List ;
-                                               rdf:first "maquinaria" ;
-                                               rdf:rest [ rdf:type rdf:List ;
-                                                          rdf:first "persones" ;
-                                                          rdf:rest rdf:nil
-                                                        ]
+                                               rdf:first "persones" ;
+                                               rdf:rest rdf:nil
                                              ]
                                   ]
                       ] .
@@ -1033,21 +1019,18 @@
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Abstraccion
 :Abstraccion rdf:type owl:Class ;
              rdfs:subClassOf :HechoDerivado ;
-             owl:disjointWith :Diagnostico ;
-             :escrito-por "CLIPS:ELABORACIO" .
+             owl:disjointWith :Diagnostico .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Chunk
 :Chunk rdf:type owl:Class ;
        rdfs:subClassOf :HechoResultado ;
-       :escrito-por "CLIPS:APRENENTATGE (crea, refuerza y olvida)" ;
        rdfs:comment "Conocimiento procedimental aprendido de un impasse tie de dos candidatos (roadmap §6): si vuelve a empatar el mismo par con los mismos beneficios, la acción preferida es better que la descartada. Lo aplica una regla genérica de SELECCIO antes de detectar el empate. Se refuerza con cada uso confirmado y se olvida cuando su activación base cae bajo el umbral." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/CicloTemporal
 :CicloTemporal rdf:type owl:Class ;
-               rdfs:subClassOf :HechoObservado ;
-               :escrito-por "simulador" .
+               rdfs:subClassOf :HechoObservado .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/ConocimientoDominio
@@ -1058,35 +1041,30 @@
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Cultivo
 :Cultivo rdf:type owl:Class ;
          rdfs:subClassOf :ConocimientoDominio ;
-         :escrito-por "config" ;
          rdfs:comment "Parámetros agronómicos: umbrales de estrés térmico e hídrico." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/DatoRequerido
 :DatoRequerido rdf:type owl:Class ;
                rdfs:subClassOf :ConocimientoDominio ;
-               :escrito-por "config" ;
                rdfs:comment "Variable de observacion requerida para avanzar en el ciclo." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/DefinicionFase
 :DefinicionFase rdf:type owl:Class ;
                 rdfs:subClassOf :ConocimientoDominio ;
-                :escrito-por "config" ;
                 rdfs:comment "Conocimiento de control: qué módulo ejecuta cada fase y cuál es la siguiente. La bifurcación seleccio -> deliberacio la decide una regla de MAIN." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Diagnostico
 :Diagnostico rdf:type owl:Class ;
              rdfs:subClassOf :HechoDerivado ;
-             :escrito-por "CLIPS:PERCEPCIO,MONITORATGE,ELABORACIO" ;
              rdfs:comment "Riesgo, necesidad u oportunidad. Como máximo uno por sector y tipo: una segunda causa añade evidencias y eleva el nivel al máximo." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Episodio
 :Episodio rdf:type owl:Class ;
           rdfs:subClassOf :HechoResultado ;
-          :escrito-por "CLIPS:EXPLICACIO (crea), MONITORATGE (resultado), NETEJA (retira los de más de 60 min)" ;
           rdfs:comment "Memoria episódica y traza de explicación: situación, alternativas, descartes, restricciones activas, criterio, decisión, vistas agronómica y energética, chunk aplicado y efecto observado. Ventana de 60 minutos." .
 
 
@@ -1094,7 +1072,6 @@
 :EstadoSOAR rdf:type owl:Class ;
             rdfs:subClassOf :HechoControl ;
             owl:disjointWith :Impasse ;
-            :escrito-por "config (S0 inicial), CLIPS:MAIN (fase y subfase de S0), CLIPS:DELIBERACIO (subestados), CLIPS:NETEJA (retira subestados)" ;
             rdfs:comment "Estado raíz S0 (individuo :S0, persiste entre ciclos) o subestado de deliberación (uno por impasse, efímero, con estado-padre)." .
 
 
@@ -1120,88 +1097,75 @@
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Impasse
 :Impasse rdf:type owl:Class ;
-         rdfs:subClassOf :HechoControl ;
-         :escrito-por "CLIPS:SELECCIO (crea), DELIBERACIO (resuelve), MAIN (cierra como escalat)" .
+         rdfs:subClassOf :HechoControl .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/ObjetivoActivo
 :ObjetivoActivo rdf:type owl:Class ;
                 rdfs:subClassOf :ConocimientoDominio ;
-                :escrito-por "config" ;
                 rdfs:comment "Política de prioridades: seguretat-persones(1) > integritat-mecanica(2) > proteccio-cultiu(3) > produccio-energia(4) > estabilitat(5). Todos están activos siempre." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/ObservacionPanel
 :ObservacionPanel rdf:type owl:Class ;
                   rdfs:subClassOf :HechoObservado ;
-                  :escrito-por "simulador" ;
                   rdfs:comment "Estado del seguidor y de la ocupación bajo los paneles. Si falta, el ángulo actual y la ocupación son desconocidos." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/ObservacionSensor
 :ObservacionSensor rdf:type owl:Class ;
                    rdfs:subClassOf :HechoObservado ;
-                   :escrito-por "simulador" ;
                    rdfs:comment "Lectura numérica. Un dato ausente se representa por la ausencia del hecho." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/OperadorCandidato
 :OperadorCandidato rdf:type owl:Class ;
-                   rdfs:subClassOf :HechoCandidato ;
-                   :escrito-por "CLIPS:PROPOSTA (crea), SELECCIO (seleccionat/descartat), APLICACIO (aplicat)" .
+                   rdfs:subClassOf :HechoCandidato .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/OrdenActuador
 :OrdenActuador rdf:type owl:Class ;
                rdfs:subClassOf :HechoResultado ;
-               :escrito-por "CLIPS:APLICACIO (crea), MONITORATGE (retracta)" ;
                rdfs:comment "Sobrevive hasta MONITORATGE de t+1, que la verifica y la retracta. Toda decisión genera orden, también las que no mueven." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/ParametrosAprendizaje
 :ParametrosAprendizaje rdf:type owl:Class ;
                        rdfs:subClassOf :ConocimientoDominio ;
-                       :escrito-por "config" ;
                        rdfs:comment "Parámetros de la memoria de chunks (roadmap §6). Valores por defecto de Soar: decaimiento 0.5, umbral -2.0, historial de 10 referencias. Cada experimento puede sobrescribirlos al generar la configuración." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Prediccion
 :Prediccion rdf:type owl:Class ;
             rdfs:subClassOf :HechoObservado ;
-            :escrito-por "simulador" ;
             rdfs:comment "Servicio externo heurístico: ángulos de captación y de sombra de cada sector. Calcula, no decide." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Preferencia
 :Preferencia rdf:type owl:Class ;
-             rdfs:subClassOf :HechoCandidato ;
-             :escrito-por "CLIPS:AVALUACIO,SELECCIO (chunk),DELIBERACIO" .
+             rdfs:subClassOf :HechoCandidato .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Sector
 :Sector rdf:type owl:Class ;
-        rdfs:subClassOf :ConocimientoDominio ;
-        :escrito-por "config" .
+        rdfs:subClassOf :ConocimientoDominio .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/SeguidorSolar
 :SeguidorSolar rdf:type owl:Class ;
                rdfs:subClassOf :ConocimientoDominio ;
-               :escrito-por "config" ;
                rdfs:comment "Seguidor de eje único: límites mecánicos y de desgaste." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Umbral
 :Umbral rdf:type owl:Class ;
         rdfs:subClassOf :ConocimientoDominio ;
-        :escrito-por "config" ;
         rdfs:comment "Intervalo [limite-inferior, limite-superior) que asigna un nivel a una variable. Un límite ausente significa intervalo abierto (-inf o +inf). Los umbrales de una variable forman una partición de la recta real (lo comprueba la verificación, roadmap §10.1)." .
 
 
 ###  http://www.upc.edu/ontologies/agrovoltaica-soar/Valoracion
 :Valoracion rdf:type owl:Class ;
             rdfs:subClassOf :HechoCandidato ;
-            :escrito-por "CLIPS:AVALUACIO" ;
             rdfs:comment "Valoración cualitativa de un candidato. Solo existe si el desplazamiento es calculable. Cada acción solo puede tener beneficio en su propio criterio (posicio-seguretat: mecánico; orientar-ombra: cultivo; orientar-produccio: energía)." .
 
 

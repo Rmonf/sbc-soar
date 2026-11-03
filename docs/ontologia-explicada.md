@@ -79,7 +79,7 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 | `HechoObservado` | Raíz: datos que vienen de fuera. |
 | `CicloTemporal` | La señal de que empieza un ciclo nuevo, con el instante actual. |
 | `ObservacionSensor` | Una lectura numérica de un sensor (radiación, temperatura del cultivo, humedad del suelo o viento) y su calidad. |
-| `ObservacionPanel` | El estado de los paneles de un sector: ángulo actual, si funcionan bien y si hay personas o maquinaria debajo. |
+| `ObservacionPanel` | El estado de los paneles de un sector: ángulo actual, si funcionan bien y si hay personas debajo. |
 | `Prediccion` | Un valor calculado por un servicio externo: el ángulo ideal para producir y el ángulo ideal para dar sombra. |
 
 ### 2.3 Hechos derivados (la interpretación de la situación)
@@ -154,7 +154,7 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 | `beneficio-cultivo` | `Valoracion`, `Episodio` | nivel | Cuánto ayuda la acción al cultivo. |
 | `beneficio-energia` | `Valoracion`, `Episodio` | nivel | Cuánto ayuda la acción a producir energía. |
 | `criterio` | `Preferencia`, `Chunk` | objetivo | El objetivo que justifica la preferencia. |
-| `estrategia-resolucion` | `Impasse`, `Chunk` | `prioritat-objectius`, `posicio-preventiva`, `demanar-dades`, `escalat` | Cómo se resolvió el impasse: por el objetivo más prioritario, yendo a posición de seguridad, pidiendo datos o pasando el caso a una persona. |
+| `estrategia-resolucion` | `Impasse`, `Chunk` | `prioritat-objectius`, `posicio-preventiva`, `demanar-dades` | Cómo se resolvió el impasse: por el objetivo más prioritario, yendo a posición de seguridad o pidiendo datos. |
 | `tipo-impasse` | `Impasse`, `Episodio` | `tie`, `dades-insuficients` | Tipo de bloqueo. En un episodio, vacío si no lo hubo. |
 | `escalado-humano` | `OrdenActuador`, `Episodio` | sí/no | Si la decisión se pasa a una persona para que la revise. |
 | `fase` | `EstadoSOAR`, `DefinicionFase` | las 12 fases del ciclo (`percepcio` … `neteja`, más `espera`) | Fase actual del razonamiento o fase a la que se refiere la fila. |
@@ -191,10 +191,10 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 
 | Propiedad | Clase | Valores | Significado |
 |---|---|---|---|
-| `calidad` | `ObservacionSensor` | `ok`, `degradat`, `fallada` | Fiabilidad de la lectura: buena, dudosa o fallida. |
+| `calidad` | `ObservacionSensor` | `ok`, `fallada` | Fiabilidad de la lectura: buena o fallida. |
 | `angulo-actual` | `ObservacionPanel` | número (°) | Ángulo medido de los paneles. |
 | `estado-mecanico` | `ObservacionPanel` | `operatiu`, `bloquejat`, `alarma` | Si los paneles funcionan, están bloqueados o en alarma. |
-| `ocupacion` | `ObservacionPanel` | `lliure`, `persones`, `maquinaria` | Qué hay debajo de los paneles: nada, personas o maquinaria. |
+| `ocupacion` | `ObservacionPanel` | `lliure`, `persones` | Qué hay debajo de los paneles: nada o personas. |
 | `tipo-diagnostico` | `Diagnostico` | `estres-termic`, `estres-hidric`, `risc-mecanic`, `risc-persones`, `oportunitat-energetica`, `incertesa-dades`, `fallada-actuador` | Qué se ha detectado (lista en §2.3). |
 | `evidencias` | `Diagnostico` | textos (varios) | Las pruebas del diagnóstico (p. ej., `vent:critic`). |
 

@@ -43,7 +43,8 @@
    (slot umbral-olvido (type NUMBER)) (slot max-referencias (type INTEGER)))
 
 ;;; ---------------------------------------------------------------------------
-;;; Control: el estado S0 (persiste) y los subestados e impasses (efímeros).
+;;; Control. S0 viene del TTL, persiste y solo lo modifica MAIN (fase y subfase). SELECCIO crea
+;;; los impasses y DELIBERACIO los subestados y los resuelve; NETEJA los retira al final del ciclo.
 ;;; ---------------------------------------------------------------------------
 
 (deftemplate estado-soar
@@ -59,25 +60,29 @@
    (slot estrategia-resolucion (default nil)))
 
 ;;; ---------------------------------------------------------------------------
-;;; Observados: los aserta Python al empezar cada ciclo.
+;;; Observados: los aserta Python (simulador o caso) al empezar cada ciclo; nadie los modifica y
+;;; NETEJA los retira al final del ciclo.
 ;;; ---------------------------------------------------------------------------
 
 (deftemplate ciclo-temporal (slot instante (type INTEGER)))
 
 (deftemplate observacion-sensor
    (slot sector) (slot variable) (slot valor (type NUMBER))
-   (slot calidad (allowed-symbols ok degradat fallada)))
+   (slot calidad (allowed-symbols ok fallada)))
 
 (deftemplate observacion-panel
    (slot sector) (slot angulo-actual (type NUMBER))
    (slot estado-mecanico (allowed-symbols operatiu bloquejat alarma))
-   (slot ocupacion (allowed-symbols lliure persones maquinaria)))
+   (slot ocupacion (allowed-symbols lliure persones)))
 
 ;; Ángulos objetivo que calcula el simulador: angle-captacio y angle-ombra.
 (deftemplate prediccion (slot sector) (slot variable) (slot valor (type NUMBER)))
 
 ;;; ---------------------------------------------------------------------------
-;;; Derivados (ELABORACIO) y candidatos (PROPOSTA, AVALUACIO, SELECCIO).
+;;; Derivados y candidatos, del ciclo en curso (NETEJA los retira). Abstracciones: ELABORACIO.
+;;; Diagnósticos: PERCEPCIO, MONITORATGE y ELABORACIO. Candidatos: PROPOSTA los crea, SELECCIO
+;;; los selecciona o descarta y APLICACIO los marca aplicados. Valoraciones: AVALUACIO.
+;;; Preferencias: AVALUACIO, SELECCIO (chunk) y DELIBERACIO.
 ;;; ---------------------------------------------------------------------------
 
 (deftemplate abstraccion
@@ -113,8 +118,9 @@
    (slot restriccion (allowed-symbols nil R1 R2 R3 R4 R5)) (slot chunk-aplicado (default nil)))
 
 ;;; ---------------------------------------------------------------------------
-;;; Resultados: órdenes (hasta MONITORATGE del ciclo siguiente), episodios (una hora)
-;;; y chunks (hasta que se olvidan).
+;;; Resultados. Órdenes: las crea APLICACIO y las retracta MONITORATGE del ciclo siguiente.
+;;; Episodios: los crea EXPLICACIO, MONITORATGE anota el resultado y NETEJA retira los de más de
+;;; una hora. Chunks: APRENENTATGE los crea, refuerza y olvida.
 ;;; ---------------------------------------------------------------------------
 
 (deftemplate orden-actuador

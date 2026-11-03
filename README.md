@@ -59,7 +59,7 @@ espera ──(llega un ciclo)──► percepcio ► monitoratge ► elaboracio 
 
 | | Si… | …se prohíbe |
 |---|---|---|
-| R1 | hay personas o maquinaria bajo los paneles | cualquier movimiento |
+| R1 | hay personas bajo los paneles | cualquier movimiento |
 | R2 | el viento es crítico | orientar a producción o a sombra |
 | R3 | el actuador ha fallado (en este ciclo o en la última hora) | cualquier movimiento |
 | R4 | ya se ha movido el máximo de veces en la última hora | cualquier movimiento salvo ir a defensa |

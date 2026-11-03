@@ -62,7 +62,7 @@
    =>
    (assert (diagnostico (sector ?s) (tipo-diagnostico oportunitat-energetica) (nivel ?n) (evidencias (sym-cat radiacio: ?n)))))
 
-;; SOAR: elaboración. Personas o maquinaria bajo los paneles.
+;; SOAR: elaboración. Personas bajo los paneles.
 (defrule ELABORACIO::risc-persones
    (estado-soar (id S0) (fase elaboracio))
    (observacion-panel (sector ?s) (ocupacion ?o&~lliure))

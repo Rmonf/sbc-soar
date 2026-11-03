@@ -2,7 +2,7 @@
 
 (defmodule AVALUACIO (import MAIN ?ALL))
 
-;; SOAR: preferencia reject (restricción dura R1). Personas o maquinaria: no mover.
+;; SOAR: preferencia reject (restricción dura R1). Personas bajo los paneles: no mover.
 (defrule AVALUACIO::r1-personas
    (estado-soar (id S0) (fase avaluacio))
    (diagnostico (sector ?s) (tipo-diagnostico risc-persones))
