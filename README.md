@@ -1,142 +1,156 @@
 # Sistema agrovoltaico inspirado en SOAR (CLIPS + Python)
 
-Práctica de Sistemes Basats en Coneixement (GIA, UPC). Es un sistema basado en reglas en **CLIPS** que, cada pocos minutos, decide cómo orientar los paneles solares de una instalación agrovoltaica de tres sectores. Tiene en cuenta la seguridad mecánica, el estrés del cultivo y la producción de energía. Su organización está inspirada en la arquitectura cognitiva **SOAR**: un ciclo de once fases, operadores candidatos, preferencias, impasses con deliberación, memoria episódica y aprendizaje por chunking con refuerzo y olvido. El conocimiento estático sale de una ontología OWL (`ontologia/agrovoltaica-soar.ttl`). Python (clipspy) simula el entorno, conecta los componentes y ejecuta los experimentos, pero **no decide**. El diseño completo está en `docs/roadmap.md` y el registro de iteraciones y resultados, en `docs/iteraciones.md`.
+Práctica de Sistemes Basats en Coneixement (GIA, UPC).
 
-## Requisitos
+Una instalación agrovoltaica tiene tres sectores con cultivo y paneles solares orientables. Cada 5 minutos, un sistema de reglas en **CLIPS** decide cómo orientar los paneles de cada sector: protegerlos del viento, dar sombra al cultivo o producir energía. El sistema razona como **SOAR**: propone operadores, los compara con preferencias, delibera cuando no sabe elegir y **aprende de esa deliberación** (chunking) para no tener que repetirla. Lo que aprende se refuerza con el uso y se olvida si deja de usarse.
 
-- **Python 3.14** (`.python-version`).
-- **[uv](https://docs.astral.sh/uv/)** (recomendado): instala la versión de Python y las dependencias fijadas en `uv.lock`.
-- Como alternativa, **pip** con `requirements.txt`. Este fichero se genera a partir de `uv.lock` y tiene las mismas versiones; no se edita a mano.
+El código es deliberadamente pequeño: cada regla hace una sola cosa y lleva un comentario que dice qué parte de SOAR implementa.
 
-Las dependencias son clipspy (que incluye CLIPS 6.4), rdflib, numpy, scipy y pytest.
+- **CLIPS decide.** Toda la interpretación, la propuesta, la evaluación, la selección, la deliberación y el aprendizaje son reglas de CLIPS.
+- **Python no decide.** Lee la ontología, simula el entorno, introduce las observaciones y muestra los resultados.
 
-## Instalación desde un clon limpio
+---
 
-Con uv:
+## 1. Cómo se corresponde con SOAR
+
+| SOAR | En este sistema |
+|---|---|
+| Memoria de trabajo | Hechos de CLIPS (`deftemplate`), con el vocabulario de la ontología `ontologia/agrovoltaica-soar.ttl` |
+| Ciclo de decisión | 11 fases, una por módulo de CLIPS; MAIN las encadena con `focus` |
+| Elaboración | ELABORACIO: lecturas → niveles (`baix` < `mitja` < `alt` < `critic`) → diagnósticos (riesgo, estrés, oportunidad) |
+| Operadores | PROPOSTA: un `operador-candidato` por acción aplicable |
+| Preferencias | AVALUACIO: `reject` (restricciones duras R1–R5) y `better` (comparación de beneficios) |
+| Procedimiento de decisión | SELECCIO: si queda un único candidato no dominado, se elige; si no, se produce un impasse |
+| Impasse y subestado | `tie` (empate) y `dades-insuficients` (faltan datos). DELIBERACIO abre un subestado, decide y devuelve una preferencia |
+| Chunking | APRENENTATGE convierte cada empate resuelto en un `chunk`. La próxima vez, SELECCIO aplica el chunk y **no hay impasse** |
+| Refuerzo y olvido | Activación base de Soar, A = ln Σ Δt⁻ᵈ (d = 0,5, umbral −2, tiempo en ciclos): cada uso confirmado refuerza el chunk; sin uso, se olvida |
+| Memoria episódica | `episodio`: una decisión por sector y ciclo, guardada una hora. La consultan R3, R4 y la deliberación |
+| Entrada y salida | Python introduce observaciones y lee la `orden-actuador` |
+
+Diferencias con Soar: los chunks son hechos aplicados por una regla genérica, no producciones nuevas; las condiciones del chunk salen de un análisis fijo, no del *backtracing*; los subestados tienen un solo nivel. Se explican en el informe.
+
+---
+
+## 2. El ciclo de decisión
+
+```
+espera ──(llega un ciclo)──► percepcio ► monitoratge ► elaboracio ► proposta ► avaluacio ► seleccio
+                                                                                             │  ▲
+                                                                              impasse abierto ▼  │ resuelto
+                                                                                         deliberacio
+        seleccio ► aplicacio ► explicacio ► aprenentatge ► neteja ► espera
+```
+
+| Fase | Qué hace |
+|---|---|
+| PERCEPCIO | Marca los datos que faltan o están fallados (`incertesa-dades`) |
+| MONITORATGE | Comprueba si la orden anterior se cumplió; si no, diagnostica un fallo del actuador |
+| ELABORACIO | Pasa las lecturas a niveles con los umbrales de la ontología y crea diagnósticos |
+| PROPOSTA | Propone las acciones aplicables: `orientar-produccio`, `orientar-ombra`, `posicio-seguretat`, `mantenir-posicio` o `diagnosticar` |
+| AVALUACIO | Prohíbe lo peligroso (R1–R5) y compara los demás candidatos |
+| SELECCIO | Elige, aplica un chunk o declara un impasse |
+| DELIBERACIO | Resuelve el impasse en un subestado |
+| APLICACIO | Crea la orden para los paneles |
+| EXPLICACIO | Guarda el episodio y escribe la traza |
+| APRENENTATGE | Crea, refuerza u olvida chunks |
+| NETEJA | Limpia la memoria de trabajo para el ciclo siguiente |
+
+**Restricciones duras** (siempre ganan a cualquier objetivo productivo):
+
+| | Si… | …se prohíbe |
+|---|---|---|
+| R1 | hay personas o maquinaria bajo los paneles | cualquier movimiento |
+| R2 | el viento es crítico | orientar a producción o a sombra |
+| R3 | el actuador ha fallado (en este ciclo o en la última hora) | cualquier movimiento |
+| R4 | ya se ha movido el máximo de veces en la última hora | cualquier movimiento salvo ir a defensa |
+| R5 | no se sabe dónde está el panel | cualquier movimiento |
+
+**Preferencias:** gana la acción con mayor beneficio en el criterio más prioritario (mecánico, después cultivo, después energía) cuando la diferencia es clara (nivel `alt` o más). Si los dos beneficios son solo `mitja`, la diferencia no es clara (**zona gris**) y el sistema no sabe elegir: es un **empate**. Si el panel ya está casi en el ángulo de una acción (menos de 5°), esa acción no se propone y "quedarse quieto" hereda su beneficio. Así el sistema no oscila entre posiciones.
+
+---
+
+## 3. Cómo aprende
+
+1. **Delibera.** En la zona gris (por ejemplo, estrés del cultivo `mitja` frente a oportunidad de energía `mitja`), SELECCIO declara un `tie`. DELIBERACIO lo resuelve en un subestado: gana la acción que sirve al objetivo más prioritario (el cultivo antes que la energía).
+2. **Compila.** APRENENTATGE guarda la resolución como un `chunk`: "con esta pareja de acciones y estos beneficios, prefiere esta".
+3. **Reutiliza.** Al ciclo siguiente, la misma situación ya no produce impasse: SELECCIO aplica el chunk directamente. Pasa de la deliberación a la reacción, que es la idea central del chunking de Soar.
+4. **Refuerza.** Cada vez que una decisión tomada con el chunk se confirma en el ciclo siguiente (el panel llegó donde se ordenó), el chunk gana una referencia.
+5. **Olvida.** Si un chunk no se usa, su activación baja. Por debajo de −2 se borra; un chunk usado una sola vez desaparece a las ~4,6 h. Lo olvidado se vuelve a aprender si la situación se repite.
+
+**Lo que demuestra el experimento de aprendizaje:** con el aprendizaje activado, los empates (deliberaciones) bajan mucho respecto al sistema sin aprendizaje, y **las decisiones son exactamente las mismas**. El sistema aprende a decidir más rápido sin decidir peor.
+
+En la traza se ve cada paso:
+```
+Aprenentatge (t=665): compilat chunk-mantenir-posicio-mitja-orientar-produccio-mitja ...
+Decisio: mantenir-posicio (chunk-..., apres de prioritat-objectius)   Criteri: proteccio-cultiu
+Aprenentatge (t=670): reforcat chunk-... per l'us de t=665
+Aprenentatge (t=1765): oblidat chunk-..., activacio=-2.001 < -2
+```
+
+---
+
+## 4. Instalación
+
+Requisitos: **Python** (la versión de `.python-version`) y **uv** (recomendado) o pip. Funciona en Linux, macOS y Windows 11.
 
 ```bash
-git clone <url-del-repositorio> sbc
-cd sbc
+git clone https://github.com/Rmonf/sbc-soar.git
+cd sbc-soar
 uv sync
 ```
 
 Con pip:
 
 ```bash
-git clone <url-del-repositorio> sbc
-cd sbc
-python3.14 -m venv .venv
-source .venv/bin/activate          # en Windows: .venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-En el resto del documento, los comandos se escriben con `uv run`. Con pip, activa el entorno y quita `uv run` (por ejemplo, `python python/ontologia.py`).
+Con pip, quita `uv run` de los comandos siguientes.
 
-> **Aviso sobre `[ENVRNMNT8]`.** Al final de la salida de casi todos los comandos aparecen, una o varias veces, las líneas `[ENVRNMNT8] Environment data not fully deallocated.`, `[ENVRNMNT8] MemoryAmount = …` y `[ENVRNMNT8] MemoryCalls = …`. Es una fuga de memoria conocida de CLIPS al liberar un `Environment` desde clipspy (roadmap §13). No es un error y no afecta a los resultados ni al código de salida.
+> Al final de la salida puede aparecer `[ENVRNMNT8] Environment data not fully deallocated`. Es una fuga de memoria conocida de CLIPS al cerrar un entorno desde clipspy. No es un error y no afecta a los resultados.
 
-## Base de conocimiento
+---
 
-`config/base_coneixement.clp` contiene el conocimiento estático (umbrales, cultivos, seguidores, sectores…) y se genera a partir del TTL. Ya viene generado en el repositorio. Si cambia el TTL o alguna plantilla de `clips/00_main.clp`, hay que regenerarlo. **No se edita a mano.**
+## 5. Uso
 
-```bash
-uv run python python/ontologia.py              # regenera config/base_coneixement.clp
-uv run python python/ontologia.py --verificar  # verificación de la base de conocimiento (§10.1)
-```
-
-La verificación comprueba que el TTL, las plantillas y las reglas son coherentes entre sí. Termina con `0 anomalías, 1 avisos`. El aviso indica que las reglas no disparadas las informa la batería de casos.
-
-Las variantes de configuración de los experimentos se generan en otro fichero; el original no se toca:
+Todo se ejecuta con `python/sbc.py`:
 
 ```bash
-uv run python python/ontologia.py --set aprendizaje-activo=FALSE --salida resultats/C0.clp
+uv run python python/sbc.py demo                 # un día simulado, con la traza de cada decisión
+uv run python python/sbc.py demo --sin-aprendizaje
+uv run python python/sbc.py caso casos/09_empate_y_chunk.json   # un caso, paso a paso, con su traza
+uv run python python/sbc.py aprendizaje          # experimento de aprendizaje (sección 3)
+uv run python python/sbc.py agenda               # experimento de la agenda de CLIPS
+uv run pytest                                    # todos los casos de prueba y los tests
 ```
 
-## Casos de prueba
+`demo` y `caso` admiten `--estrategia` (`depth`, `breadth`, `lex`, `mea`, `complexity`, `simplicity`, `random`). `demo` admite `--dias` y `--semilla`.
 
-La batería (`casos/caso_*.json`, §10.2) ejecuta cada caso en un `Environment` nuevo. Por cada paso compara las órdenes, los episodios, la traza y los chunks con lo esperado. Al final escribe `PASS`/`FAIL` por caso, el total y las reglas que no se ha disparado en ningún caso:
+**Experimento de la agenda.** Comprueba que la estrategia de resolución de conflictos de CLIPS cambia el **orden** en que disparan las reglas, pero no las **decisiones**: los conflictos del dominio se resuelven con preferencias, no con el orden de la agenda. Lo compara con **B0** (`clips/b0.clp`), una versión que decide "a la antigua", por `salience`, sin preferencias ni impasses: B0 se mueve mucho más y no puede explicar por qué elige.
 
-```bash
-uv run python python/executar_casos.py
-uv run python python/executar_casos.py --estrategia breadth   # con otra estrategia de agenda
+Los resultados se guardan en `resultats/` (no se versiona).
+
+---
+
+## 6. Estructura
+
+```
+ontologia/agrovoltaica-soar.ttl   Ontología: vocabulario y conocimiento estático (sectores, cultivos, umbrales, objetivos, fases)
+clips/00_main.clp                 Plantillas, funciones comunes y las reglas de control del ciclo
+clips/01_percepcio.clp … 11_neteja.clp   Un módulo por fase
+clips/b0.clp                      Variante B0 (decisión por salience) para el experimento de la agenda
+python/ontologia.py               Lee el TTL y carga el conocimiento estático en CLIPS
+python/simulador.py               Entorno simulado: meteorología, cultivo, paneles y fallos
+python/sistema.py                 Puente con CLIPS: carga, introduce observaciones, ejecuta un ciclo y lee resultados
+python/experimentos.py            Experimentos de aprendizaje y de agenda
+python/sbc.py                     Punto de entrada (demo, caso, aprendizaje, agenda)
+config/simulacio.json             Parámetros de la simulación y de los experimentos
+casos/                            Casos de prueba, con las entradas y la decisión esperada
+tests/                            Tests de pytest
+docs/ontologia-explicada.md       Qué significa cada clase y propiedad de la ontología
+fuentes/                          Enunciado, testimonios y material de clase
 ```
 
-Los mismos casos y los tests de los componentes se ejecutan también con pytest:
-
-```bash
-uv run pytest
-```
-
-### Un caso suelto con su traza
-
-`--caso` ejecuta solo los casos cuyo id empieza por el texto indicado. Por cada paso escribe la orden de cada sector y la traza de la explicación: hechos de entrada, diagnóstico, candidatos, descartes, impasse, decisión y criterio, la orden, y las vistas agronómica y energética. Termina con el resultado `PASS`/`FAIL`:
-
-```bash
-uv run python python/executar_casos.py --caso caso_08    # ejemplo del anexo B del enunciado
-```
-
-### Casos no vistos
-
-Los escenarios de `casos_no_vistos/` salen de los testimonios y no tienen salida esperada, así que no forman parte de la regresión. Este comando escribe la decisión y la traza de cada paso en `resultats/i5_no_vistos/informe.md`:
-
-```bash
-uv run python python/executar_casos.py --no-vistos
-```
-
-## Ejecución en bucle cerrado
-
-El simulador heurístico (`python/simulador.py`, configurado en `config/simulacio.json`) genera la meteorología, el estado del cultivo y de los paneles, y los fallos. En cada paso de 5 minutos, CLIPS decide y el simulador aplica las órdenes:
-
-```bash
-uv run python python/bucle.py --semilla 0 --dias 1
-```
-
-Opciones: `--semilla N`, `--dias D` (7 por defecto), `--estrategia <estrategia de agenda>` y `--salida <carpeta>` (`resultats/prova` por defecto). La ejecución queda en `resultats/prova/semilla_0/`:
-
-| Fichero | Contenido |
-|---|---|
-| `traza.txt` | traza de explicación de cada decisión |
-| `ordenes.jsonl`, `episodios.jsonl`, `chunks.jsonl` | lo que Python lee de CLIPS en cada paso |
-| `ciclos.jsonl`, `estado.jsonl` | reglas disparadas y CPU de cada ciclo; estado simulado (meteorología, cultivo y paneles) |
-| `metricas.json` | métricas de la ejecución (energía, estrés, movimientos, escalados…) |
-| `configuracion.json` | configuración, semilla y `loadavg` |
-
-Un día simulado (288 pasos) tarda unos 3 segundos.
-
-## Experimentos
-
-Todos los experimentos están en `python/experiments.py`. Cada uno escribe `resumen.txt` (legible) y `resultados.json` (completo) en su carpeta de `resultats/`. Las ejecuciones en bucle cerrado guardan además una subcarpeta por semilla o por configuración. Si no se dice otra cosa, se usan las semillas 0–9 de `config/simulacio.json` y 7 días por semilla. Los que admiten `--semillas`, `--dias` y `--salida` permiten cambiarlo.
-
-| Comando | Qué hace | Resultados |
-|---|---|---|
-| `uv run python python/experiments.py a1` | Agenda A1 (§11.3) sobre la batería: las 7 estrategias de CLIPS dan las mismas decisiones | `resultats/i2_a1/` |
-| `uv run python python/experiments.py a2` | Agenda A2: especificidad, `complexity` frente a `simplicity` | `resultats/i2_a2/` |
-| `uv run python python/experiments.py piloto` | Piloto del núcleo en bucle cerrado y análisis de potencia (§11.2) | `resultats/i3_piloto/` |
-| `uv run python python/experiments.py a1-bucle` | A1 en bucle cerrado sobre las semillas | `resultats/i3_a1/` |
-| `uv run python python/experiments.py aprenentatge` | Aprendizaje (§11.4): C0 sin aprendizaje, C1 sin olvido, C2 por defecto y barrido del umbral de olvido | `resultats/i4_aprenentatge/` |
-| `uv run python python/experiments.py a3s --base C0` | A3s sobre la batería: `depth` frente a `depth` con salience (`clips/variants/a3s.clp`), sin aprendizaje (`C0`) o con él (`C2`, por defecto) | `resultats/i5_a3s/` |
-| `uv run python python/experiments.py i5` | Experimentos completos de I5 (semillas 10–39 × 7 días): etapas `aprenentatge`, `b0` (línea base por salience), `a3` y `a1` | `resultats/i5/` |
-
-Notas:
-
-- `a1` y `a2` tardan poco (la batería se ejecuta una vez por estrategia). Los experimentos en bucle cerrado tardan del orden de 3 s por semilla, día y configuración: `piloto` tarda unos minutos y `aprenentatge` y `a1-bucle`, unas decenas de minutos. `i5` tarda horas.
-- `aprenentatge --reutilizar C0 C1` lee de la carpeta de salida las ejecuciones ya guardadas de esas configuraciones en lugar de repetirlas.
-- `i5` mide la CPU por ciclo, así que hay que lanzarlo **sin otras cargas en la máquina** (cada ejecución guarda su `loadavg`). Se puede reanudar: cada ejecución se guarda en `resultats/i5/ejecuciones/` y, al relanzarlo con el mismo código, se lee de ahí. `--etapas aprenentatge b0` elige las etapas que se ejecutan. `--procesos N` llena el caché en N procesos; después, C0 y C2 con `depth` se ejecutan en serie, cada una cuando el `loadavg` de 1 minuto baja de 1, y son las únicas con una CPU válida.
-- El código devuelve 0 si se cumplen los invariantes del experimento (sin violaciones de decisión, sin discrepancias de agenda donde no debe haberlas) y 1 si no.
-
-## Dónde quedan los resultados
-
-Todo lo que se genera va a `resultats/`, que git ignora y que se puede borrar y regenerar con los comandos anteriores. Los resultados de referencia de cada iteración, con sus tablas e interpretación, están en `docs/iteraciones.md`.
-
-## Estructura del repositorio
-
-| Ruta | Contenido |
-|---|---|
-| `clips/` | Módulos CLIPS: `00_main.clp` (plantillas y control) y `01_percepcio.clp` … `11_neteja.clp` (una fase cada uno) |
-| `clips/variants/` | Variantes del experimento de agenda: `a3s.clp` y `b0.clp` |
-| `config/` | `base_coneixement.clp` (generado) y `simulacio.json` (simulador, semillas, fallos, δ) |
-| `ontologia/` | Ontología OWL, la fuente del conocimiento estático |
-| `python/` | Generador y verificador (`ontologia.py`), puente con CLIPS (`pont_clips.py`), simulador, bucle, métricas, batería y experimentos |
-| `casos/`, `casos_no_vistos/` | Casos de prueba con salida esperada y casos no vistos |
-| `tests/` | Tests de pytest |
-| `docs/` | Roadmap (especificación), registro de iteraciones y ontología explicada |
-| `fuentes/` | Enunciado, testimonios y material de clase |
+La ontología es más rica que la implementación: algunos valores (por ejemplo, el impasse `constraint-failure` o la preferencia `require`) están en el vocabulario, pero el sistema no los usa.
