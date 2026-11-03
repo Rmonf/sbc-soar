@@ -1,0 +1,16 @@
+{
+  "descripcion": "t=0: zona gris en s1, tie y chunk compilado. Después, cinco horas sin volver a usarlo: en t=300 su activación cae por debajo de -2 y se olvida. En t=305 la misma situación en s2 vuelve a dar un tie y el chunk se aprende de nuevo.",
+  "requisito": "Olvido por activación base (README §3, paso 5)",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"temp-cultiu": 28, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25}},
+     "esperado": {"s1": {"accion": "orientar-ombra", "impasse": "tie"}},
+     "chunks": ["chunk-orientar-ombra-mitja-orientar-produccio-mitja"]},
+    {"t": 300, "sectores": {"s1": {"panel": {"angulo-actual": -25}}},
+     "esperado": {"s1": {"accion": "mantenir-posicio"}},
+     "chunks": []},
+    {"t": 305, "sectores": {"s1": {"panel": {"angulo-actual": -25}},
+                            "s2": {"temp-cultiu": 24, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25}},
+     "esperado": {"s2": {"accion": "orientar-ombra", "impasse": "tie", "chunk": false}},
+     "chunks": ["chunk-orientar-ombra-mitja-orientar-produccio-mitja"]}
+  ]
+}

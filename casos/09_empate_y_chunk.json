@@ -1,0 +1,22 @@
+{
+  "descripcion": "Zona gris en s1: estrés térmico mitja frente a oportunidad energética mitja. t=0: tie, la deliberación elige la sombra (el cultivo es más prioritario) y se compila un chunk. t=5: la misma situación en s2 se resuelve con el chunk, sin impasse y con la misma decisión. s1, ya en sombra, empata mantenir-posicio (que hereda el beneficio del cultivo) con orientar-produccio y aprende un segundo chunk, que aplica en t=10.",
+  "requisito": "Chunking (README §3): de la deliberación a la reacción",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"temp-cultiu": 28, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25}},
+     "esperado": {"s1": {"accion": "orientar-ombra", "impasse": "tie", "chunk": false}},
+     "chunks": ["chunk-orientar-ombra-mitja-orientar-produccio-mitja"]},
+    {"t": 5, "sectores": {"s1": {"temp-cultiu": 28, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25,
+                                 "panel": {"angulo-actual": -25}},
+                          "s2": {"temp-cultiu": 24, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25}},
+     "esperado": {"s2": {"accion": "orientar-ombra", "impasse": null, "chunk": true},
+                  "s1": {"accion": "mantenir-posicio", "impasse": "tie", "chunk": false}},
+     "chunks": ["chunk-orientar-ombra-mitja-orientar-produccio-mitja",
+                "chunk-mantenir-posicio-mitja-orientar-produccio-mitja"]},
+    {"t": 10, "sectores": {"s1": {"temp-cultiu": 28, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25,
+                                  "panel": {"angulo-actual": -25}},
+                           "s2": {"temp-cultiu": 24, "radiacio": 300, "angle-captacio": 30, "angle-ombra": -25,
+                                  "panel": {"angulo-actual": -25}}},
+     "esperado": {"s1": {"accion": "mantenir-posicio", "impasse": null, "chunk": true},
+                  "s2": {"accion": "mantenir-posicio", "impasse": null, "chunk": true}}}
+  ]
+}
