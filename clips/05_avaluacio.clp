@@ -51,15 +51,15 @@
    (assert (preferencia (sector ?s) (tipo-preferencia reject) (operador-referencia ?c)
                         (criterio seguretat-persones) (origen regla) (restriccion R5))))
 
-;; SOAR: elaboración de operador (valoración). Beneficio de cada candidato en los tres criterios y
-;; desplazamiento. Sin panel o sin un dato crítico no se valora: decide el impasse dades-insuficients.
+;; SOAR: elaboración de operador (valoración). Beneficio de cada candidato en los tres criterios.
+;; Sin panel o sin un dato crítico no se valora: decide el impasse dades-insuficients.
 (defrule AVALUACIO::valorar
    (estado-soar (id S0) (fase avaluacio))
-   (operador-candidato (id ?c) (sector ?s) (accion ?a) (angulo-objetivo ?obj))
-   (observacion-panel (sector ?s) (angulo-actual ?x))
+   (operador-candidato (id ?c) (sector ?s) (accion ?a))
+   (observacion-panel (sector ?s))
    (not (diagnostico (sector ?s) (tipo-diagnostico incertesa-dades) (nivel critic)))
    =>
-   (assert (valoracion (evalua-operador ?c) (desplazamiento (abs (- ?obj ?x)))
+   (assert (valoracion (evalua-operador ?c)
                        (beneficio-mecanico (beneficio ?s ?a posicio-seguretat))
                        (beneficio-cultivo (beneficio ?s ?a orientar-ombra))
                        (beneficio-energia (beneficio ?s ?a orientar-produccio)))))

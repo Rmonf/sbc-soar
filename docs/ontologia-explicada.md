@@ -104,7 +104,7 @@ Los envía el simulador en cada ciclo y se borran al final del ciclo.
 |---|---|
 | `HechoCandidato` | Raíz: las opciones del ciclo y lo que se opina de ellas. |
 | `OperadorCandidato` | Una acción propuesta para un sector, con el ángulo al que llevaría los paneles y su estado (propuesta, descartada, seleccionada o aplicada). |
-| `Valoracion` | La evaluación de una opción: cuánto beneficia a la mecánica, al cultivo y a la energía, y cuántos grados habría que girar. |
+| `Valoracion` | La evaluación de una opción: cuánto beneficia a la mecánica, al cultivo y a la energía. |
 | `Preferencia` | Una opinión sobre una opción: prohibirla (`reject`) o preferirla a otra (`better`). Incluye el objetivo que la justifica y quién la emitió. |
 
 ### 2.6 Resultados (lo que queda de cada decisión)
@@ -213,7 +213,6 @@ En la columna de valores, "nivel" es la escala `baix` < `mitja` < `alt` < `criti
 | `angulo-objetivo` | `OperadorCandidato` | número (°) | Ángulo al que llevaría la acción. Vacío si no se conoce el ángulo actual. |
 | `estado-candidato` | `OperadorCandidato` | `candidat`, `descartat`, `seleccionat`, `aplicat` | En qué punto está la opción: propuesta, descartada, elegida o ya ejecutada. |
 | `beneficio-mecanico` | `Valoracion` | nivel | Cuánto protege la acción la estructura. |
-| `desplazamiento` | `Valoracion` | número (°) | Grados que habría que girar; 0 si la acción no mueve. |
 | `tipo-preferencia` | `Preferencia` | `reject`, `better` | Prohibir o preferir. |
 | `origen` | `Preferencia` | `regla`, `deliberacio`, `chunk` | Quién la emitió: la evaluación normal, la deliberación de un impasse o una regla aprendida. |
 | `restriccion` | `Preferencia` | `R1` … `R5` | Qué regla de seguridad la provocó: personas debajo (R1), viento crítico (R2), fallo del actuador (R3), demasiados movimientos en la última hora (R4) o estado de los paneles desconocido (R5). |

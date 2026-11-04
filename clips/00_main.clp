@@ -106,8 +106,7 @@
    (slot evalua-operador)
    (slot beneficio-mecanico (allowed-symbols baix mitja alt critic))
    (slot beneficio-cultivo (allowed-symbols baix mitja alt critic))
-   (slot beneficio-energia (allowed-symbols baix mitja alt critic))
-   (slot desplazamiento (type NUMBER)))
+   (slot beneficio-energia (allowed-symbols baix mitja alt critic)))
 
 ;; reject (operador-referencia prohibido) o better (referencia mejor que comparado).
 (deftemplate preferencia
