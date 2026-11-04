@@ -1,0 +1,33 @@
+El panel de s3 no comunica: no se sabe dónde está. R5 prohíbe moverlo, faltan datos críticos (impasse dades-insuficients) y la deliberación pide datos: diagnosticar, con escalado a una persona.
+Requisit: Enunciado 3.7.3 (impasse por datos insuficientes; pedir datos o derivar a una persona)
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s1, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s1, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=desconegut
+Diagnosi: incertesa-dades:critic
+Candidats: diagnosticar posicio-seguretat
+Descartats: posicio-seguretat:seguretat-persones   Restriccions: R5
+Impasse: dades-insuficients (demanar-dades)
+Decisio: diagnosticar   Criteri: estabilitat
+Ordre: sector=s3, angle=nil, escalat a persona: si
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+
+Resultat: tot com s'esperava

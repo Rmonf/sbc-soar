@@ -1,0 +1,33 @@
+Personas bajo los paneles de s1 con viento alt (60 km/h). Ir a defensa sería mejor, pero R1 prohíbe cualquier movimiento: mantenir-posicio.
+Requisit: Enunciado 3.4 (ningún objetivo prevalece sobre una restricción dura); testimonio del jefe de operaciones
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s1, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=60.0 panell=30.0 (operatiu, persones)
+Diagnosi: risc-mecanic:alt risc-persones:critic
+Candidats: mantenir-posicio posicio-seguretat
+Descartats: posicio-seguretat:seguretat-persones   Restriccions: R1
+Impasse: -
+Decisio: mantenir-posicio   Criteri: seguretat-persones
+Ordre: sector=s1, angle=30.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+
+Resultat: tot com s'esperava

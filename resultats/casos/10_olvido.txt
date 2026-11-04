@@ -1,0 +1,106 @@
+t=0: zona gris en s1, tie y chunk compilado. Después, cinco horas sin volver a usarlo: en t=300 su activación cae por debajo de -2 y se olvida. En t=305 la misma situación en s2 vuelve a dar un tie y el chunk se aprende de nuevo.
+Requisit: Olvido por activación base (README §3, paso 5)
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s1, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=28.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: estres-termic:mitja oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-ombra orientar-produccio
+Descartats: mantenir-posicio:proteccio-cultiu orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: tie (prioritat-objectius)
+Decisio: orientar-ombra   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=mitja, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Aprenentatge (t=0): compilat chunk-orientar-ombra-mitja-orientar-produccio-mitja: orientar-ombra (mitja) sobre orientar-produccio (mitja), criteri proteccio-cultiu
+
+===== t=300 =====
+Monitoratge: s2, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s3, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s1, ordre de t=0 complerta (angle -25.0)
+Fets d'entrada: t=300, sector=s1, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=-25.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=300, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=300, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Aprenentatge (t=300): oblidat chunk-orientar-ombra-mitja-orientar-produccio-mitja, activacio=-2.047 < -2.0
+
+===== t=305 =====
+Monitoratge: s1, ordre de t=300 complerta (angle -25.0)
+Monitoratge: s2, ordre de t=300 complerta (angle 0.0)
+Monitoratge: s3, ordre de t=300 complerta (angle 0.0)
+Fets d'entrada: t=305, sector=s1, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=-25.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=305, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=305, sector=s2, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=24.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: estres-termic:mitja oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-ombra orientar-produccio
+Descartats: mantenir-posicio:proteccio-cultiu orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: tie (prioritat-objectius)
+Decisio: orientar-ombra   Criteri: proteccio-cultiu
+Ordre: sector=s2, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=mitja, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Aprenentatge (t=305): compilat chunk-orientar-ombra-mitja-orientar-produccio-mitja: orientar-ombra (mitja) sobre orientar-produccio (mitja), criteri proteccio-cultiu
+
+Resultat: tot com s'esperava
+
+[ENVRNMNT8] Environment data not fully deallocated.
+
+[ENVRNMNT8] MemoryAmount = 448.
+
+[ENVRNMNT8] MemoryCalls = 13.

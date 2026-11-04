@@ -1,0 +1,33 @@
+Anexo B del enunciado: viento de 82 km/h en s2 con sol. R2 prohíbe producir y el riesgo mecánico critic lleva a posicio-seguretat (0°). En s1 el viento aún es flojo, pero la previsión a 30 minutos es de 75 km/h: el sistema se anticipa y también va a defensa.
+Requisit: Enunciado, anexo B; 3.4 (restricciones de seguridad duras); 3.1 (anticipar la evolución a corto plazo)
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s1, angle-captacio=35.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=600.0 temp-cultiu=15.0 vent-previst=75.0 vent=20.0 panell=20.0 (operatiu, lliure)
+Diagnosi: oportunitat-energetica:alt risc-mecanic:critic
+Candidats: mantenir-posicio orientar-produccio posicio-seguretat
+Descartats: mantenir-posicio:integritat-mecanica orientar-produccio:integritat-mecanica   Restriccions: R2
+Impasse: -
+Decisio: posicio-seguretat   Criteri: integritat-mecanica
+Ordre: sector=s1, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s2, angle-captacio=35.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=600.0 temp-cultiu=15.0 vent=82.0 panell=20.0 (operatiu, lliure)
+Diagnosi: oportunitat-energetica:alt risc-mecanic:critic
+Candidats: mantenir-posicio orientar-produccio posicio-seguretat
+Descartats: mantenir-posicio:integritat-mecanica orientar-produccio:integritat-mecanica   Restriccions: R2
+Impasse: -
+Decisio: posicio-seguretat   Criteri: integritat-mecanica
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+
+Resultat: tot com s'esperava

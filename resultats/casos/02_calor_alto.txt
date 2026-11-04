@@ -1,0 +1,103 @@
+Tomate (s1) a 33 °C, 3 °C por encima de su umbral, con poca radiación: estrés térmico alt y orientar-ombra por preferencia better (t=0). Con la sombra la temperatura baja y el estrés desaparece (t=5): quedarse quieto conserva el beneficio de la sombra ordenada hace menos de una hora y no sale a producir (histéresis, sin vaivén). Pasada la hora (t=65), sin estrés, vuelve a producir.
+Requisit: Enunciado 3.2 (proteger el cultivo del calor; evitar oscilaciones) y 3.7.2 (conflicto del dominio resuelto con preferencias)
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s1, angle-captacio=0.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=150.0 temp-cultiu=33.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: estres-termic:alt
+Candidats: mantenir-posicio orientar-ombra
+Descartats: mantenir-posicio:proteccio-cultiu   Restriccions: -
+Impasse: -
+Decisio: orientar-ombra   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=alt, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+
+===== t=5 =====
+Monitoratge: s2, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s3, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s1, ordre de t=0 complerta (angle -25.0)
+Fets d'entrada: t=5, sector=s1, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=26.0 vent=10.0 panell=-25.0 (operatiu, lliure)
+Diagnosi: oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-produccio
+Descartats: orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=alt, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=5, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=5, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+
+===== t=65 =====
+Monitoratge: s1, ordre de t=5 complerta (angle -25.0)
+Monitoratge: s2, ordre de t=5 complerta (angle 0.0)
+Monitoratge: s3, ordre de t=5 complerta (angle 0.0)
+Fets d'entrada: t=65, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=65, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=65, sector=s1, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=26.0 vent=10.0 panell=-25.0 (operatiu, lliure)
+Diagnosi: oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-produccio
+Descartats: mantenir-posicio:produccio-energia   Restriccions: -
+Impasse: -
+Decisio: orientar-produccio   Criteri: produccio-energia
+Ordre: sector=s1, angle=30.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=mitja
+
+
+Resultat: tot com s'esperava
+
+[ENVRNMNT8] Environment data not fully deallocated.
+
+[ENVRNMNT8] MemoryAmount = 392.
+
+[ENVRNMNT8] MemoryCalls = 12.

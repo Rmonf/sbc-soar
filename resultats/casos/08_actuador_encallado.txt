@@ -1,0 +1,97 @@
+Viento alt en s1 con el panel a 30°. Se ordena ir a defensa, pero el actuador está encallado: el panel sigue a 30°. MONITORATGE detecta el fallo (diagnosticar) y R3, con la memoria episódica, impide volver a intentarlo en la hora siguiente.
+Requisit: Enunciado 3.8.8 (observar el resultado y revisar la decisión) y 3.9 (historial)
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s1, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=60.0 panell=30.0 (operatiu, lliure)
+Diagnosi: risc-mecanic:alt
+Candidats: mantenir-posicio posicio-seguretat
+Descartats: mantenir-posicio:integritat-mecanica   Restriccions: -
+Impasse: -
+Decisio: posicio-seguretat   Criteri: integritat-mecanica
+Ordre: sector=s1, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+
+===== t=5 =====
+Monitoratge: s2, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s3, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s1, ordre de t=0 NO complerta (ordenat 0.0, observat 30.0)
+Fets d'entrada: t=5, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=5, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=5, sector=s1, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=60.0 panell=30.0 (operatiu, lliure)
+Diagnosi: fallada-actuador:alt risc-mecanic:alt
+Candidats: diagnosticar posicio-seguretat
+Descartats: posicio-seguretat:integritat-mecanica   Restriccions: R3
+Impasse: -
+Decisio: diagnosticar   Criteri: integritat-mecanica
+Ordre: sector=s1, angle=30.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+
+===== t=10 =====
+Monitoratge: s2, ordre de t=5 complerta (angle 0.0)
+Monitoratge: s3, ordre de t=5 complerta (angle 0.0)
+Monitoratge: s1, ordre de t=5 complerta (angle 30.0)
+Fets d'entrada: t=10, sector=s1, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=60.0 panell=30.0 (operatiu, lliure)
+Diagnosi: risc-mecanic:alt
+Candidats: mantenir-posicio posicio-seguretat
+Descartats: posicio-seguretat:integritat-mecanica   Restriccions: R3
+Impasse: -
+Decisio: mantenir-posicio   Criteri: integritat-mecanica
+Ordre: sector=s1, angle=30.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=10, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=10, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+
+Resultat: tot com s'esperava

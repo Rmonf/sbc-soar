@@ -1,0 +1,33 @@
+Tomate (s1) con la humedad del suelo al 40 %, 5 puntos por debajo de su umbral crítico (45 %), temperatura normal y poca radiación: estrés hídrico alt y orientar-ombra por preferencia better (la sombra reduce la evapotranspiración).
+Requisit: Enunciado 3.2 (proteger el cultivo del estrés hídrico) y 3.3 (humedad del suelo)
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s1, angle-captacio=0.0 angle-ombra=-25.0 humitat-sol=40.0 radiacio=150.0 temp-cultiu=20.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: estres-hidric:alt
+Candidats: mantenir-posicio orientar-ombra
+Descartats: mantenir-posicio:proteccio-cultiu   Restriccions: -
+Impasse: -
+Decisio: orientar-ombra   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=alt, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+
+Resultat: tot com s'esperava

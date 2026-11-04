@@ -1,0 +1,100 @@
+Zona gris en s1: estrés térmico mitja frente a oportunidad energética mitja. t=0: tie, la deliberación elige la sombra (el cultivo es más prioritario) y se compila un chunk. t=5: la misma situación en s2 se resuelve con el chunk, sin impasse y con la misma decisión. s1, ya en sombra, empata mantenir-posicio (que hereda el beneficio del cultivo) con orientar-produccio y aprende un segundo chunk, que aplica en t=10.
+Requisit: Chunking (README §3): de la deliberación a la reacción
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s1, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=28.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: estres-termic:mitja oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-ombra orientar-produccio
+Descartats: mantenir-posicio:proteccio-cultiu orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: tie (prioritat-objectius)
+Decisio: orientar-ombra   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=mitja, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Aprenentatge (t=0): compilat chunk-orientar-ombra-mitja-orientar-produccio-mitja: orientar-ombra (mitja) sobre orientar-produccio (mitja), criteri proteccio-cultiu
+
+===== t=5 =====
+Monitoratge: s2, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s3, ordre de t=0 complerta (angle 0.0)
+Monitoratge: s1, ordre de t=0 complerta (angle -25.0)
+Fets d'entrada: t=5, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=5, sector=s2, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=24.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: estres-termic:mitja oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-ombra orientar-produccio
+Descartats: mantenir-posicio:proteccio-cultiu orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: -
+Decisio: orientar-ombra (chunk-orientar-ombra-mitja-orientar-produccio-mitja, apres de prioritat-objectius)   Criteri: proteccio-cultiu
+Ordre: sector=s2, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=mitja, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=5, sector=s1, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=28.0 vent=10.0 panell=-25.0 (operatiu, lliure)
+Diagnosi: estres-termic:mitja oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-produccio
+Descartats: orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: tie (prioritat-objectius)
+Decisio: mantenir-posicio   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=mitja, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Aprenentatge (t=5): compilat chunk-mantenir-posicio-mitja-orientar-produccio-mitja: mantenir-posicio (mitja) sobre orientar-produccio (mitja), criteri proteccio-cultiu
+
+===== t=10 =====
+Monitoratge: s3, ordre de t=5 complerta (angle 0.0)
+Monitoratge: s2, ordre de t=5 complerta (angle -25.0)
+Monitoratge: s1, ordre de t=5 complerta (angle -25.0)
+Fets d'entrada: t=10, sector=s1, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=28.0 vent=10.0 panell=-25.0 (operatiu, lliure)
+Diagnosi: estres-termic:mitja oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-produccio
+Descartats: orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio (chunk-mantenir-posicio-mitja-orientar-produccio-mitja, apres de prioritat-objectius)   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=mitja, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=10, sector=s2, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=300.0 temp-cultiu=24.0 vent=10.0 panell=-25.0 (operatiu, lliure)
+Diagnosi: estres-termic:mitja oportunitat-energetica:mitja
+Candidats: mantenir-posicio orientar-produccio
+Descartats: orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio (chunk-mantenir-posicio-mitja-orientar-produccio-mitja, apres de prioritat-objectius)   Criteri: proteccio-cultiu
+Ordre: sector=s2, angle=-25.0, escalat a persona: no
+Vista agronomica: benefici cultiu=mitja, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=10, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+Aprenentatge (t=10): reforcat chunk-orientar-ombra-mitja-orientar-produccio-mitja per l'us de t=5
+
+Resultat: tot com s'esperava

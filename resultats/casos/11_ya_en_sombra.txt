@@ -1,0 +1,33 @@
+Tomate (s1) con estrés térmico alt y sol alto, con el panel ya en el ángulo de sombra (-23° frente a -25°). orientar-ombra no se propone; mantenir-posicio hereda su beneficio y gana a orientar-produccio: no sale a producir y no hay vaivén.
+Requisit: Enunciado 3.2 (evitar oscilaciones innecesarias entre posiciones)
+
+===== t=0 =====
+Fets d'entrada: t=0, sector=s1, angle-captacio=30.0 angle-ombra=-25.0 humitat-sol=80.0 radiacio=600.0 temp-cultiu=33.0 vent=10.0 panell=-23.0 (operatiu, lliure)
+Diagnosi: estres-termic:alt oportunitat-energetica:alt
+Candidats: mantenir-posicio orientar-produccio
+Descartats: orientar-produccio:proteccio-cultiu   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: proteccio-cultiu
+Ordre: sector=s1, angle=-23.0, escalat a persona: no
+Vista agronomica: benefici cultiu=alt, sensibilitat del cultiu=alt   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s2, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s2, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=critic   Vista energetica: benefici energia=baix
+
+Fets d'entrada: t=0, sector=s3, angle-captacio=0.0 angle-ombra=-45.0 humitat-sol=80.0 radiacio=100.0 temp-cultiu=15.0 vent=10.0 panell=0.0 (operatiu, lliure)
+Diagnosi: -
+Candidats: mantenir-posicio
+Descartats: -   Restriccions: -
+Impasse: -
+Decisio: mantenir-posicio   Criteri: -
+Ordre: sector=s3, angle=0.0, escalat a persona: no
+Vista agronomica: benefici cultiu=baix, sensibilitat del cultiu=mitja   Vista energetica: benefici energia=baix
+
+
+Resultat: tot com s'esperava
