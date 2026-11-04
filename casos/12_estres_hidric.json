@@ -1,0 +1,9 @@
+{
+  "descripcion": "Tomate (s1) con la humedad del suelo al 40 %, 5 puntos por debajo de su umbral crítico (45 %), temperatura normal y poca radiación: estrés hídrico alt y orientar-ombra por preferencia better (la sombra reduce la evapotranspiración).",
+  "requisito": "Enunciado 3.2 (proteger el cultivo del estrés hídrico) y 3.3 (humedad del suelo)",
+  "pasos": [
+    {"t": 0, "sectores": {"s1": {"humitat-sol": 40, "temp-cultiu": 20, "radiacio": 150, "angle-ombra": -25}},
+     "esperado": {"s1": {"accion": "orientar-ombra", "impasse": null},
+                  "s2": {"accion": "mantenir-posicio"}, "s3": {"accion": "mantenir-posicio"}}}
+  ]
+}
