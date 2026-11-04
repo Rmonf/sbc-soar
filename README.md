@@ -93,9 +93,9 @@ Aprenentatge (t=1765): oblidat chunk-..., activacio=-2.001 < -2.0
 
 Requisitos: **Python** (la versión de `.python-version`) y **uv** (recomendado) o pip. Funciona en Linux, macOS y Windows 11.
 
+Descomprime el zip de la entrega y, desde la carpeta descomprimida:
+
 ```bash
-git clone https://github.com/Rmonf/sbc-soar.git
-cd sbc-soar
 uv sync
 ```
 
