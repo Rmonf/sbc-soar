@@ -128,7 +128,7 @@ uv run pytest                                    # todos los casos de prueba y l
 
 `demo` y `caso` admiten `--estrategia` (`depth`, `breadth`, `lex`, `mea`, `complexity`, `simplicity`, `random`). `demo` admite `--dias` y `--semilla`.
 
-**Experimento de la agenda.** Comprueba que la estrategia de resolución de conflictos de CLIPS cambia el **orden** en que disparan las reglas, pero no las **decisiones**: los conflictos del dominio se resuelven con preferencias, no con el orden de la agenda. Lo compara con **B0** (`clips/b0.clp`), una versión que decide "a la antigua", por `salience`, sin preferencias ni impasses: B0 se mueve mucho más y no puede explicar por qué elige.
+**Experimento de la agenda.** Comprueba que la estrategia de resolución de conflictos de CLIPS cambia el **orden** en que disparan las reglas, pero no las **decisiones**: los conflictos del dominio se resuelven con preferencias, no con el orden de la agenda. Lo compara con **B0** (`clips/b0.clp`), una versión que decide "a la antigua", por `salience`, sin preferencias ni impasses: B0 se mueve mucho más y solo explica las decisiones que le imponen las restricciones R1–R5; cuando puede elegir, decide por salience y sin criterio.
 
 Los resultados se guardan en `resultats/` (no se versiona).
 
