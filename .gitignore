@@ -7,9 +7,6 @@ __pycache__/
 .mypy_cache/
 *.egg-info/
  
-# Resultados de ejecuciones y experimentos (se regeneran)
-resultats/
- 
 # Editores y sistema operativo
 .vscode/
 .idea/
