@@ -87,6 +87,8 @@
    (do-for-fact ((?o observacion-panel)) (eq ?o:sector ?s) (bind ?previo ?o:angulo-actual))
    (bind ?sit (situacion ?s))
    (bind ?criterio (criterio-better operador-referencia ?c))
+   (if (eq ?criterio nil) then (do-for-fact ((?p preferencia)) (and (eq ?p:sector ?s) (eq ?p:tipo-preferencia reject))
+                                  (bind ?criterio ?p:criterio)))
    (bind ?chunk (chunk-de ?c))
    (bind ?ti (slot-impasse ?s tipo-impasse))
    (bind ?bc (beneficio-de ?c beneficio-cultivo))
